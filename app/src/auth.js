@@ -60,7 +60,7 @@ export function AuthScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: ins.top + 40, paddingBottom: ins.bottom + 30, flexGrow: 1, justifyContent: 'space-between' }} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingTop: ins.top + 40, paddingBottom: ins.bottom + 30, flexGrow: 1, justifyContent: 'space-between' }} keyboardShouldPersistTaps="handled">
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginBottom: 30 }}>
           <T d style={{ fontSize: 76, letterSpacing: -5, lineHeight: 80 }}>temp</T>
           <View style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: C.orange, marginBottom: 14 }} />

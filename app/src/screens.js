@@ -52,7 +52,7 @@ export function HomeScreen() {
           <IconBtn name="chatbubble-ellipses-outline" label="Messages" badge={unreadDM || null} onPress={() => nav.push('dms')} />
         </View>
       </View>
-      <FlatList data={posts} keyExtractor={(p) => String(p.id)} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}
+      <FlatList showsVerticalScrollIndicator={false} data={posts} keyExtractor={(p) => String(p.id)} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}
         onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.orange} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} />}
         ListHeaderComponent={
@@ -212,7 +212,7 @@ export function SearchScreen({ q: q0 }) {
           {q ? <Pressable onPress={() => setQ('')} accessibilityLabel="Clear"><Ionicons name="close" size={18} color={C.muted} /></Pressable> : null}
         </View>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }} keyboardShouldPersistTaps="handled">
         {!k ? <>
           <T d style={{ fontSize: 13, marginTop: 10, marginBottom: 6 }}>Hottest this week</T>
           <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14, paddingVertical: 4 }}>
@@ -268,7 +268,7 @@ export function ActivityScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Activity" back />
       <View style={{ paddingHorizontal: 16 }}><View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></View></View>
-      <FlatList data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
+      <FlatList showsVerticalScrollIndicator={false} data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
         renderItem={({ item: n }) => { const u = s.users[n.userId] || {}; return (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, borderRadius: 20, marginBottom: 6 }}>
             <Pressable onPress={() => nav.push('profile', { id: u.id })}><Avatar u={u} size={44} />
@@ -295,7 +295,7 @@ export function DMListScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Messages" back />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
         {ids.length ? <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14 }}>
           {ids.map((id) => { const m = s.threads[id].slice(-1)[0]; return <Row key={id} u={s.users[id]} sub={last(m) + ' · ' + ago(Date.now() - m.at)} unread={s.unread[id]} />; })}</View> : null}
         {others.length ? <><T d style={{ fontSize: 13, marginTop: 20, marginBottom: 6 }}>Suggested</T>
@@ -317,7 +317,7 @@ export function ThreadScreen({ id }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
       <Header back title={u.name} right={<Pressable onPress={() => nav.push('profile', { id })}><Avatar u={u} size={36} /></Pressable>} />
-      <FlatList ref={list} data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: 16, gap: 4 }}
+      <FlatList showsVerticalScrollIndicator={false} ref={list} data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: 16, gap: 4 }}
         onContentSizeChange={() => list.current && list.current.scrollToEnd({ animated: false })}
         ListEmptyComponent={<Empty text={'Say hi to @' + u.handle} />}
         ListFooterComponent={seen ? <T b muted style={{ alignSelf: 'flex-end', fontSize: 12, marginTop: 2 }}>Seen</T> : null}

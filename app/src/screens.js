@@ -40,7 +40,7 @@ export function HomeScreen() {
   const others = s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]);
   const unseen = (st) => st.items.some((i) => !s.seen[i.id]);
   const { uploading } = useApp();
-  const addStory = async () => { const a = await pickMedia(); if (a) nav.sheet('storyDraft', { asset: a }); };
+  const addStory = () => nav.sheet('recorder', { mode: 'story' });
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>

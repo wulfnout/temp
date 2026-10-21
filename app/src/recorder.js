@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, T, Btn } from './ui';
 import { Video } from './posts';
 import { act } from './data';
+import * as ImagePicker from 'expo-image-picker';
 import { F } from './lib';
 
 /* Filters are color layers drawn over the video when it plays, so they look the same in the app and on the website. */
@@ -41,7 +42,7 @@ export function ReplayOverlay({ overlay, small }) {
 }
 
 const MAX = 60;
-export function Recorder({ onClose }) {
+export function Recorder({ onClose, startMode = 'replay' }) {
   const { C, s, run, nav } = useApp(); const ins = useSafeAreaInsets();
   const [camPerm, askCam] = useCameraPermissions(); const [micPerm, askMic] = useMicrophonePermissions();
   const cam = useRef(null); const [ready, setReady] = useState(false);
@@ -52,6 +53,22 @@ export function Recorder({ onClose }) {
   const [filter, setFilter] = useState('none'); const [text, setText] = useState(''); const [textPos, setTextPos] = useState('middle'); const [color, setColor] = useState('#ffffff');
   const [trimStart, setTrimStart] = useState(0); const [trimEnd, setTrimEnd] = useState(0); const [caption, setCaption] = useState(''); const [busy, setBusy] = useState(false);
   const prog = useRef(new Animated.Value(0)).current;
+  const [mode, setMode] = useState(startMode); const [shot, setShot] = useState('photo'); // story: photo | video
+  const maxLen = mode === 'story' ? 15 : MAX;
+  const camMode = mode === 'story' && shot === 'photo' ? 'picture' : 'video';
+  async function fromGallery() {
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: mode === 'story' ? ['images', 'videos'] : ['videos'], quality: 0.85, videoMaxDuration: maxLen });
+    if (r.canceled || !r.assets || !r.assets[0]) return;
+    const a = r.assets[0];
+    if (mode === 'story') { onClose(); setTimeout(() => nav.sheet('storyDraft', { asset: a }), 200); return; }
+    const dur = Math.max(1, Math.min(MAX, (a.duration || MAX * 1000) / 1000));
+    setClip({ uri: a.uri, dur, mimeType: a.mimeType, fileName: a.fileName }); setTrimStart(0); setTrimEnd(+dur.toFixed(1)); setPhase('edit');
+  }
+  async function snap() {
+    if (!ready || !cam.current) return;
+    try { const p = await cam.current.takePictureAsync({ quality: 0.85 }); onClose(); setTimeout(() => nav.sheet('storyDraft', { asset: { uri: p.uri, type: 'image', mimeType: 'image/jpeg', fileName: 'story.jpg' } }), 200); }
+    catch (e) { nav.toast('Couldn’t take the photo. Try again.'); }
+  }
 
   useEffect(() => () => clearInterval(tick.current), []);
   const permsOk = camPerm && camPerm.granted && micPerm && micPerm.granted;
@@ -59,18 +76,20 @@ export function Recorder({ onClose }) {
   async function begin() {
     if (!ready || !cam.current) return;
     setPhase('recording'); started.current = Date.now(); setElapsed(0); prog.setValue(0);
-    Animated.timing(prog, { toValue: 1, duration: MAX * 1000, easing: Easing.linear, useNativeDriver: false }).start();
+    Animated.timing(prog, { toValue: 1, duration: maxLen * 1000, easing: Easing.linear, useNativeDriver: false }).start();
     tick.current = setInterval(() => setElapsed((Date.now() - started.current) / 1000), 200);
     try {
-      const v = await cam.current.recordAsync({ maxDuration: MAX });
+      const v = await cam.current.recordAsync({ maxDuration: maxLen });
       clearInterval(tick.current); prog.stopAnimation();
-      const dur = Math.max(1, Math.min(MAX, (Date.now() - started.current) / 1000));
+      const dur = Math.max(1, Math.min(maxLen, (Date.now() - started.current) / 1000));
+      if (v && v.uri && mode === 'story') { const mov = /\.mov$/i.test(v.uri); onClose(); setTimeout(() => nav.sheet('storyDraft', { asset: { uri: v.uri, type: 'video', mimeType: mov ? 'video/quicktime' : 'video/mp4', fileName: mov ? 'story.mov' : 'story.mp4' } }), 200); return; }
       if (v && v.uri) { setClip({ uri: v.uri, dur }); setTrimStart(0); setTrimEnd(dur); setPhase('edit'); } else setPhase('camera');
     } catch (e) { clearInterval(tick.current); setPhase('camera'); nav.toast('Recording stopped. Try again.'); }
   }
   function shutter() {
     if (phase === 'recording') { cam.current && cam.current.stopRecording(); return; }
     if (phase !== 'camera') return;
+    if (camMode === 'picture') return snap();
     if (!countdown) return begin();
     setPhase('counting'); setCount(3); let n = 3;
     const t = setInterval(() => { n -= 1; if (n <= 0) { clearInterval(t); begin(); } else setCount(n); }, 1000);
@@ -79,7 +98,7 @@ export function Recorder({ onClose }) {
     if (!clip || busy) return; setBusy(true);
     const overlay = { filter, text: text.trim(), textPos, color, trimStart: +trimStart.toFixed(1), trimEnd: +trimEnd.toFixed(1), dur: +clip.dur.toFixed(1) };
     const isMov = /\.mov$/i.test(clip.uri);
-    const asset = { uri: clip.uri, type: 'video', mimeType: isMov ? 'video/quicktime' : 'video/mp4', fileName: isMov ? 'replay.mov' : 'replay.mp4' };
+    const asset = { uri: clip.uri, type: 'video', mimeType: clip.mimeType || (isMov ? 'video/quicktime' : 'video/mp4'), fileName: clip.fileName || (isMov ? 'replay.mov' : 'replay.mp4') };
     const ok = await run(() => act.post(s.me, { text: caption.trim(), asset, reel: true, overlay }), { toast: 'Replay posted' });
     setBusy(false); if (ok) { onClose(); nav.tab('replay'); }
   }
@@ -113,12 +132,12 @@ export function Recorder({ onClose }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
         {phase !== 'edit' ? (
           <View style={{ flex: 1 }}>
-            <CameraView ref={cam} style={{ flex: 1 }} mode="video" facing={facing} enableTorch={torch} onCameraReady={() => setReady(true)} />
+            <CameraView ref={cam} style={{ flex: 1 }} mode={camMode} facing={facing} enableTorch={torch} onCameraReady={() => setReady(true)} />
             <ReplayOverlay overlay={{ filter }} />
             <View style={{ position: 'absolute', top: ins.top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Pressable onPress={onClose} accessibilityLabel="Close" hitSlop={10}><Ionicons name="close" size={30} color="#fff" /></Pressable>
               <View style={{ flex: 1 }} />
-              {phase === 'recording' ? <T h style={{ color: '#fff', fontSize: 15 }}>{elapsed.toFixed(0)}s / {MAX}s</T> : <>
+              {phase === 'recording' ? <T h style={{ color: '#fff', fontSize: 15 }}>{elapsed.toFixed(0)}s / {maxLen}s</T> : <>
                 <Pressable onPress={() => setTorch(!torch)} accessibilityLabel="Flash" style={{ padding: 6 }}><Ionicons name={torch ? 'flash' : 'flash-off'} size={24} color="#fff" /></Pressable>
                 <Pressable onPress={() => setCountdown(!countdown)} accessibilityLabel="3 second countdown" style={{ padding: 6 }}><Ionicons name="timer-outline" size={24} color={countdown ? C.orange : '#fff'} /></Pressable>
                 <Pressable onPress={() => setFacing(facing === 'back' ? 'front' : 'back')} accessibilityLabel="Flip camera" style={{ padding: 6 }}><Ionicons name="camera-reverse-outline" size={26} color="#fff" /></Pressable>
@@ -126,14 +145,26 @@ export function Recorder({ onClose }) {
             </View>
             {phase === 'counting' ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
               <T d style={{ color: '#fff', fontSize: 120 }}>{count}</T></View> : null}
-            <View style={{ position: 'absolute', left: 0, right: 0, bottom: ins.bottom + 20, alignItems: 'center', gap: 16 }}>
-              {phase === 'camera' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 16 }}>
+            <View style={{ position: 'absolute', left: 0, right: 0, bottom: ins.bottom + 16, alignItems: 'center', gap: 16 }}>
+              {phase === 'camera' && mode === 'replay' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 16 }}>
                 {Object.entries(FILTERS).map(([k, f]) => <Chip key={k} on={filter === k} label={f.name} onPress={() => setFilter(k)} />)}</ScrollView> : null}
-              <Pressable onPress={shutter} accessibilityLabel={phase === 'recording' ? 'Stop recording' : 'Record'} style={{ width: 84, height: 84, borderRadius: 42, borderWidth: 5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{ width: phase === 'recording' ? 30 : 64, height: phase === 'recording' ? 30 : 64, borderRadius: phase === 'recording' ? 8 : 32, backgroundColor: C.orange }} />
-              </Pressable>
+              {phase === 'camera' && mode === 'story' ? <View style={{ flexDirection: 'row', gap: 6 }}>
+                <Chip on={shot === 'photo'} label="Photo" onPress={() => setShot('photo')} /><Chip on={shot === 'video'} label="Video" onPress={() => setShot('video')} /></View> : null}
+              <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 34 }}>
+                <Pressable onPress={fromGallery} disabled={phase !== 'camera'} accessibilityLabel="Choose from your photos"
+                  style={{ width: 46, height: 46, borderRadius: 12, borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', opacity: phase === 'camera' ? 1 : 0 }}>
+                  <Ionicons name="images-outline" size={22} color="#fff" /></Pressable>
+                <Pressable onPress={shutter} accessibilityLabel={phase === 'recording' ? 'Stop recording' : camMode === 'picture' ? 'Take photo' : 'Record'} style={{ width: 84, height: 84, borderRadius: 42, borderWidth: 5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ width: phase === 'recording' ? 30 : 64, height: phase === 'recording' ? 30 : 64, borderRadius: phase === 'recording' ? 8 : 32, backgroundColor: camMode === 'picture' ? '#fff' : C.orange }} />
+                </Pressable>
+                <View style={{ width: 46 }} />
+              </View>
               {phase === 'recording' ? <View style={{ width: '70%', height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,.25)', overflow: 'hidden' }}>
                 <Animated.View style={{ height: 4, backgroundColor: C.orange, width: prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} /></View> : null}
+              {phase === 'camera' ? <View style={{ flexDirection: 'row', gap: 22 }}>
+                {[['story', 'STORY'], ['replay', 'REPLAY']].map(([k, l]) => <Pressable key={k} onPress={() => setMode(k)} hitSlop={8}>
+                  <T h style={{ color: mode === k ? '#fff' : 'rgba(255,255,255,.55)', fontSize: 14, letterSpacing: 1 }}>{l}</T></Pressable>)}
+              </View> : null}
               {!ready ? <ActivityIndicator color="#fff" /> : null}
             </View>
           </View>

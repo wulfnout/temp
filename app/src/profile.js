@@ -232,7 +232,7 @@ export function Composer({ reel: reel0, onClose }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {!reel ? <Btn small kind="ghost" icon="image-outline" title="Photo / GIF" onPress={async () => { const a = await pickMedia('image'); if (a) setAsset(a); }} /> : null}
-          {reel ? <Btn small kind="orange" icon="radio-button-on" title="Record" onPress={() => { onClose(); setTimeout(() => nav.sheet('recorder'), 250); }} /> : null}
+          {reel ? <Btn small kind="orange" icon="radio-button-on" title="Record" onPress={() => { onClose(); setTimeout(() => nav.sheet('recorder', { mode: 'replay' }), 250); }} /> : null}
           <Btn small kind="ghost" icon="videocam-outline" title={reel ? 'Upload' : 'Video'} onPress={async () => { const a = await pickMedia('video'); if (a) setAsset(a); }} />
         </View>
         <T b style={{ color: over ? C.orange : C.muted, fontSize: 13 }}>{max - text.length}</T>

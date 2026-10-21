@@ -512,6 +512,12 @@ img,video{max-width:100%;display:block}
 .rec-shutter{width:84px;height:84px;border-radius:50%;border:5px solid #fff;display:grid;place-items:center}
 .rec-shutter span{width:64px;height:64px;border-radius:50%;background:var(--orange);transition:all .2s}
 .rec-shutter.on span{width:30px;height:30px;border-radius:8px}
+.rec-controls{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+.rec-gal{width:46px;height:46px;border-radius:12px;border:2px solid #fff;display:grid;place-items:center;color:#fff}
+.rec-shutter.photo span{background:#fff}
+.rec-modes{display:flex;gap:22px}
+.rec-modes button{color:rgba(255,255,255,.55);font-weight:800;font-size:14px;letter-spacing:.08em}
+.rec-modes button[aria-pressed="true"]{color:#fff}
 .rec-prog{width:70%;height:4px;border-radius:2px;background:rgba(255,255,255,.25);overflow:hidden}
 .rec-prog div{height:100%;background:var(--orange)}
 .rec-edit{gap:10px}
@@ -1254,13 +1260,30 @@ function pickMime(){
   try{return c.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||''}catch(e){return ''}
 }
 const REC_MAX=60;
-function Recorder({s,dispatch,onClose,open}){
+function Recorder({s,dispatch,onClose,open,startMode,onStory}){
   const live=useRef(),stream=useRef(null),rec=useRef(null),chunks=useRef([]),t0=useRef(0),timer=useRef(null);
   const [phase,setPhase]=useState('start');      // start | camera | counting | recording | edit
   const [err,setErr]=useState('');const [facing,setFacing]=useState('user');const [torch,setTorch]=useState(false);const [canTorch,setCanTorch]=useState(false);
   const [countdown,setCountdown]=useState(false);const [count,setCount]=useState(3);const [elapsed,setElapsed]=useState(0);
   const [clip,setClip]=useState(null);const [filter,setFilter]=useState('none');const [text,setText]=useState('');const [pos,setPos]=useState('middle');const [color,setColor]=useState('#ffffff');
   const [ts,setTs]=useState(0);const [te,setTe]=useState(0);const [caption,setCaption]=useState('');const ed=useRef();
+  const [mode,setMode]=useState(startMode||'replay');const [shot,setShot]=useState('photo');const gal=useRef();
+  const maxLen=mode==='story'?15:REC_MAX;const photo=mode==='story'&&shot==='photo';
+  useEffect(()=>{startCam()},[]);
+  function snap(){
+    const v=live.current;if(!v||!v.videoWidth)return;
+    const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;const g=c.getContext('2d');
+    if(facing==='user'){g.translate(c.width,0);g.scale(-1,1)}
+    g.drawImage(v,0,0);
+    c.toBlob(b=>{if(!b)return;const file=new File([b],'story.jpg',{type:'image/jpeg'});stopStream();onStory({url:URL.createObjectURL(b),type:'image',file})},'image/jpeg',.88);
+  }
+  function fromGallery(e){
+    const f=e.target.files[0];e.target.value='';if(!f)return;
+    const url=URL.createObjectURL(f);const isVid=f.type.startsWith('video');
+    if(mode==='story'){stopStream();onStory({url,type:isVid?'video':'image',file:f});return}
+    if(!isVid){setErr('Replays need a video.');return}
+    stopStream();setClip({url,file:f,dur:0});setTs(0);setTe(0);setPhase('edit');
+  }
   const stopStream=()=>{if(stream.current){stream.current.getTracks().forEach(t=>t.stop());stream.current=null}};
   async function startCam(face=facing){
     setErr('');stopStream();
@@ -1282,14 +1305,15 @@ function Recorder({s,dispatch,onClose,open}){
     rec.current=r;r.ondataavailable=e=>{if(e.data&&e.data.size)chunks.current.push(e.data)};
     r.onstop=()=>{clearInterval(timer.current);const type=(r.mimeType||mime||'video/webm').split(';')[0];const blob=new Blob(chunks.current,{type});
       const dur=Math.max(1,Math.min(REC_MAX,(Date.now()-t0.current)/1000));stopStream();
-      const ext=type.includes('mp4')?'mp4':'webm';const file=new File([blob],'replay.'+ext,{type});
+      const ext=type.includes('mp4')?'mp4':'webm';const file=new File([blob],(mode==='story'?'story.':'replay.')+ext,{type});
+      if(mode==='story'){onStory({url:URL.createObjectURL(blob),type:'video',file});return}
       setClip({url:URL.createObjectURL(blob),file,dur});setTs(0);setTe(+dur.toFixed(1));setPhase('edit')};
     r.start(250);t0.current=Date.now();setElapsed(0);setPhase('recording');
-    timer.current=setInterval(()=>{const e=(Date.now()-t0.current)/1000;setElapsed(e);if(e>=REC_MAX&&r.state==='recording')r.stop()},200);
+    timer.current=setInterval(()=>{const e=(Date.now()-t0.current)/1000;setElapsed(e);if(e>=maxLen&&r.state==='recording')r.stop()},200);
   }
   function shutter(){
     if(phase==='recording'){rec.current&&rec.current.state==='recording'&&rec.current.stop();return}
-    if(phase!=='camera')return;if(!countdown)return begin();
+    if(phase!=='camera')return;if(photo)return snap();if(!countdown)return begin();
     setPhase('counting');let n=3;setCount(3);const t=setInterval(()=>{n--;if(n<=0){clearInterval(t);begin()}else setCount(n)},1000);
   }
   // keep the edit preview inside the trim
@@ -1304,7 +1328,7 @@ function Recorder({s,dispatch,onClose,open}){
   const chips=html`<div className="rec-chips">${Object.entries(FILTERS).map(([k,f])=>html`<button key=${k} aria-pressed=${filter===k} onClick=${()=>setFilter(k)}>${f.name}</button>`)}</div>`;
   return html`<div className="sv rec" role="dialog" aria-label="Record a Replay"><div className="sv-in">
     ${phase==='edit'?html`
-      <div className="sv-media"><video ref=${ed} src=${clip.url} playsInline loop autoPlay></video></div>
+      <div className="sv-media"><video ref=${ed} src=${clip.url} playsInline loop autoPlay onLoadedMetadata=${e=>{if(!clip.dur){const d=Math.max(1,Math.min(REC_MAX,e.target.duration||REC_MAX));setClip({...clip,dur:d});setTe(+d.toFixed(1))}}}></video></div>
       <${ReplayOverlay} o=${{filter,text,textPos:pos,color}}/>
       <div className="sv-head"><button className="rec-back" onClick=${()=>{setClip(null);startCam()}}><${Icon} n="back" s=${20}/>Retake</button>
         <div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Discard"><${Icon} n="x"/></button></div></div>
@@ -1328,18 +1352,25 @@ function Recorder({s,dispatch,onClose,open}){
       <${ReplayOverlay} o=${{filter}}/>
       <div className="sv-head">
         <button className="sv-close" onClick=${onClose} aria-label="Close"><${Icon} n="x"/></button>
-        <div className="sv-btns">${phase==='recording'?html`<b>${Math.floor(elapsed)}s / ${REC_MAX}s</b>`:phase==='camera'?html`
+        <div className="sv-btns">${phase==='recording'?html`<b>${Math.floor(elapsed)}s / ${maxLen}s</b>`:phase==='camera'?html`
           ${canTorch&&html`<button className="sv-close" onClick=${toggleTorch} aria-label="Flash" aria-pressed=${torch}><${Icon} n="bolt" fill=${torch?'#fff':null}/></button>`}
           <button className="sv-close" onClick=${()=>setCountdown(!countdown)} aria-label="3 second countdown" aria-pressed=${countdown} style=${{color:countdown?'var(--orange)':'#fff'}}><${Icon} n="clock"/></button>
           <button className="sv-close" onClick=${flip} aria-label="Flip camera"><${Icon} n="replay"/></button>`:null}</div></div>
-      ${phase==='start'&&html`<div className="rec-start"><h2>Record a Replay</h2><p>Up to ${REC_MAX} seconds. Trim, add a filter and text after.</p>
-        <button className="btn orange wide" onClick=${()=>startCam()}>Open camera</button>${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}</div>`}
+      ${phase==='start'&&html`<div className="rec-start"><h2>${mode==='story'?'Add to your story':'Record a Replay'}</h2><p>${err?'':'Opening your camera…'}</p>
+        ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p><button className="btn orange wide" onClick=${()=>startCam()}>Try again</button><button className="btn ghost wide" onClick=${()=>gal.current.click()}>Choose from your photos</button>`}</div>`}
       ${phase==='counting'&&html`<div className="rec-count">${count}</div>`}
       ${phase!=='start'&&html`<div className="sv-foot rec-foot">
-        ${phase==='camera'&&chips}
-        <button className=${'rec-shutter'+(phase==='recording'?' on':'')} onClick=${shutter} aria-label=${phase==='recording'?'Stop recording':'Record'}><span></span></button>
-        ${phase==='recording'&&html`<div className="rec-prog"><div style=${{width:Math.min(100,elapsed/REC_MAX*100)+'%'}}></div></div>`}
+        ${phase==='camera'&&mode==='replay'&&chips}
+        ${phase==='camera'&&mode==='story'&&html`<div className="rec-chips"><button aria-pressed=${shot==='photo'} onClick=${()=>setShot('photo')}>Photo</button><button aria-pressed=${shot==='video'} onClick=${()=>setShot('video')}>Video</button></div>`}
+        <div className="rec-controls">
+          <button className="rec-gal" onClick=${()=>gal.current.click()} aria-label="Choose from your photos" style=${{visibility:phase==='camera'?'visible':'hidden'}}><${Icon} n="image" s=${22}/></button>
+          <button className=${'rec-shutter'+(phase==='recording'?' on':'')+(photo?' photo':'')} onClick=${shutter} aria-label=${phase==='recording'?'Stop recording':photo?'Take photo':'Record'}><span></span></button>
+          <span style=${{width:46}}></span>
+        </div>
+        ${phase==='recording'&&html`<div className="rec-prog"><div style=${{width:Math.min(100,elapsed/maxLen*100)+'%'}}></div></div>`}
+        ${phase==='camera'&&html`<div className="rec-modes">${[['story','STORY'],['replay','REPLAY']].map(([k,l])=>html`<button key=${k} aria-pressed=${mode===k} onClick=${()=>setMode(k)}>${l}</button>`)}</div>`}
       </div>`}`}
+    <input ref=${gal} type="file" className="vh" id="cam-gallery" accept=${mode==='story'?'image/*,video/*':'video/*'} onChange=${fromGallery}/>
   </div></div>`;
 }
 
@@ -1454,7 +1485,7 @@ function Composer({s,dispatch,onClose,startReel,open}){
       <div className="c-tools">
         ${!reel&&html`<button onClick=${()=>pick('image/*')}><${Icon} n="image" s=${19}/>Photo</button>
         <button onClick=${()=>pick('image/gif')}><${Icon} n="gif" s=${19}/>GIF</button>`}
-        ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record()}}><span className="rec-dot"></span>Record</button>`}
+        ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record('replay')}}><span className="rec-dot"></span>Record</button>`}
         <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>${reel?'Upload':'Video'}</button>
         ${adult&&s.users.me.plus&&html`<button className=${nsfw?'tool-on':''} aria-pressed=${nsfw} onClick=${()=>setNsfw(!nsfw)}>18+</button>`}
         <input ref=${fileRef} id="compose-file" type="file" className="vh" onChange=${e=>{const f=e.target.files[0];if(f)setMedia(readFile(f));e.target.value=''}}/>
@@ -2207,13 +2238,13 @@ function App(){
     search:q=>{setQuery(q);setView({tab:'search'})},
     replay:id=>setView({tab:'replay',reelId:id}),
     compose:reel=>setSheet({kind:'compose',reel}),
-    record:()=>setSheet({kind:'record'}),
+    record:m=>setSheet({kind:'record',mode:m||'replay'}),
     shop:()=>setView({tab:'shop'}),
     plus:()=>setView({tab:'plus'}),
   };
   const guard=fn=>(...a)=>{if(tour!==null)return;fn(...a)};
   const openSafe=Object.fromEntries(Object.entries(open).map(([k,f])=>[k,guard(f)]));
-  const addStory=guard(()=>storyFile.current.click());
+  const addStory=guard(()=>setSheet({kind:'record',mode:'story'}));
   const sheetPost=sheet&&sheet.id?s.posts.find(p=>p.id===sheet.id):null;
   const close=()=>setSheet(null);
   const unread=Object.keys(s.unread).filter(id=>!s.blocked[id]).length;
@@ -2281,12 +2312,12 @@ function App(){
       onChange=${e=>{const f=e.target.files[0];if(f){const r=readFile(f);setStoryDraft({url:r.url,type:r.type,file:f})}e.target.value=''}}/>
     ${storyDraft&&html`<${StoryDraft} draft=${storyDraft} onClose=${()=>setStoryDraft(null)} onPost=${cap=>{dispatch({type:'story',url:storyDraft.url,mtype:storyDraft.type,file:storyDraft.file,caption:cap});setStoryDraft(null)}}/>`}
     ${sheet&&sheet.kind==='compose'&&html`<${Composer} s=${s} dispatch=${dispatch} onClose=${close} startReel=${sheet.reel} open=${open}/>`}
-    ${sheet&&sheet.kind==='record'&&html`<${Recorder} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
+    ${sheet&&sheet.kind==='record'&&html`<${Recorder} s=${s} dispatch=${dispatch} onClose=${close} open=${open} startMode=${sheet.mode} onStory=${d=>{close();setStoryDraft(d)}}/>`}
     ${sheet&&sheet.kind==='comments'&&sheetPost&&html`<${Comments} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='share'&&sheetPost&&html`<${Share} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${sheet&&sheet.kind==='menu'&&sheetPost&&html`<${PostMenu} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='edit'&&html`<${EditProfile} s=${s} dispatch=${dispatch} onClose=${close}/>`}
-    ${storyUser&&html`<${StoryViewer} s=${s} startUser=${storyUser} dispatch=${dispatch} onClose=${()=>setStoryUser(null)} onAdd=${()=>{setStoryUser(null);storyFile.current.click()}}/>`}
+    ${storyUser&&html`<${StoryViewer} s=${s} startUser=${storyUser} dispatch=${dispatch} onClose=${()=>setStoryUser(null)} onAdd=${()=>{setStoryUser(null);setSheet({kind:'record',mode:'story'})}}/>`}
     ${breakOpen&&html`<div className="modal" role="dialog" aria-label="Take a break"><div className="modal-card">
       <span className="orb" style=${{width:64,height:64}}><span className="av" style=${{width:'100%',height:'100%',background:'var(--card)',borderRadius:'inherit',border:0}}><${Icon} n="clock" s=${26}/></span></span>
       <h3>Time for a break?</h3><p className="sub" style=${{margin:0}}>You’ve been scrolling for ${s.settings.breakMins} minutes.</p>

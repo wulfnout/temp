@@ -132,7 +132,7 @@ function Root() {
       {sheet && sheet.name === 'share' ? <ShareSheet post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'menu' ? <PostMenu post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'story' ? <StoryViewer userId={sheet.params.userId} onClose={() => setSheet(null)} /> : null}
-      {sheet && sheet.name === 'recorder' ? <Recorder onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'recorder' ? <Recorder startMode={sheet.params.mode || 'replay'} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'storyDraft' ? <StoryDraft asset={sheet.params.asset} onClose={() => setSheet(null)} /> : null}
       {toast ? <Toast text={toast} /> : null}
     </Ctx.Provider>

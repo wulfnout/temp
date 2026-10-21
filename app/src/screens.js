@@ -38,8 +38,8 @@ export function HomeScreen() {
   const mine = s.stories.find((x) => x.userId === s.me);
   const others = s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]);
   const unseen = (st) => st.items.some((i) => !s.seen[i.id]);
-  const [uploading, setUploading] = useState(false);
-  const addStory = async () => { const a = await pickMedia(); if (!a) return; setUploading(true); nav.toast('Uploading your story…'); await run(() => act.story(s.me, a), { toast: 'Your story is up' }); setUploading(false); };
+  const { uploading } = useApp();
+  const addStory = async () => { const a = await pickMedia(); if (a) nav.sheet('storyDraft', { asset: a }); };
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
@@ -197,15 +197,16 @@ export function UserRow({ u, right }) {
 }
 
 /* ---------------- activity ---------------- */
-const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral'], comments: ['mention', 'likeComment', 'reply', 'comment'] };
+const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
 export function ActivityScreen() {
   const { s, C, nav } = useApp(); const [tab, setTab] = useState('social');
   useEffect(() => { const t = setTimeout(() => act.readNotifs(s.me, GROUPS[tab]), 1200); return () => clearTimeout(t); }, [tab]);
   const list = s.notifs.filter((n) => !s.blocked[n.userId] && GROUPS[tab].includes(n.type));
   const unread = (k) => s.notifs.filter((n) => !n.read && GROUPS[k].includes(n.type)).length;
   const text = (n) => ({ follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
-    heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take went viral. ' + n.text }[n.type] || n.text);
-  const icon = { follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
+    heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take went viral. ' + n.text,
+    storyComment: 'commented on your story: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
+  const icon = { storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
   const Seg = ({ k, label }) => (
     <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>

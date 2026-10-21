@@ -6,11 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Unbounded_700Bold, Unbounded_800ExtraBold } from '@expo-google-fonts/unbounded';
 import { Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold } from '@expo-google-fonts/figtree';
 import { sb, useColors, friendly, F } from './src/lib';
-import { loadAll, EMPTY } from './src/data';
+import { loadAll, EMPTY, act } from './src/data';
 import { Ctx, Avatar } from './src/ui';
 import { AuthScreen } from './src/auth';
 import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen } from './src/screens';
-import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer } from './src/profile';
+import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft } from './src/profile';
 import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
 
 export default function App() {
@@ -32,6 +32,7 @@ function Root() {
   const [stack, setStack] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [toast, setToast] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const myId = session && session.user && session.user.id;
 
   useEffect(() => {
@@ -89,7 +90,12 @@ function Root() {
     return () => sub.remove();
   }, [sheet, stack, tab]);
 
-  const ctx = { s, C, run, nav, reload };
+  async function postStory(asset, caption) {
+    setSheet(null); setUploading(true); say('Uploading your story…');
+    await run(() => act.story(s.me, asset, caption), { toast: 'Your story is up' });
+    setUploading(false);
+  }
+  const ctx = { s, C, run, nav, reload, uploading, postStory };
 
   if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;
@@ -125,6 +131,7 @@ function Root() {
       {sheet && sheet.name === 'share' ? <ShareSheet post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'menu' ? <PostMenu post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'story' ? <StoryViewer userId={sheet.params.userId} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'storyDraft' ? <StoryDraft asset={sheet.params.asset} onClose={() => setSheet(null)} /> : null}
       {toast ? <Toast text={toast} /> : null}
     </Ctx.Provider>
   );

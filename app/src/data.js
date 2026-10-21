@@ -56,7 +56,15 @@ export async function loadAll(myId) {
     myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [],
   }));
   const st = {};
-  stories.forEach((x) => { if (!users[x.user_id]) return; (st[x.user_id] = st[x.user_id] || { userId: x.user_id, items: [] }).items.push({ id: x.id, type: x.media_type, url: x.media_url, at: +new Date(x.created_at) }); });
+  const sids = stories.map((x) => x.id);
+  const [scom, sreact] = sids.length ? await Promise.all([
+    q(sb.from('story_comments').select('*').in('story_id', sids).order('created_at').limit(3000)),
+    q(sb.from('story_reactions').select('story_id,user_id,emoji').in('story_id', sids).limit(10000))]) : [[], []];
+  const sc = {}, sr = {}, smy = {};
+  scom.forEach((c) => { if (!users[c.user_id]) return; (sc[c.story_id] = sc[c.story_id] || []).push({ id: c.id, userId: c.user_id, text: c.text, at: +new Date(c.created_at) }); });
+  sreact.forEach((r) => { const m = (sr[r.story_id] = sr[r.story_id] || {}); m[r.emoji] = (m[r.emoji] || 0) + 1; if (r.user_id === myId) smy[r.story_id] = r.emoji; });
+  stories.forEach((x) => { if (!users[x.user_id]) return; (st[x.user_id] = st[x.user_id] || { userId: x.user_id, items: [] }).items.push({ id: x.id, type: x.media_type, url: x.media_url, caption: x.caption || '', at: +new Date(x.created_at),
+    comments: sc[x.id] || [], reacts: sr[x.id] || {}, myReact: smy[x.id] || null }); });
   const seen = {}; sviews.forEach((v) => (seen[v.story_id] = true));
   const threads = {}, unread = {}, seenBy = {};
   msgs.forEach((m) => {
@@ -87,7 +95,11 @@ export const act = {
   comment: (postId, text, sticker) => ok(sb.from('comments').insert({ post_id: postId, text: text || '', sticker: sticker || null })),
   likeComment: (cid, liked, me) => (liked ? ok(sb.from('comment_likes').delete().eq('comment_id', cid).eq('user_id', me)) : ok(sb.from('comment_likes').insert({ comment_id: cid }))),
   follow: (uid, following, me) => (following ? ok(sb.from('follows').delete().eq('follower', me).eq('followee', uid)) : ok(sb.from('follows').insert({ followee: uid }))),
-  async story(me, asset) { const url = await upload(me, asset); return ok(sb.from('stories').insert({ media_url: url, media_type: asset.type === 'video' ? 'video' : 'image' })); },
+  async story(me, asset, caption) { const url = await upload(me, asset); return ok(sb.from('stories').insert({ media_url: url, media_type: asset.type === 'video' ? 'video' : 'image', caption: caption || '' })); },
+  storyComment: (id, text) => ok(sb.from('story_comments').insert({ story_id: id, text })),
+  storyReact: (id, emoji, current, me) => (current === emoji
+    ? ok(sb.from('story_reactions').delete().eq('story_id', id).eq('user_id', me))
+    : ok(sb.from('story_reactions').upsert({ story_id: id, user_id: me, emoji }, { onConflict: 'story_id,user_id' }))),
   seenStory: (id) => sb.from('story_views').upsert({ story_id: id }, { onConflict: 'story_id,user_id', ignoreDuplicates: true }),
   dm: (to, { text, sticker, post, note }) => {
     const snap = post ? { userId: post.userId, text: post.text, media: post.mediaUrl ? { type: post.mediaType || (post.reel ? 'video' : 'image'), url: post.mediaUrl } : null } : null;

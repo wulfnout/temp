@@ -56,7 +56,7 @@ export async function loadAll(myId) {
   const P = posts.filter((p) => users[p.user_id]).map((p) => ({
     id: p.id, userId: p.user_id, text: p.text || '', mediaUrl: p.media_url, mediaType: p.media_type, gif: p.is_gif, reel: p.reel, seed: p.clip_seed || 1,
     createdAt: +new Date(p.created_at), status: p.status, burnEnds: p.burn_ends ? +new Date(p.burn_ends) : null, heat: p.heat, freeze: p.freezes, views: p.views,
-    myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [], reposts: p.reposts || 0, myRepost: myReposts.has(p.id),
+    myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [], reposts: p.reposts || 0, myRepost: myReposts.has(p.id), overlay: p.overlay || null,
   }));
   const st = {};
   const sids = stories.map((x) => x.id);
@@ -90,8 +90,9 @@ export const act = {
   view: (postId) => sb.rpc('add_view', { pid: postId }),
   repost: (postId, reposted, me) => (reposted ? ok(sb.from('reposts').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('reposts').insert({ post_id: postId }))),
   save: (postId, saved, me) => (saved ? ok(sb.from('saves').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('saves').insert({ post_id: postId }))),
-  async post(me, { text, asset, reel }) {
+  async post(me, { text, asset, reel, overlay }) {
     const row = { text: text || '', reel: !!reel };
+    if (overlay) row.overlay = overlay;
     if (asset) { row.media_url = await upload(me, asset); row.media_type = asset.type === 'video' ? 'video' : 'image'; row.is_gif = /gif/i.test(asset.mimeType || asset.uri || ''); }
     else if (reel) row.clip_seed = Math.floor(Math.random() * 9999) + 1;
     return ok(sb.from('posts').insert(row));

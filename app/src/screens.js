@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
 import { PostCard, Video, RichText } from './posts';
 import { act } from './data';
+import { ReplayOverlay } from './recorder';
 import { sb, ago, kfmt, F, THEMES, tempOf } from './lib';
 
 export async function pickMedia(kind = 'all') {
@@ -106,7 +107,7 @@ export function ReplayGrid({ posts }) {
       {posts.map((p) => (
         <Pressable key={p.id} onPress={() => nav.tab('replay', { startId: p.id })} accessibilityLabel={'Play Replay' + (p.text ? ': ' + p.text : '')}
           style={{ width: '32.6%', aspectRatio: 9 / 14, backgroundColor: '#0a0a0a', overflow: 'hidden' }}>
-          {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} muted /> : (
+          {p.mediaUrl ? <><Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} muted trim={p.overlay && p.overlay.trimStart ? { trimStart: p.overlay.trimStart } : null} /><ReplayOverlay overlay={p.overlay} small /></> : (
             <LinearGradient colors={REEL_SETS[(p.seed || 1) % REEL_SETS.length]} style={{ flex: 1, padding: 8, justifyContent: 'center' }}>
               <T d numberOfLines={5} style={{ color: REEL_SETS[(p.seed || 1) % REEL_SETS.length][0] === '#f3ece6' ? '#0a0a0a' : '#fff', fontSize: 11, lineHeight: 14 }}>{p.text}</T>
             </LinearGradient>)}
@@ -124,13 +125,13 @@ function Reel({ p, h, active }) {
   const icon = useRef(new Animated.Value(0)).current; const burst = useRef(new Animated.Value(0)).current; const lastTap = useRef(0); const tapTimer = useRef(null);
   useEffect(() => {
     const pl = playerRef.current; if (!pl) return;
-    try { if (active) { pl.currentTime = 0; pl.play(); setEnded(false); setPaused(false); } else { pl.pause(); } } catch (e) {}
+    try { if (active) { pl.currentTime = (p.overlay && p.overlay.trimStart) || 0; pl.play(); setEnded(false); setPaused(false); } else { pl.pause(); } } catch (e) {}
   }, [active]);
   const flash = () => { icon.setValue(1); Animated.timing(icon, { toValue: 0, duration: 700, delay: 250, useNativeDriver: true }).start(); };
   const heat = () => { if (!p.myHeat) run(() => act.react(p.id, 'heat'), { optimistic: { post: p.id, patch: { myHeat: true, heat: p.heat + 1 } } }); };
   const togglePlay = () => {
     const pl = playerRef.current; if (!pl) return;
-    if (ended) { pl.currentTime = 0; pl.play(); setEnded(false); setPaused(false); return; }
+    if (ended) { pl.currentTime = (p.overlay && p.overlay.trimStart) || 0; pl.play(); setEnded(false); setPaused(false); return; }
     if (paused) { pl.play(); setPaused(false); } else { pl.pause(); setPaused(true); }
     flash();
   };
@@ -149,15 +150,15 @@ function Reel({ p, h, active }) {
   return (
     <View style={{ height: h, backgroundColor: '#0a0a0a' }}>
       <Pressable onPress={tap} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
-        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} playerRef={playerRef} onEnd={() => setEnded(true)} />
+        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} playerRef={playerRef} onEnd={() => setEnded(true)} trim={p.overlay} />
           : <TextReel p={p} active={active} />}
+        <ReplayOverlay overlay={p.overlay} />
       </Pressable>
       {p.mediaUrl ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: '44%', alignSelf: 'center', width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(0,0,0,.4)', alignItems: 'center', justifyContent: 'center',
         opacity: paused || ended ? 1 : icon, transform: [{ scale: icon.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }] }}>
         <Ionicons name={ended ? 'refresh' : paused ? 'play' : 'pause'} size={34} color="#fff" /></Animated.View> : null}
       <Animated.View pointerEvents="none" style={{ position: 'absolute', top: '38%', alignSelf: 'center', opacity: burst, transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }}>
         <Ionicons name="flame" size={130} color={C.orange} /></Animated.View>
-      <View style={{ position: 'absolute', top: 62, left: 16 }}><Timer p={p} /></View>
       <View style={{ position: 'absolute', left: 16, right: 78, bottom: 22, gap: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Avatar u={u} size={36} /><T h style={{ color: '#fff' }}>{u.handle}</T></Pressable>

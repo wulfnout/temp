@@ -129,6 +129,8 @@ export function SettingsScreen() {
         <Group>
           <Item icon="lock-closed-outline" label="Private account" right={<Switch value={!!me.isPrivate} onValueChange={(v) => run(() => act.profile(s.me, { isPrivate: v }))} trackColor={{ true: C.orange }} />} />
           <Item icon="chatbubbles-outline" label="Who can message you" val={dmLabel[dmFrom]} onPress={() => setSetting('dmFrom', dmNext[dmFrom])} />
+          <Item icon="contrast-outline" label="Appearance" val={{ system: 'Match phone', light: 'Light', dark: 'Dark' }[st.theme || 'system']}
+            onPress={() => setSetting('theme', { system: 'light', light: 'dark', dark: 'system' }[st.theme || 'system'])} />
           <Item icon="eye-off-outline" label="Hide counts" right={<Switch value={!!st.hideCounts} onValueChange={(v) => setSetting('hideCounts', v)} trackColor={{ true: C.orange }} />} />
         </Group>
         <Group>
@@ -201,7 +203,7 @@ export function ShopScreen() {
 
 /* ---------------- composer ---------------- */
 export function Composer({ reel: reel0, onClose }) {
-  const { s, C, run } = useApp(); const me = s.users[s.me] || {};
+  const { s, C, run, nav } = useApp(); const me = s.users[s.me] || {};
   const [reel, setReel] = useState(!!reel0); const [text, setText] = useState(''); const [asset, setAsset] = useState(null); const [busy, setBusy] = useState(false);
   const max = 280, over = text.length > max;
   const ok = !over && (reel ? text.trim() || (asset && asset.type === 'video') : text.trim() || asset);
@@ -230,7 +232,8 @@ export function Composer({ reel: reel0, onClose }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {!reel ? <Btn small kind="ghost" icon="image-outline" title="Photo / GIF" onPress={async () => { const a = await pickMedia('image'); if (a) setAsset(a); }} /> : null}
-          <Btn small kind="ghost" icon="videocam-outline" title="Video" onPress={async () => { const a = await pickMedia('video'); if (a) setAsset(a); }} />
+          {reel ? <Btn small kind="orange" icon="radio-button-on" title="Record" onPress={() => { onClose(); setTimeout(() => nav.sheet('recorder'), 250); }} /> : null}
+          <Btn small kind="ghost" icon="videocam-outline" title={reel ? 'Upload' : 'Video'} onPress={async () => { const a = await pickMedia('video'); if (a) setAsset(a); }} />
         </View>
         <T b style={{ color: over ? C.orange : C.muted, fontSize: 13 }}>{max - text.length}</T>
       </View>

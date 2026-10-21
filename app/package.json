@@ -15,6 +15,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.49.4",
     "expo": "~57.0.27",
+    "expo-camera": "~57.0.0",
     "expo-font": "~57.0.0",
     "expo-image-picker": "~57.0.19",
     "expo-linear-gradient": "~57.0.0",

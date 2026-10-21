@@ -23,8 +23,10 @@ export const THEMES = {
   volcano: ['#c1121f', '#ff4d00'], toxic: ['#5fd400', '#d4ff3a'], ocean: ['#0077ff', '#00d4c8'], grape: ['#7c3aed', '#d946ef'], sunset: ['#ff5e62', '#ffb347'],
   cyber: ['#00d9ff', '#ff00d4'], rust: ['#a63c06', '#e07a2f'], bubblegum: ['#ff5fa2', '#ffb3d9'],
 };
-export function useColors(theme) {
-  const dark = useColorScheme() === 'dark';
+// mode: 'system' follows the phone's setting; 'light' or 'dark' overrides it (same setting as the website)
+export function useColors(theme, mode) {
+  const sys = useColorScheme();
+  const dark = mode === 'dark' ? true : mode === 'light' ? false : sys === 'dark';
   const base = dark ? DARK : LIGHT;
   const t = THEMES[theme] || THEMES.ember;
   return { ...base, orange: t[0], orange2: t[1], dark };

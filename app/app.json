@@ -15,6 +15,14 @@
     },
     "plugins": [
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Temp uses your camera to record Replays and stories.",
+          "microphonePermission": "Temp uses your microphone to record sound for Replays.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Temp uses your photos so you can post them and set your profile and header images."

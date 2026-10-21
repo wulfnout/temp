@@ -494,6 +494,39 @@ img,video{max-width:100%;display:block}
 .up-spin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .up-spin::after{content:"";width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin2 .8s linear infinite}
 @keyframes spin2{to{transform:rotate(360deg)}}
+.rov{position:absolute;inset:0;pointer-events:none;z-index:1}
+.rov-tint{position:absolute;inset:0}
+.rov-text{position:absolute;left:0;right:0;padding:0 20px;text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(22px,7vw,34px);line-height:1.12;letter-spacing:-.03em;text-shadow:0 2px 10px rgba(0,0,0,.55);overflow-wrap:anywhere}
+.rov-text.top{top:14%}.rov-text.middle{top:42%}.rov-text.bottom{bottom:24%}
+.rov.small .rov-text{font-size:11px;padding:0 6px}
+.rec .sv-media video.mirror{transform:scaleX(-1)}
+.rec-start{position:absolute;inset:0;display:grid;place-content:center;gap:12px;text-align:center;padding:30px;z-index:3}
+.rec-start h2{font-family:var(--display);font-size:24px;letter-spacing:-.03em;margin:0}
+.rec-start p{margin:0;opacity:.75}
+.rec-count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-size:120px;font-weight:800;z-index:3;text-shadow:0 4px 20px rgba(0,0,0,.5)}
+.rec-foot{align-items:center;justify-items:center}
+.rec-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:100%;padding-bottom:2px}
+.rec-chips::-webkit-scrollbar{display:none}
+.rec-chips button{flex:none;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:800;font-size:13px}
+.rec-chips button[aria-pressed="true"]{background:#fff;color:#000}
+.rec-shutter{width:84px;height:84px;border-radius:50%;border:5px solid #fff;display:grid;place-items:center}
+.rec-shutter span{width:64px;height:64px;border-radius:50%;background:var(--orange);transition:all .2s}
+.rec-shutter.on span{width:30px;height:30px;border-radius:8px}
+.rec-prog{width:70%;height:4px;border-radius:2px;background:rgba(255,255,255,.25);overflow:hidden}
+.rec-prog div{height:100%;background:var(--orange)}
+.rec-edit{gap:10px}
+.rec-trim{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;font-weight:800;font-size:13px;background:rgba(0,0,0,.35);border-radius:16px;padding:10px 12px}
+.rec-trim input{width:100%;accent-color:var(--orange)}
+.rec-row{display:flex;gap:8px;align-items:center}
+.rec-in{flex:1;min-width:0;background:rgba(255,255,255,.16);border:0;border-radius:999px;padding:11px 14px;color:#fff;font-weight:700}
+.rec-in::placeholder{color:rgba(255,255,255,.65)}
+.rec-colors{display:flex;gap:8px}
+.rec-colors button{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.5)}
+.rec-colors button[aria-pressed="true"]{border:3px solid #fff;transform:scale(1.15)}
+.rec-back{display:flex;align-items:center;gap:4px;color:#fff;font-weight:800}
+.tool-rec{background:var(--orange)!important;color:#fff!important}
+.rec-dot{width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block}
+.grid3 .rov{z-index:0}
 .sv-foot{gap:8px}
 .sv-cap{margin:0 0 4px;font-weight:700;font-size:16px;line-height:1.35;text-shadow:0 1px 8px rgba(0,0,0,.7);overflow-wrap:anywhere}
 .sv-bar{display:flex;gap:8px;align-items:center}
@@ -755,7 +788,7 @@ async function loadAll(){
     media:p.media_url&&!p.reel?{type:p.media_type,url:p.media_url,gif:p.is_gif}:null,reel:p.reel,
     clip:p.reel?(p.media_url?{kind:'video',url:p.media_url}:{kind:'art',seed:p.clip_seed||1}):null,poster:p.reel&&!p.media_url?posterFor(p.clip_seed||1):null,
     createdAt:+new Date(p.created_at),status:p.status,burnEnds:p.burn_ends?+new Date(p.burn_ends):null,heat:p.heat,freeze:p.freezes,views:p.views,
-    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),reposts:p.reposts||0,myRepost:myRp.has(p.id),nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
+    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),overlay:p.overlay||null,reposts:p.reposts||0,myRepost:myRp.has(p.id),nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
   const sids=stories.map(x=>x.id);
   const [scom,sreact]=sids.length?await Promise.all([q(sb.from('story_comments').select('*').in('story_id',sids).order('created_at').limit(3000)),q(sb.from('story_reactions').select('story_id,user_id,emoji').in('story_id',sids).limit(10000))]):[[],[]];
   const sc={},sr={},smy={};
@@ -788,7 +821,7 @@ async function remote(a,b){
     case 'view': await sb.rpc('add_view',{pid:a.id});return;
     case 'save':{const p=P(a.id);if(!p)return;
       if(p.saved)await ok(sb.from('saves').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('saves').insert({post_id:a.id}));return}
-    case 'post':{const row={text:a.text||'',reel:!!a.reel};
+    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay)row.overlay=a.overlay;
       if(a.media){const url=await upload(a.media.file);
         if(a.reel){row.media_url=url;row.media_type='video'}else{row.media_url=url;row.media_type=a.media.type;row.is_gif=!!a.media.gif}}
       else if(a.reel)row.clip_seed=Math.floor(Math.random()*9999)+1;
@@ -912,7 +945,7 @@ function reducer(s,a){
     case 'view': return s.viewed[a.id]?s:{...s,viewed:{...s.viewed,[a.id]:1},posts:mapPost(a.id,p=>({...p,views:(p.views||0)+1}))};
     case 'save': {const p=s.posts.find(x=>x.id===a.id);return {...s,posts:mapPost(a.id,p=>({...p,saved:!p.saved})),toast:T(p&&p.saved?'Removed from saved':'Saved')}}
     case 'post':
-      return {...s,posts:[{id:nid(),userId:'me',text:a.text,media:a.media,createdAt:s.now,status:'normal',windowEnds:null,burnEnds:null,heat:0,freeze:0,myHeat:false,myFreeze:false,saved:false,comments:[],goneAt:0,
+      return {...s,posts:[{id:nid(),userId:'me',text:a.text,media:a.media,overlay:a.overlay||null,createdAt:s.now,status:'normal',windowEnds:null,burnEnds:null,heat:0,freeze:0,myHeat:false,myFreeze:false,saved:false,comments:[],goneAt:0,
         views:0,nsfw:!!a.nsfw,flags:MOD.classify(a.text),
         ...(a.reel?{reel:true,clip:a.media&&a.media.type==='video'?{kind:'video',url:a.media.url}:{kind:'art',seed:Math.floor(Math.random()*9999)},plays:0,media:null}:{})},...s.posts],toast:T(a.reel?'Replay posted':'Posted')};
     case 'comment': return {...s,posts:mapPost(a.id,p=>({...p,comments:[...p.comments,{id:nid(),userId:'me',text:a.text||'',sticker:a.sticker||null,at:s.now,likes:0,myLike:false,flags:MOD.classify(a.text||'')}]}))};
@@ -1204,6 +1237,112 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
 }
 
 /* ---------- replay (reels) ---------- */
+/* ---------- Replay recorder (camera + mic in the browser) ---------- */
+const FILTERS={none:{name:'Normal'},ember:{name:'Ember',bg:'rgba(255,85,0,.22)'},frost:{name:'Frost',bg:'rgba(80,170,255,.22)'},noir:{name:'Noir',bg:'rgba(0,0,0,.38)'},
+  sunset:{name:'Sunset',bg:'linear-gradient(180deg,rgba(255,94,98,.32),rgba(255,179,71,.18))'},neon:{name:'Neon',bg:'rgba(255,43,214,.2)'},
+  vintage:{name:'Vintage',bg:'rgba(112,66,20,.28)'},heat:{name:'Heat map',bg:'linear-gradient(180deg,rgba(255,45,0,.35),rgba(255,210,122,.05),rgba(255,45,0,.3))'}};
+const TEXT_COLORS=['#ffffff','#0a0a0a','#ff5500','#ffd60a','#4fd2ff'];
+function ReplayOverlay({o,small}){
+  if(!o)return null;const f=FILTERS[o.filter]||FILTERS.none;
+  return html`<div className=${'rov'+(small?' small':'')} aria-hidden="true">
+    ${f.bg&&html`<div className="rov-tint" style=${{background:f.bg}}></div>`}
+    ${o.text&&html`<div className=${'rov-text '+(o.textPos||'middle')} style=${{color:o.color||'#fff'}}>${o.text}</div>`}
+  </div>`;
+}
+function pickMime(){
+  const c=['video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  try{return c.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||''}catch(e){return ''}
+}
+const REC_MAX=60;
+function Recorder({s,dispatch,onClose,open}){
+  const live=useRef(),stream=useRef(null),rec=useRef(null),chunks=useRef([]),t0=useRef(0),timer=useRef(null);
+  const [phase,setPhase]=useState('start');      // start | camera | counting | recording | edit
+  const [err,setErr]=useState('');const [facing,setFacing]=useState('user');const [torch,setTorch]=useState(false);const [canTorch,setCanTorch]=useState(false);
+  const [countdown,setCountdown]=useState(false);const [count,setCount]=useState(3);const [elapsed,setElapsed]=useState(0);
+  const [clip,setClip]=useState(null);const [filter,setFilter]=useState('none');const [text,setText]=useState('');const [pos,setPos]=useState('middle');const [color,setColor]=useState('#ffffff');
+  const [ts,setTs]=useState(0);const [te,setTe]=useState(0);const [caption,setCaption]=useState('');const ed=useRef();
+  const stopStream=()=>{if(stream.current){stream.current.getTracks().forEach(t=>t.stop());stream.current=null}};
+  async function startCam(face=facing){
+    setErr('');stopStream();
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){setErr('This browser can’t record video. Use Upload instead, or try Safari or Chrome.');return}
+    try{
+      const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:{ideal:1080},height:{ideal:1920}},audio:true});
+      stream.current=st;if(live.current){live.current.srcObject=st;live.current.play().catch(()=>{})}
+      const vt=st.getVideoTracks()[0];let ct=false;try{ct=!!(vt.getCapabilities&&vt.getCapabilities().torch)}catch(e){}setCanTorch(ct);setTorch(false);
+      setPhase('camera');
+    }catch(e){setErr(/denied|NotAllowed/i.test(e.name+e.message)?'Camera or microphone access was blocked. Allow it in your browser settings, then try again.':'Couldn’t open the camera. '+(e.message||''))}
+  }
+  useEffect(()=>()=>{stopStream();clearInterval(timer.current)},[]);
+  useEffect(()=>{if(phase==='camera'&&live.current&&stream.current&&live.current.srcObject!==stream.current){live.current.srcObject=stream.current;live.current.play().catch(()=>{})}},[phase]);
+  const flip=()=>{const f=facing==='user'?'environment':'user';setFacing(f);startCam(f)};
+  const toggleTorch=async()=>{try{await stream.current.getVideoTracks()[0].applyConstraints({advanced:[{torch:!torch}]});setTorch(!torch)}catch(e){}};
+  function begin(){
+    if(!stream.current)return;chunks.current=[];const mime=pickMime();
+    let r;try{r=new MediaRecorder(stream.current,mime?{mimeType:mime}:undefined)}catch(e){r=new MediaRecorder(stream.current)}
+    rec.current=r;r.ondataavailable=e=>{if(e.data&&e.data.size)chunks.current.push(e.data)};
+    r.onstop=()=>{clearInterval(timer.current);const type=(r.mimeType||mime||'video/webm').split(';')[0];const blob=new Blob(chunks.current,{type});
+      const dur=Math.max(1,Math.min(REC_MAX,(Date.now()-t0.current)/1000));stopStream();
+      const ext=type.includes('mp4')?'mp4':'webm';const file=new File([blob],'replay.'+ext,{type});
+      setClip({url:URL.createObjectURL(blob),file,dur});setTs(0);setTe(+dur.toFixed(1));setPhase('edit')};
+    r.start(250);t0.current=Date.now();setElapsed(0);setPhase('recording');
+    timer.current=setInterval(()=>{const e=(Date.now()-t0.current)/1000;setElapsed(e);if(e>=REC_MAX&&r.state==='recording')r.stop()},200);
+  }
+  function shutter(){
+    if(phase==='recording'){rec.current&&rec.current.state==='recording'&&rec.current.stop();return}
+    if(phase!=='camera')return;if(!countdown)return begin();
+    setPhase('counting');let n=3;setCount(3);const t=setInterval(()=>{n--;if(n<=0){clearInterval(t);begin()}else setCount(n)},1000);
+  }
+  // keep the edit preview inside the trim
+  useEffect(()=>{const v=ed.current;if(!v||phase!=='edit')return;
+    const tu=()=>{if(v.currentTime<ts-0.2||v.currentTime>=te)v.currentTime=ts};v.addEventListener('timeupdate',tu);v.currentTime=ts;v.play().catch(()=>{});
+    return()=>v.removeEventListener('timeupdate',tu)},[phase,ts,te]);
+  const post=()=>{
+    const why=MOD.rules(MOD.classify(caption+' '+text),s.users.me.plus,isAdult(s));if(why){setErr(why.msg);return}
+    const overlay={filter,text:text.trim(),textPos:pos,color,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+clip.dur.toFixed(1)};
+    dispatch({type:'post',text:caption.trim(),media:{type:'video',url:clip.url,file:clip.file},reel:true,overlay});onClose();open.replay();
+  };
+  const chips=html`<div className="rec-chips">${Object.entries(FILTERS).map(([k,f])=>html`<button key=${k} aria-pressed=${filter===k} onClick=${()=>setFilter(k)}>${f.name}</button>`)}</div>`;
+  return html`<div className="sv rec" role="dialog" aria-label="Record a Replay"><div className="sv-in">
+    ${phase==='edit'?html`
+      <div className="sv-media"><video ref=${ed} src=${clip.url} playsInline loop autoPlay></video></div>
+      <${ReplayOverlay} o=${{filter,text,textPos:pos,color}}/>
+      <div className="sv-head"><button className="rec-back" onClick=${()=>{setClip(null);startCam()}}><${Icon} n="back" s=${20}/>Retake</button>
+        <div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Discard"><${Icon} n="x"/></button></div></div>
+      <div className="sv-foot rec-edit">
+        ${chips}
+        <div className="rec-trim">
+          <label htmlFor="trim-s">Start ${ts.toFixed(1)}s</label><input id="trim-s" type="range" min="0" max=${clip.dur} step="0.1" value=${ts} onInput=${e=>setTs(Math.min(+e.target.value,te-1))}/>
+          <label htmlFor="trim-e">End ${te.toFixed(1)}s</label><input id="trim-e" type="range" min="0" max=${clip.dur} step="0.1" value=${te} onInput=${e=>setTe(Math.max(+e.target.value,ts+1))}/>
+        </div>
+        <div className="rec-row"><label htmlFor="rec-text" className="vh">Text on video</label>
+          <input id="rec-text" className="rec-in" placeholder="Add text on the video" maxLength=${80} value=${text} onChange=${e=>setText(e.target.value)}/>
+          <button className="sv-round" onClick=${()=>setPos(pos==='top'?'middle':pos==='middle'?'bottom':'top')} aria-label="Move text">${pos==='top'?'↑':pos==='bottom'?'↓':'↕'}</button></div>
+        <div className="rec-colors" role="group" aria-label="Text color">${TEXT_COLORS.map(c=>html`<button key=${c} aria-pressed=${color===c} aria-label=${'Text color '+c} style=${{background:c}} onClick=${()=>setColor(c)}></button>`)}</div>
+        ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}
+        <div className="sv-bar"><div className="sv-input"><label htmlFor="rec-cap" className="vh">Caption</label>
+          <input id="rec-cap" placeholder="Caption… #hashtags" maxLength=${280} value=${caption} onChange=${e=>setCaption(e.target.value)}/></div>
+          <button className="btn orange" onClick=${post}>Post</button></div>
+      </div>`
+    :html`
+      <div className="sv-media"><video ref=${live} className=${facing==='user'?'mirror':''} playsInline muted autoPlay></video></div>
+      <${ReplayOverlay} o=${{filter}}/>
+      <div className="sv-head">
+        <button className="sv-close" onClick=${onClose} aria-label="Close"><${Icon} n="x"/></button>
+        <div className="sv-btns">${phase==='recording'?html`<b>${Math.floor(elapsed)}s / ${REC_MAX}s</b>`:phase==='camera'?html`
+          ${canTorch&&html`<button className="sv-close" onClick=${toggleTorch} aria-label="Flash" aria-pressed=${torch}><${Icon} n="bolt" fill=${torch?'#fff':null}/></button>`}
+          <button className="sv-close" onClick=${()=>setCountdown(!countdown)} aria-label="3 second countdown" aria-pressed=${countdown} style=${{color:countdown?'var(--orange)':'#fff'}}><${Icon} n="clock"/></button>
+          <button className="sv-close" onClick=${flip} aria-label="Flip camera"><${Icon} n="replay"/></button>`:null}</div></div>
+      ${phase==='start'&&html`<div className="rec-start"><h2>Record a Replay</h2><p>Up to ${REC_MAX} seconds. Trim, add a filter and text after.</p>
+        <button className="btn orange wide" onClick=${()=>startCam()}>Open camera</button>${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}</div>`}
+      ${phase==='counting'&&html`<div className="rec-count">${count}</div>`}
+      ${phase!=='start'&&html`<div className="sv-foot rec-foot">
+        ${phase==='camera'&&chips}
+        <button className=${'rec-shutter'+(phase==='recording'?' on':'')} onClick=${shutter} aria-label=${phase==='recording'?'Stop recording':'Record'}><span></span></button>
+        ${phase==='recording'&&html`<div className="rec-prog"><div style=${{width:Math.min(100,elapsed/REC_MAX*100)+'%'}}></div></div>`}
+      </div>`}`}
+  </div></div>`;
+}
+
 function ReelClip({p,active,paused,runKey,onEnd}){
   const cv=useRef(),vd=useRef();const [prog,setProg]=useState(0);
   useEffect(()=>{
@@ -1221,12 +1360,16 @@ function ReelClip({p,active,paused,runKey,onEnd}){
   },[active,runKey]);
   useEffect(()=>{
     if(p.clip.kind!=='video')return;const v=vd.current;if(!v)return;
-    const tu=()=>setProg(v.duration?v.currentTime/v.duration:0);const end=()=>{setProg(1);onEnd()};
+    const o=p.overlay||{};const t0=o.trimStart||0;
+    const t1=()=>o.trimEnd||v.duration||0;
+    const tu=()=>{const e=t1();setProg(e>t0?(v.currentTime-t0)/(e-t0):0);if(o.trimEnd&&v.currentTime>=o.trimEnd){v.pause();setProg(1);onEnd()}};
+    const end=()=>{setProg(1);onEnd()};
     v.addEventListener('timeupdate',tu);v.addEventListener('ended',end);
-    if(active){if(v.ended)v.currentTime=0;v.play().catch(()=>{})}else{v.pause();v.currentTime=0}
+    if(active){if(v.ended||v.currentTime<t0||(o.trimEnd&&v.currentTime>=o.trimEnd))v.currentTime=t0;v.play().catch(()=>{})}else{v.pause();v.currentTime=t0}
     return()=>{v.removeEventListener('timeupdate',tu);v.removeEventListener('ended',end)};
   },[active,runKey]);
   return html`${p.clip.kind==='art'?html`<canvas ref=${cv} aria-label=${p.text}></canvas>`:html`<video ref=${vd} src=${p.clip.url} muted playsInline></video>`}
+    <${ReplayOverlay} o=${p.overlay}/>
     <div className="reel-prog"><div style=${{width:prog*100+'%'}}></div></div>`;
 }
 
@@ -1252,7 +1395,6 @@ function Reel({p,s,active,dispatch,open}){
       <div className="reel-shade"></div>
       ${(pz||ended||!running)&&html`<div className="reel-pause"><span><${Icon} n=${ended?'replay':'play'} s=${30} w=${ended?2.4:1.9} fill=${ended?null:'#fff'}/></span></div>`}
       ${burst>0&&Date.now()-burst<950&&html`<div className="burst" key=${burst}><svg width="140" height="140" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P.flame}}></svg></div>`}
-      <div className="reel-timer"><${Timer} p=${p} now=${s.now}/></div>
       <div className="reel-info">
         <div className="reel-who"><button onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${36}/></button>
           <button onClick=${()=>open.profile(u.id)} style=${{display:'flex',alignItems:'center'}}>${u.handle}<${Check} u=${u}/></button>
@@ -1312,7 +1454,8 @@ function Composer({s,dispatch,onClose,startReel,open}){
       <div className="c-tools">
         ${!reel&&html`<button onClick=${()=>pick('image/*')}><${Icon} n="image" s=${19}/>Photo</button>
         <button onClick=${()=>pick('image/gif')}><${Icon} n="gif" s=${19}/>GIF</button>`}
-        <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>Video</button>
+        ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record()}}><span className="rec-dot"></span>Record</button>`}
+        <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>${reel?'Upload':'Video'}</button>
         ${adult&&s.users.me.plus&&html`<button className=${nsfw?'tool-on':''} aria-pressed=${nsfw} onClick=${()=>setNsfw(!nsfw)}>18+</button>`}
         <input ref=${fileRef} id="compose-file" type="file" className="vh" onChange=${e=>{const f=e.target.files[0];if(f)setMedia(readFile(f));e.target.value=''}}/>
       </div>
@@ -1418,7 +1561,7 @@ function SettingsView({s,dispatch,sub,setSub,open,replay,logout}){
   const S=s.settings;const set=(key,value)=>dispatch({type:'set',key,value});const N=S.notif;const me=s.users.me;
   const [word,setWord]=useState('');const [confirm,setConfirm]=useState(null);
   const dmLabel={everyone:'Everyone',following:'People you follow',none:'No one'};
-  const themeLabel={system:'System',light:'Light',dark:'Dark'};
+  const themeLabel={system:'Match device',light:'Light',dark:'Dark'};
   const senseLabel={less:'Less',standard:'Standard',more:'More'};
   const blocked=Object.keys(s.blocked);
   if(sub==='privacy')return html`<div>
@@ -1679,6 +1822,7 @@ function Thumb({p,s,open}){
   const img=p.reel?p.poster:p.media&&p.media.type==='image'?p.media.url:null;
   return html`<button className=${p.reel?'tall':''} onClick=${()=>p.reel?open.replay(p.id):open.comments(p.id)} aria-label=${p.text||'Post'}>
     ${img?html`<img src=${img} alt="" />`:p.reel&&p.clip.kind==='video'?html`<video src=${p.clip.url} muted playsInline style=${{width:'100%',height:'100%',objectFit:'cover'}}></video>`:html`<span className="txt">${p.text}</span>`}
+    ${p.reel&&p.overlay&&html`<${ReplayOverlay} o=${p.overlay} small=${true}/>`}
     ${p.reel&&html`<span className="rp"><${Icon} n="play" s=${13} w=${2.6} fill="#fff"/></span>`}</button>`;
 }
 
@@ -2063,6 +2207,7 @@ function App(){
     search:q=>{setQuery(q);setView({tab:'search'})},
     replay:id=>setView({tab:'replay',reelId:id}),
     compose:reel=>setSheet({kind:'compose',reel}),
+    record:()=>setSheet({kind:'record'}),
     shop:()=>setView({tab:'shop'}),
     plus:()=>setView({tab:'plus'}),
   };
@@ -2136,6 +2281,7 @@ function App(){
       onChange=${e=>{const f=e.target.files[0];if(f){const r=readFile(f);setStoryDraft({url:r.url,type:r.type,file:f})}e.target.value=''}}/>
     ${storyDraft&&html`<${StoryDraft} draft=${storyDraft} onClose=${()=>setStoryDraft(null)} onPost=${cap=>{dispatch({type:'story',url:storyDraft.url,mtype:storyDraft.type,file:storyDraft.file,caption:cap});setStoryDraft(null)}}/>`}
     ${sheet&&sheet.kind==='compose'&&html`<${Composer} s=${s} dispatch=${dispatch} onClose=${close} startReel=${sheet.reel} open=${open}/>`}
+    ${sheet&&sheet.kind==='record'&&html`<${Recorder} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='comments'&&sheetPost&&html`<${Comments} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='share'&&sheetPost&&html`<${Share} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${sheet&&sheet.kind==='menu'&&sheetPost&&html`<${PostMenu} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}

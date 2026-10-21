@@ -12,6 +12,7 @@ import { AuthScreen } from './src/auth';
 import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen } from './src/screens';
 import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft } from './src/profile';
 import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
+import { Recorder } from './src/recorder';
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
@@ -27,7 +28,7 @@ export default function App() {
 function Root() {
   const [session, setSession] = useState(undefined);
   const [s, setS] = useState(EMPTY);
-  const C = useColors(s.priv.theme);
+  const C = useColors(s.priv.theme, (s.priv.settings || {}).theme);
   const [tab, setTab] = useState({ name: 'home', params: {} });
   const [stack, setStack] = useState([]);
   const [sheet, setSheet] = useState(null);
@@ -131,6 +132,7 @@ function Root() {
       {sheet && sheet.name === 'share' ? <ShareSheet post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'menu' ? <PostMenu post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'story' ? <StoryViewer userId={sheet.params.userId} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'recorder' ? <Recorder onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'storyDraft' ? <StoryDraft asset={sheet.params.asset} onClose={() => setSheet(null)} /> : null}
       {toast ? <Toast text={toast} /> : null}
     </Ctx.Provider>

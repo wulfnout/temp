@@ -6,8 +6,19 @@ import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, st
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
 
-export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef }) {
-  const player = useVideoPlayer(uri, (p) => { p.loop = loop; p.muted = muted; if (autoPlay) p.play(); });
+export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef, trim }) {
+  const t0 = (trim && trim.trimStart) || 0, t1 = trim && trim.trimEnd;
+  const player = useVideoPlayer(uri, (p) => { p.loop = loop && !t1; p.muted = muted; if (t0) p.currentTime = t0; if (autoPlay) p.play(); });
+  // Trimmed Replays: start at trimStart, stop (or loop back) at trimEnd.
+  React.useEffect(() => {
+    if (!t1 && !t0) return;
+    try { player.timeUpdateEventInterval = 0.2; } catch (e) {}
+    const sub = player.addListener('timeUpdate', ({ currentTime }) => {
+      if (t1 && currentTime >= t1) { if (loop) { player.currentTime = t0; } else { player.pause(); onEnd && onEnd(); } }
+      else if (currentTime < t0 - 0.3) player.currentTime = t0;
+    });
+    return () => sub.remove();
+  }, [player, t0, t1, loop]);
   if (playerRef) playerRef.current = player;
   React.useEffect(() => {
     if (!onEnd) return;

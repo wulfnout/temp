@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { View, FlatList, Pressable, TextInput, Image, ScrollView, RefreshControl, Dimensions, Modal, Animated, Easing, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, Pressable, TextInput, Image, ScrollView, RefreshControl, ActivityIndicator, Dimensions, Modal, Animated, Easing, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
@@ -38,7 +38,8 @@ export function HomeScreen() {
   const mine = s.stories.find((x) => x.userId === s.me);
   const others = s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]);
   const unseen = (st) => st.items.some((i) => !s.seen[i.id]);
-  const addStory = async () => { const a = await pickMedia(); if (a) run(() => act.story(s.me, a), { toast: 'Added to your story' }); };
+  const [uploading, setUploading] = useState(false);
+  const addStory = async () => { const a = await pickMedia(); if (!a) return; setUploading(true); nav.toast('Uploading your story…'); await run(() => act.story(s.me, a), { toast: 'Your story is up' }); setUploading(false); };
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
@@ -55,8 +56,11 @@ export function HomeScreen() {
         ListHeaderComponent={
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 10 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 12 }}>
             <View style={{ alignItems: 'center', gap: 6 }}>
-              <StoryOrb u={s.users[s.me]} seen={!mine || !unseen(mine)} add onAdd={addStory} onPress={() => (mine ? nav.sheet('story', { userId: s.me }) : addStory())} label={mine ? 'Your story' : 'Add to your story'} />
-              <T b muted style={{ fontSize: 12 }}>Your story</T></View>
+              <View>
+                <StoryOrb u={s.users[s.me]} seen={!mine || !unseen(mine)} add={!uploading} onAdd={addStory} onPress={() => (uploading ? null : mine ? nav.sheet('story', { userId: s.me }) : addStory())} label={uploading ? 'Your story is uploading' : mine ? 'Your story' : 'Add to your story'} />
+                {uploading ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, width: 78, height: 74, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View> : null}
+              </View>
+              <T b muted style={{ fontSize: 12 }}>{uploading ? 'Posting…' : 'Your story'}</T></View>
             {others.sort((a, b) => unseen(b) - unseen(a)).map((st) => { const u = s.users[st.userId]; return (
               <View key={st.userId} style={{ alignItems: 'center', gap: 6 }}>
                 <StoryOrb u={u} seen={!unseen(st)} onPress={() => nav.sheet('story', { userId: st.userId })} label={'Story from @' + u.handle} />

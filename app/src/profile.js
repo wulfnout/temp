@@ -92,7 +92,7 @@ function EditProfile({ onClose }) {
           <View style={{ borderWidth: 4, borderColor: C.card, borderRadius: 50 }}><Avatar u={{ ...me, avatar: (avatar && avatar.uri) || me.avatar, ring: null }} size={74} /></View>
           <View style={{ position: 'absolute', top: 4, left: 4, width: 74, height: 74, borderRadius: 37, backgroundColor: 'rgba(0,0,0,.3)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="camera" size={18} color="#fff" /></View>
         </Pressable>
-        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Name</T><Input value={name} onChangeText={setName} maxLength={40} />
+        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Display name</T><Input value={name} onChangeText={setName} maxLength={40} />
         <T b muted style={{ marginTop: 12, fontSize: 13 }}>Username</T><Input value={handle} onChangeText={(v) => setHandle(v.replace(/\s/g, ''))} autoCapitalize="none" maxLength={20} />
         <T b muted style={{ marginTop: 12, fontSize: 13 }}>Bio</T><Input value={bio} onChangeText={setBio} multiline maxLength={160} style={{ minHeight: 80, textAlignVertical: 'top' }} />
       </ScrollView>

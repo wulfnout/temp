@@ -487,6 +487,13 @@ img,video{max-width:100%;display:block}
 @keyframes check{to{background-position:36px 36px}}
 @keyframes grid{to{background-position:0 18px,0 0}}
 @keyframes rain{to{background-position:0 84px,7px 150px,0 0}}
+.orb.uploading{background:conic-gradient(from var(--spin),var(--orange) 0 25%,var(--line) 25% 100%);animation:spin .9s linear infinite;border-radius:50%}
+.orb.uploading>.av{border-radius:50%;opacity:.55}
+.up-spin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.up-spin::after{content:"";width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin2 .8s linear infinite}
+@keyframes spin2{to{transform:rotate(360deg)}}
+.toast.sticky{animation:fade .2s ease;display:flex;align-items:center;gap:10px}
+.t-spin{width:16px;height:16px;border-radius:50%;border:2.5px solid currentColor;border-top-color:transparent;animation:spin2 .8s linear infinite;flex:none}
 @keyframes fade{from{opacity:0}}
 @keyframes up{from{transform:translateY(24px);opacity:0}}
 @keyframes pop{40%{transform:scale(1.4)}}
@@ -761,7 +768,7 @@ async function remote(a,b){
       if(c.myLike)await ok(sb.from('comment_likes').delete().eq('comment_id',a.cid).eq('user_id',myId));else await ok(sb.from('comment_likes').insert({comment_id:a.cid}));return}
     case 'follow':{const u=b.users[a.id];if(!u||a.id==='temp')return;
       if(u.following)await ok(sb.from('follows').delete().eq('follower',myId).eq('followee',R(a.id)));else await ok(sb.from('follows').insert({followee:R(a.id)}));return}
-    case 'story':{const url=await upload(a.file);await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype}));return 'reload'}
+    case 'story':{const url=await upload(a.file);await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype}));return {reload:true,toast:'Your story is up'}}
     case 'seen': if(a.id>0)await sb.from('story_views').upsert({story_id:a.id},{onConflict:'story_id,user_id',ignoreDuplicates:true});return;
     case 'dm':{if(a.to==='temp')return;const p=a.postId?P(a.postId):null;
       const snap=p?{userId:R(p.userId),text:p.text,media:p.media&&!String(p.media.url).startsWith('blob:')?p.media:(p.clip&&p.clip.kind==='video'?{type:'video',url:p.clip.url}:null)}:null;
@@ -858,7 +865,7 @@ function reducer(s,a){
         posts.push(p);
       }
       const stories=s.stories.map(st=>({...st,items:st.items.filter(i=>now-i.at<DAY)})).filter(st=>st.items.length);
-      if(toast&&real-toast.at>2400)toast=null;
+      if(toast&&!(toast.sticky&&s.storyUploading)&&real-toast.at>2400)toast=null;
       return {...s,now,posts:changed?posts:s.posts,stories,toast,points,week};
     }
     case 'heat':{const tp=s.posts.find(x=>x.id===a.id);if(!tp||tp.myHeat||tp.status==='gone')return s;
@@ -877,10 +884,10 @@ function reducer(s,a){
     case 'likeComment': return {...s,posts:mapPost(a.id,p=>({...p,comments:p.comments.map(c=>c.id===a.cid?{...c,myLike:!c.myLike,likes:c.likes+(c.myLike?-1:1)}:c)}))};
     case 'follow':{const u=s.users[a.id];return {...s,users:{...s.users,[a.id]:{...u,following:!u.following,followers:u.followers+(u.following?-1:1)}},toast:u.following?s.toast:T(`Following @${u.handle}`)}}
     case 'story':{
-      const item={id:nid(),type:a.mtype,url:a.url,at:s.now};
+      const item={id:nid(),type:a.mtype,url:a.url,at:s.now,uploading:true};
       const has=s.stories.find(x=>x.userId==='me');
       const stories=has?s.stories.map(x=>x.userId==='me'?{...x,items:[...x.items,item]}:x):[{userId:'me',items:[item]},...s.stories];
-      return {...s,stories,toast:T('Added to your story')};
+      return {...s,stories,storyUploading:(s.storyUploading||0)+1,toast:{msg:'Uploading your story…',at:Date.now(),sticky:true}};
     }
     case 'seen': return {...s,seen:{...s.seen,[a.id]:true}};
     case 'dm':{
@@ -906,6 +913,7 @@ function reducer(s,a){
     case 'setNotif': return {...s,settings:{...s.settings,notif:{...s.settings.notif,[a.key]:a.value}}};
     case 'mute': return {...s,settings:{...s.settings,muted:a.add?[...new Set([...s.settings.muted,a.word.toLowerCase()])]:s.settings.muted.filter(w=>w!==a.word)}};
     case 'toast': return {...s,toast:T(a.msg)};
+    case 'storyDone': return {...s,storyUploading:Math.max(0,(s.storyUploading||1)-1),toast:s.toast&&s.toast.sticky?null:s.toast};
     case 'hydrate':{const keep=s.posts.filter(p=>p.tutorial);const st=a.st;
       const users={...st.users};if(s.users.temp)users.temp=s.users.temp;
       Object.values(users).forEach(u=>{const o=s.users[u.id];if(o)u.online=o.online});
@@ -1070,10 +1078,11 @@ function StoriesRow({s,open,addStory}){
   const sorted=[...others].sort((a,b)=>unseen(b)-unseen(a));
   return html`<div className="stories" aria-label="Stories" data-tour="stories">
     <div className="story">
-      <button className=${'orb'+(mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${mine?'Your story':'Add to your story'}>
+      <button className=${'orb'+(s.storyUploading?' uploading':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
         <${Avatar} u=${s.users.me} size=${68} noRing=${true}/>
+        ${s.storyUploading?html`<span className="up-spin" aria-hidden="true"></span>`:null}
         <span className="add" role="button" aria-label="Add to your story" onClick=${e=>{e.stopPropagation();addStory()}}><${Icon} n="plus" s=${12} w=${3.2}/></span>
-      </button><span>Your story</span></div>
+      </button><span>${s.storyUploading?'Posting…':'Your story'}</span></div>
     ${sorted.map(st=>{const u=s.users[st.userId];return html`<div className="story" key=${st.userId}>
       <button className=${'orb'+(unseen(st)?'':' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${68} noRing=${true}/></button>
       <span>${u.handle}</span></div>`})}
@@ -1313,7 +1322,7 @@ function EditProfile({s,dispatch,onClose}){
     <div className="edit-av"><${Avatar} u=${{...me,avatar}} size=${82}/>
       <button className="overlay-btn" style=${{borderRadius:'50%'}} aria-label="Change photo" onClick=${()=>aRef.current.click()}><${Icon} n="camera" s=${18}/></button></div>
     <input ref=${aRef} id="avatar-file" type="file" accept="image/*" className="vh" onChange=${e=>pick(e,setAvatar)}/>
-    <div className="field"><label htmlFor="pf-name">Name</label><input id="pf-name" value=${name} onChange=${e=>setName(e.target.value)} maxLength=${40}/></div>
+    <div className="field"><label htmlFor="pf-name">Display name</label><input id="pf-name" value=${name} onChange=${e=>setName(e.target.value)} maxLength=${40}/></div>
     <div className="field"><label htmlFor="pf-handle">Username</label><input id="pf-handle" value=${handle} onChange=${e=>setHandle(e.target.value)} maxLength=${20}/></div>
     <div className="field"><label htmlFor="pf-bio">Bio</label><textarea id="pf-bio" value=${bio} onChange=${e=>setBio(e.target.value)} maxLength=${160}></textarea></div>
   <//>`;
@@ -1915,7 +1924,7 @@ function App(){
   const reload=useCallback(()=>{clearTimeout(reloadT.current);reloadT.current=setTimeout(async()=>{
     try{const st=await loadAll();raw({type:'hydrate',st})}catch(e){console.error(e)}},350)},[]);
   const dispatch=useCallback(a=>{const before=sRef.current;raw(a);if(!myId)return;
-    remote(a,before).then(r=>{if(r==='reload')reload()}).catch(e=>{raw({type:'toast',msg:e.message||'Something went wrong. Try again.'});reload()})},[]);
+    remote(a,before).then(r=>{if(a.type==='story')raw({type:'storyDone'});if(r&&r.toast)raw({type:'toast',msg:r.toast});if(r==='reload'||(r&&r.reload))reload()}).catch(e=>{if(a.type==='story')raw({type:'storyDone'});raw({type:'toast',msg:e.message||'Something went wrong. Try again.'});reload()})},[]);
 
   useEffect(()=>{
     sb.auth.getSession().then(({data})=>setSession(data.session||null));
@@ -2056,7 +2065,7 @@ function App(){
       <button className="btn orange wide" onClick=${()=>setBreakOpen(false)}>Got it</button>
       <button className="t-skip" onClick=${()=>{dispatch({type:'set',key:'breakMins',value:0});setBreakOpen(false)}}>Turn off reminders</button></div></div>`}
     ${tour!==null&&html`<${Tour} s=${s} ids=${tourIds} step=${tour} setStep=${setTour} onEnd=${endTour}/>`}
-    ${s.toast&&tour===null&&html`<div className="toast" key=${s.toast.at} role="status">${s.toast.msg}</div>`}
+    ${s.toast&&tour===null&&html`<div className=${'toast'+(s.toast.sticky?' sticky':'')} key=${s.toast.at} role="status">${s.toast.sticky?html`<span className="t-spin" aria-hidden="true"></span>`:null}${s.toast.msg}</div>`}
   </div>`;
 }
 

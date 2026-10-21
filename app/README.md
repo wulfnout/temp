@@ -2,20 +2,14 @@
 
 Same accounts, posts, DMs and stories as the website (both talk to the Supabase project `temp`).
 
-## Run it on your phone with Expo Go
+## Run it in Expo Go (automatic)
 
-You need a computer with Node.js 20+ for this, plus the Expo Go app on your phone.
+Every push to `main` that changes `app/` publishes a new test version through
+`.github/workflows/expo-go.yml` (needs the `EXPO_TOKEN` repo secret). Open it from
+expo.dev → project **temp** → **Updates** → newest update → **Preview** QR code, scanned with the iPhone camera.
+If publishing fails, the log lands on the `expo-go-log` branch.
 
-1. `git clone https://github.com/wulfnout/temp.git`
-2. `cd temp/app`
-3. `npm install`
-4. `npx expo install --fix` (lines every package up with your Expo SDK)
-5. `npx expo start --tunnel`
-6. Scan the QR code: on iPhone with the Camera app, on Android inside Expo Go.
-
-The project targets **Expo SDK 54**, the version the App Store's Expo Go runs.
-If Expo Go says the project is incompatible, check which SDK your Expo Go shows on its home screen, then run
-`npx expo install expo@^<that SDK>` and `npx expo install --fix`.
+The app targets **Expo SDK 57**, matching Expo Go.
 
 ## Files
 

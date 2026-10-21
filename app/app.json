@@ -6,11 +6,33 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#000000",
-    "ios": { "supportsTablet": false },
-    "android": {},
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.temp.hottakes"
+    },
+    "android": {
+      "package": "app.temp.hottakes"
+    },
     "plugins": [
-      ["expo-image-picker", { "photosPermission": "Temp uses your photos so you can post them and set your profile and header images." }],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Temp uses your photos so you can post them and set your profile and header images."
+        }
+      ],
       "expo-video"
-    ]
+    ],
+    "owner": "wulfnout",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6ddfa22d-574f-4225-8764-f1df97a7f896"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6ddfa22d-574f-4225-8764-f1df97a7f896"
+      }
+    }
   }
 }

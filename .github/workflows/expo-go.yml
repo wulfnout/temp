@@ -1,7 +1,7 @@
 # Publishes the latest Temp app so it opens in Expo Go (branch "preview").
 # Runs on GitHub on every push to main that touches the app.
 # Needs the EXPO_TOKEN secret: an Expo access token from expo.dev > Account settings > Access tokens.
-# If publishing fails, the log is saved to the "expo-go-log" branch so it can be read without screenshots.
+# Every run saves its log and result to the "expo-go-log" branch so it can be read without screenshots.
 name: Send to Expo Go
 
 on:
@@ -51,11 +51,12 @@ jobs:
           set -o pipefail
           npx --yes eas-cli@latest update --branch preview --environment preview --message "Latest Temp test version" --non-interactive 2>&1 | tee -a ../expo.log
 
-      - name: Save the log if something failed
-        if: failure()
+      - name: Save the log (success or failure)
+        if: always() && steps.token.outputs.ok == 'true'
         working-directory: .
         run: |
           mkdir -p /tmp/log && cp expo.log /tmp/log/ 2>/dev/null || echo "no log" > /tmp/log/expo.log
+          echo "${{ job.status }} ${GITHUB_SHA::7} $(date -u +%FT%TZ)" > /tmp/log/status.txt
           cd /tmp/log && git init -q -b expo-go-log && git config user.name "Temp bot" && git config user.email "omegacleantn@gmail.com"
           git add -A && git commit -q -m "Expo Go log ${GITHUB_SHA::7}"
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" expo-go-log

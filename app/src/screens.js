@@ -8,6 +8,7 @@ import { useApp, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPick
 import { PostCard, Video, RichText } from './posts';
 import { act } from './data';
 import { ReplayOverlay } from './recorder';
+import { GifPicker } from './gif';
 import { sb, ago, kfmt, F, THEMES, tempOf } from './lib';
 
 export async function pickMedia(kind = 'all') {
@@ -306,7 +307,7 @@ export function DMListScreen() {
 }
 export function ThreadScreen({ id }) {
   const { s, C, nav, run, reload } = useApp(); const u = s.users[id] || {}; const ins = useSafeAreaInsets();
-  const [t, setT] = useState(''); const [pick, setPick] = useState(false); const list = useRef(null);
+  const [t, setT] = useState(''); const [pick, setPick] = useState(false); const [gif, setGif] = useState(false); const list = useRef(null);
   const msgs = s.threads[id] || [];
   useEffect(() => { act.read(id, s.me); }, [id, msgs.length]);
   const lastMine = [...msgs].reverse().find((m) => m.from === s.me);
@@ -341,8 +342,10 @@ export function ThreadScreen({ id }) {
         }} />
       <View style={{ paddingHorizontal: 16, paddingBottom: ins.bottom + 8, paddingTop: 6 }}>
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.dm(id, { sticker: e })); }} /> : null}
+        {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.dm(id, { sticker: 'G|' + g.url })); }} /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, borderRadius: 999, paddingLeft: 16, padding: 4 }}>
           <TextInput value={t} onChangeText={setT} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
+          <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
           <Pressable onPress={send} disabled={!t.trim()} accessibilityLabel="Send" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() ? 1 : 0.3 }}>
             <Ionicons name="paper-plane" size={17} color="#fff" /></Pressable>

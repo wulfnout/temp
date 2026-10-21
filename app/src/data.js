@@ -93,7 +93,8 @@ export const act = {
   async post(me, { text, asset, reel, overlay }) {
     const row = { text: text || '', reel: !!reel };
     if (overlay) row.overlay = overlay;
-    if (asset) { row.media_url = await upload(me, asset); row.media_type = asset.type === 'video' ? 'video' : 'image'; row.is_gif = /gif/i.test(asset.mimeType || asset.uri || ''); }
+    if (asset && asset.remote) { row.media_url = asset.uri; row.media_type = 'image'; row.is_gif = true; }
+    else if (asset) { row.media_url = await upload(me, asset); row.media_type = asset.type === 'video' ? 'video' : 'image'; row.is_gif = /gif/i.test(asset.mimeType || asset.uri || ''); }
     else if (reel) row.clip_seed = Math.floor(Math.random() * 9999) + 1;
     return ok(sb.from('posts').insert(row));
   },

@@ -5,6 +5,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
+import { GifPicker } from './gif';
 
 export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef, trim }) {
   const t0 = (trim && trim.trimStart) || 0, t1 = trim && trim.trimEnd;
@@ -101,7 +102,7 @@ function BurnBar({ p }) {
 export function CommentsSheet({ id, onClose }) {
   const { s, C, run, nav } = useApp();
   const p = s.posts.find((x) => x.id === id);
-  const [t, setT] = useState(''); const [pick, setPick] = useState(false); const inp = useRef(null);
+  const [t, setT] = useState(''); const [pick, setPick] = useState(false); const [gif, setGif] = useState(false); const inp = useRef(null);
   if (!p) return null;
   const list = [...p.comments.filter((c) => !s.blocked[c.userId])].sort((a, b) => b.likes - a.likes || a.at - b.at);
   const frozen = p.status === 'frozen';
@@ -125,9 +126,11 @@ export function CommentsSheet({ id, onClose }) {
           </View>); }} />
       {frozen ? <T b muted style={{ textAlign: 'center', paddingVertical: 14 }}>Comments are off while this post is frozen</T> : <>
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.comment(p.id, '', e)); }} /> : null}
+        {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.comment(p.id, '', 'G|' + g.url)); }} /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: C.soft, borderRadius: 999, paddingLeft: 16, padding: 4 }}>
           <TextInput ref={inp} value={t} onChangeText={setT} placeholder="Add a comment…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send"
             style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
+          <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
           <Pressable onPress={send} disabled={!t.trim()} accessibilityLabel="Send comment" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() ? 1 : 0.3 }}>
             <Ionicons name="paper-plane" size={17} color="#fff" /></Pressable>

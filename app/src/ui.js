@@ -68,10 +68,11 @@ export function Sticker({ v, size = 58 }) {
     return <View style={{ transform: [{ rotate: rot + 'deg' }], backgroundColor: bg, borderColor: '#fff', borderWidth: 3, borderRadius: 12, paddingVertical: size * 0.1, paddingHorizontal: size * 0.2, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3, alignSelf: 'flex-start' }}>
       <Text style={{ color: fg, fontFamily: F.display, fontSize: Math.max(10, size * 0.26) }}>{t}</Text></View>;
   }
+  if (v.startsWith('G|')) return <Image source={{ uri: v.slice(2) }} style={{ width: 200, height: 160, borderRadius: 14 }} resizeMode="cover" accessibilityLabel="GIF" />;
   if (v.startsWith('I|')) return <Image source={{ uri: v.slice(2) }} style={{ width: size * 1.2, height: size * 1.2, borderRadius: size * 0.3, borderWidth: 3, borderColor: '#fff', transform: [{ rotate: '-4deg' }] }} />;
   return <Text style={{ fontSize: size * 0.9 }}>{v}</Text>;
 }
-export const stickerLabel = (v) => (!v ? '' : v.startsWith('T|') ? '“' + v.split('|')[1] + '” sticker' : v.startsWith('I|') ? 'a sticker' : v + ' sticker');
+export const stickerLabel = (v) => (!v ? '' : v.startsWith('G|') ? 'a GIF' : v.startsWith('T|') ? '“' + v.split('|')[1] + '” sticker' : v.startsWith('I|') ? 'a sticker' : v + ' sticker');
 
 export function StickerPicker({ onPick }) {
   const { s, C } = useApp();

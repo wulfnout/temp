@@ -494,6 +494,16 @@ img,video{max-width:100%;display:block}
 .up-spin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .up-spin::after{content:"";width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin2 .8s linear infinite}
 @keyframes spin2{to{transform:rotate(360deg)}}
+.gifp{background:var(--soft);border-radius:20px;padding:10px;margin-top:10px;display:grid;gap:8px}
+.gifp-head{display:flex;gap:6px;align-items:center}
+.gifp-head .inputbar{background:var(--card);padding-left:12px;gap:6px;color:var(--muted)}
+.gifp-grid{columns:3 100px;column-gap:6px;max-height:300px;overflow-y:auto;border-radius:14px}
+.gifp-grid button{display:block;width:100%;margin-bottom:6px;border-radius:10px;overflow:hidden;background:var(--line);break-inside:avoid}
+.gifp-grid img{width:100%;display:block;object-fit:cover}
+.gifp-credit{margin:0;font-size:11px;font-weight:800;color:var(--muted);text-align:right;letter-spacing:.04em}
+.gsticker{max-width:min(220px,70vw);border-radius:14px;display:block}
+.gif-btn{font-weight:900;font-size:12px;letter-spacing:.02em;width:auto!important;padding:0 8px}
+.gif-btn[aria-pressed="true"],.stk-btn[aria-pressed="true"]{color:var(--orange)}
 .rov{position:absolute;inset:0;pointer-events:none;z-index:1}
 .rov-tint{position:absolute;inset:0}
 .rov-text{position:absolute;left:0;right:0;padding:0 20px;text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(22px,7vw,34px);line-height:1.12;letter-spacing:-.03em;text-shadow:0 2px 10px rgba(0,0,0,.55);overflow-wrap:anywhere}
@@ -828,7 +838,7 @@ async function remote(a,b){
     case 'save':{const p=P(a.id);if(!p)return;
       if(p.saved)await ok(sb.from('saves').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('saves').insert({post_id:a.id}));return}
     case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay)row.overlay=a.overlay;
-      if(a.media){const url=await upload(a.media.file);
+      if(a.media){const url=a.media.remote?a.media.url:await upload(a.media.file);
         if(a.reel){row.media_url=url;row.media_type='video'}else{row.media_url=url;row.media_type=a.media.type;row.is_gif=!!a.media.gif}}
       else if(a.reel)row.clip_seed=Math.floor(Math.random()*9999)+1;
       await ok(sb.from('posts').insert(row));return 'reload'}
@@ -1463,7 +1473,7 @@ function Replay({s,dispatch,open,startId}){
 
 /* ---------- sheets ---------- */
 function Composer({s,dispatch,onClose,startReel,open}){
-  const [reel,setReel]=useState(!!startReel);
+  const [reel,setReel]=useState(!!startReel);const [gifOpen,setGifOpen]=useState(false);
   const [text,setText]=useState('');const [media,setMedia]=useState(null);const [nsfw,setNsfw]=useState(false);const [err,setErr]=useState(null);const fileRef=useRef();
   const max=280,over=text.length>max,ok=(reel?(text.trim()||(media&&media.type==='video')):(text.trim()||media))&&!over;
   const adult=isAdult(s),plus=s.users.me.plus;
@@ -1481,10 +1491,11 @@ function Composer({s,dispatch,onClose,startReel,open}){
           <button className="c-remove" aria-label="Remove" onClick=${()=>setMedia(null)}><${Icon} n="x" s=${16}/></button></div>`}
         <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
       </div></div>
+    ${gifOpen&&!reel&&html`<${GifPicker} onClose=${()=>setGifOpen(false)} onPick=${g=>{setMedia({type:'image',url:g.url,gif:true,remote:true});setGifOpen(false)}}/>`}
     <div className="c-bar">
       <div className="c-tools">
         ${!reel&&html`<button onClick=${()=>pick('image/*')}><${Icon} n="image" s=${19}/>Photo</button>
-        <button onClick=${()=>pick('image/gif')}><${Icon} n="gif" s=${19}/>GIF</button>`}
+        <button aria-pressed=${gifOpen} className=${gifOpen?'tool-on':''} onClick=${()=>setGifOpen(!gifOpen)}><${Icon} n="gif" s=${19}/>GIF</button>`}
         ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record('replay')}}><span className="rec-dot"></span>Record</button>`}
         <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>${reel?'Upload':'Video'}</button>
         ${adult&&s.users.me.plus&&html`<button className=${nsfw?'tool-on':''} aria-pressed=${nsfw} onClick=${()=>setNsfw(!nsfw)}>18+</button>`}
@@ -1496,7 +1507,7 @@ function Composer({s,dispatch,onClose,startReel,open}){
 }
 
 function Comments({p,s,dispatch,onClose,open}){
-  const [t,setT]=useState('');const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [shown,setShown]=useState({});const inp=useRef();
+  const [t,setT]=useState('');const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);const [shown,setShown]=useState({});const inp=useRef();
   const list=[...p.comments.filter(c=>cvis(s,c)!=='hide')].sort((a,b)=>b.likes-a.likes||a.at-b.at);
   const send=()=>{if(!t.trim())return;const why=MOD.rules(MOD.classify(t),s.users.me.plus,isAdult(s));if(why)return setErr(why);dispatch({type:'comment',id:p.id,text:t.trim()});setT('')};
   const counts=!s.settings.hideCounts;
@@ -1513,9 +1524,11 @@ function Comments({p,s,dispatch,onClose,open}){
         <${Icon} n="heart" s=${17} w=${2} fill=${c.myLike?'currentColor':null}/></button></div>`})
       :html`<div className="empty" style=${{padding:'28px 0'}}>No comments yet</div>`}
     ${pick&&html`<${StickerPicker} s=${s} onPick=${e=>{dispatch({type:'comment',id:p.id,sticker:e});setPick(false)}}/>`}
+    ${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{dispatch({type:'comment',id:p.id,sticker:'G|'+g.url});setGif(false)}}/>`}
     <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
     ${p.status==='frozen'?html`<div className="empty" style=${{padding:'16px 0'}}>Comments are off while this post is frozen</div>`:html`<div className="inputbar"><label htmlFor="comment-in" className="vh">Comment</label>
       <input ref=${inp} id="comment-in" placeholder="Add a comment…" value=${t} onChange=${e=>{setT(e.target.value);setErr(null)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
+      <button className="stk-btn gif-btn" aria-label="GIFs" aria-pressed=${gif} onClick=${()=>{setGif(!gif);setPick(false)}}>GIF</button>
       <button className="stk-btn" aria-label="Stickers" aria-pressed=${pick} onClick=${()=>setPick(!pick)}><${Icon} n="smile" s=${22}/></button>
       <button className="send" disabled=${!t.trim()} onClick=${send} aria-label="Send comment"><${Icon} n="share" s=${18}/></button></div>`}
   <//>`;
@@ -1692,14 +1705,39 @@ function SettingsView({s,dispatch,sub,setSub,open,replay,logout}){
 }
 
 /* ---------- screens ---------- */
+/* ---------- GIF search (GIPHY) ---------- */
+const GIPHY_KEY='b2Iegy5NrTJZ6CeatyDooV0oumjBTBYH';
+async function giphy(q){
+  const base='https://api.giphy.com/v1/gifs/'+(q?'search':'trending');
+  const u=base+'?api_key='+GIPHY_KEY+'&limit=30&rating=pg-13&bundle=messaging_non_clips'+(q?'&q='+encodeURIComponent(q):'');
+  const r=await fetch(u);if(!r.ok)throw new Error('GIF search isn’t available right now.');
+  const j=await r.json();
+  return (j.data||[]).map(g=>({id:g.id,title:g.title,thumb:(g.images.fixed_width_small||g.images.fixed_width).url,
+    url:(g.images.downsized_medium||g.images.downsized||g.images.original).url,w:+g.images.fixed_width.width,h:+g.images.fixed_width.height}));
+}
+function GifPicker({onPick,onClose}){
+  const [q,setQ]=useState('');const [list,setList]=useState([]);const [busy,setBusy]=useState(true);const [err,setErr]=useState('');
+  useEffect(()=>{let live=true;setBusy(true);const t=setTimeout(()=>{giphy(q.trim()).then(l=>{if(live){setList(l);setErr('')}}).catch(e=>{if(live)setErr(e.message)}).finally(()=>{if(live)setBusy(false)})},q?350:0);
+    return()=>{live=false;clearTimeout(t)}},[q]);
+  return html`<div className="gifp" role="dialog" aria-label="Search GIFs">
+    <div className="gifp-head"><div className="inputbar" style=${{flex:1,marginTop:0}}><${Icon} n="search" s=${18}/><label htmlFor="gif-q" className="vh">Search GIFs</label>
+      <input id="gif-q" autoFocus placeholder="Search GIPHY" value=${q} onChange=${e=>setQ(e.target.value)}/></div>
+      ${onClose&&html`<button className="icon-btn" onClick=${onClose} aria-label="Close GIFs"><${Icon} n="x" s=${18}/></button>`}</div>
+    <div className="gifp-grid">${list.map(g=>html`<button key=${g.id} onClick=${()=>onPick(g)} aria-label=${g.title||'GIF'}><img src=${g.thumb} alt="" loading="lazy" style=${{aspectRatio:g.w&&g.h?g.w+'/'+g.h:'1'}}/></button>`)}</div>
+    ${busy&&!list.length&&html`<p className="sub" style=${{textAlign:'center'}}>Loading…</p>`}
+    ${!busy&&!list.length&&html`<p className="sub" style=${{textAlign:'center'}}>${err||'No GIFs found'}</p>`}
+    <p className="gifp-credit">Powered by GIPHY</p>
+  </div>`;
+}
 function Sticker({v,size=58}){
   if(!v)return null;
   if(v.startsWith('T|')){const [,t,c]=v.split('|');const rot=(Math.abs(hashStr(t))%9)-4;
     return html`<span className=${'tsticker ts-'+(c||'o')} style=${{'--r':rot+'deg',fontSize:Math.max(10,size*.27)}}>${t}</span>`}
+  if(v.startsWith('G|'))return html`<img className="gsticker" src=${v.slice(2)} alt="GIF" loading="lazy"/>`;
   if(v.startsWith('I|'))return html`<img className="isticker" src=${v.slice(2)} alt="Sticker" style=${{width:size*1.2,height:size*1.2}}/>`;
   return html`<span className="sticker" style=${{fontSize:size}}>${v}</span>`;
 }
-const stickerLabel=v=>!v?'':v.startsWith('T|')?'“'+v.split('|')[1]+'” sticker':v.startsWith('I|')?'a sticker':v+' sticker';
+const stickerLabel=v=>!v?'':v.startsWith('G|')?'a GIF':v.startsWith('T|')?'“'+v.split('|')[1]+'” sticker':v.startsWith('I|')?'a sticker':v+' sticker';
 function StickerPicker({s,onPick,onMake}){
   const packs=[...(s.custom&&s.custom.length?[{id:'mine',name:'Yours',items:s.custom}]:[]),...SHOP.stickers.filter(pk=>s.owned.stickers[pk.id]&&!pk.studio)];
   return html`<div className="picker" role="group" aria-label="Stickers">
@@ -1965,7 +2003,7 @@ function DMList({s,open}){
 }
 
 function Thread({s,id,dispatch,simulateReply,onTyping,open}){
-  const [t,setT]=useState('');const end=useRef();const [err,setErr]=useState(null);const [pick,setPick]=useState(false);
+  const [t,setT]=useState('');const end=useRef();const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);
   const msgs=s.threads[id]||[];
   useEffect(()=>{dispatch({type:'read',id})},[id,msgs.length]);
   useEffect(()=>{end.current&&end.current.scrollIntoView({block:'end'})},[msgs.length,s.typing[id]]);
@@ -1990,8 +2028,9 @@ function Thread({s,id,dispatch,simulateReply,onTyping,open}){
       ${s.typing[id]&&html`<div className="typing" aria-label="typing"><span></span><span></span><span></span></div>`}
       <div ref=${end}></div>
     </div>
-    <div className="dm-input">${pick&&html`<${StickerPicker} s=${s} onPick=${sendSticker}/>`}<${ModError} err=${err} open=${open}/><div className="inputbar"><label htmlFor="dm-in" className="vh">Message</label>
+    <div className="dm-input">${pick&&html`<${StickerPicker} s=${s} onPick=${sendSticker}/>`}${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{sendSticker('G|'+g.url);setGif(false)}}/>`}<${ModError} err=${err} open=${open}/><div className="inputbar"><label htmlFor="dm-in" className="vh">Message</label>
       <input id="dm-in" placeholder="Message…" value=${t} onChange=${e=>{setT(e.target.value);setErr(null);onTyping&&onTyping(id)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
+      <button className="stk-btn gif-btn" aria-label="GIFs" aria-pressed=${gif} onClick=${()=>{setGif(!gif);setPick(false)}}>GIF</button>
       <button className="stk-btn" aria-label="Stickers" aria-pressed=${pick} onClick=${()=>setPick(!pick)}><${Icon} n="smile" s=${22}/></button>
       <button className="send" disabled=${!t.trim()} onClick=${send} aria-label="Send"><${Icon} n="share" s=${18}/></button></div></div>
   </div>`;

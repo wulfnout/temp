@@ -1,0 +1,164 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { View, Pressable, Text, BackHandler, Animated, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useFonts, Unbounded_700Bold, Unbounded_800ExtraBold } from '@expo-google-fonts/unbounded';
+import { Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold } from '@expo-google-fonts/figtree';
+import { sb, useColors, friendly, F } from './src/lib';
+import { loadAll, EMPTY } from './src/data';
+import { Ctx, Avatar } from './src/ui';
+import { AuthScreen } from './src/auth';
+import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen } from './src/screens';
+import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer } from './src/profile';
+import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
+
+export default function App() {
+  const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
+  const [ready, setReady] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setReady(true), 2500); return () => clearTimeout(t); }, []);
+  return (
+    <SafeAreaProvider>
+      {fontsLoaded || ready ? <Root /> : <View style={{ flex: 1, backgroundColor: '#000' }} />}
+    </SafeAreaProvider>
+  );
+}
+
+function Root() {
+  const [session, setSession] = useState(undefined);
+  const [s, setS] = useState(EMPTY);
+  const C = useColors(s.priv.theme);
+  const [tab, setTab] = useState({ name: 'home', params: {} });
+  const [stack, setStack] = useState([]);
+  const [sheet, setSheet] = useState(null);
+  const [toast, setToast] = useState(null);
+  const myId = session && session.user && session.user.id;
+
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => setSession(data.session || null));
+    const { data } = sb.auth.onAuthStateChange((_e, ses) => setSession(ses || null));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  const loading = useRef(false), again = useRef(false);
+  const reload = useCallback(async () => {
+    if (!myId) return;
+    if (loading.current) { again.current = true; return; }
+    loading.current = true;
+    try { const d = await loadAll(myId); setS(d); } catch (e) { say(friendly(e)); }
+    loading.current = false;
+    if (again.current) { again.current = false; reload(); }
+  }, [myId]);
+
+  useEffect(() => {
+    if (!myId) { setS(EMPTY); setStack([]); setTab({ name: 'home', params: {} }); return; }
+    reload();
+    let t = null; const soon = () => { clearTimeout(t); t = setTimeout(reload, 400); };
+    const ch = sb.channel('app-' + myId).on('postgres_changes', { event: '*', schema: 'public' }, soon).subscribe();
+    const tick = setInterval(reload, 60000); // catches posts that expired on the server
+    return () => { clearTimeout(t); clearInterval(tick); sb.removeChannel(ch); };
+  }, [myId]);
+
+  const toastT = useRef(null);
+  function say(msg) { setToast(msg); clearTimeout(toastT.current); toastT.current = setTimeout(() => setToast(null), 2400); }
+
+  // run a write: optional instant local change, then reload from the database
+  async function run(fn, opts = {}) {
+    if (opts.optimistic) {
+      const { post, patch } = opts.optimistic;
+      setS((x) => ({ ...x, posts: x.posts.map((p) => (p.id === post ? { ...p, ...patch } : p)) }));
+    }
+    try { await fn(); if (opts.toast) say(opts.toast); await reload(); return true; }
+    catch (e) { say(friendly(e)); await reload(); return false; }
+  }
+
+  const nav = {
+    tab: (name, params = {}) => { setStack([]); setTab({ name, params }); },
+    push: (name, params = {}) => setStack((st) => [...st, { name, params }]),
+    back: () => setStack((st) => st.slice(0, -1)),
+    sheet: (name, params = {}) => setSheet({ name, params }),
+    toast: say,
+  };
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (sheet) { setSheet(null); return true; }
+      if (stack.length) { nav.back(); return true; }
+      if (tab.name !== 'home') { nav.tab('home'); return true; }
+      return false;
+    });
+    return () => sub.remove();
+  }, [sheet, stack, tab]);
+
+  const ctx = { s, C, run, nav, reload };
+
+  if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
+  if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;
+
+  const top = stack[stack.length - 1];
+  const screen = (r) => {
+    switch (r.name) {
+      case 'home': return <HomeScreen />;
+      case 'search': return <SearchScreen q={r.params.q} />;
+      case 'replay': return <ReplayScreen />;
+      case 'me': return <ProfileScreen isTab />;
+      case 'profile': return <ProfileScreen id={r.params.id} />;
+      case 'activity': return <ActivityScreen />;
+      case 'dms': return <DMListScreen />;
+      case 'thread': return <ThreadScreen id={r.params.id} />;
+      case 'settings': return <SettingsScreen />;
+      case 'shop': return <ShopScreen />;
+      default: return null;
+    }
+  };
+  const current = top || tab;
+  const dark = current.name === 'replay';
+
+  return (
+    <Ctx.Provider value={ctx}>
+      <StatusBar style={dark || C.dark ? 'light' : 'dark'} />
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
+        <View style={{ flex: 1 }}>{screen(current)}</View>
+        {current.name !== 'thread' ? <TabBar tab={tab.name} stacked={!!top} dark={dark} onTab={(n) => (n === 'compose' ? nav.sheet('compose', { reel: tab.name === 'replay' }) : nav.tab(n))} /> : null}
+      </View>
+      {sheet && sheet.name === 'compose' ? <Composer reel={sheet.params.reel} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'comments' ? <CommentsSheet id={sheet.params.id} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'share' ? <ShareSheet post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'menu' ? <PostMenu post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'story' ? <StoryViewer userId={sheet.params.userId} onClose={() => setSheet(null)} /> : null}
+      {toast ? <Toast text={toast} /> : null}
+    </Ctx.Provider>
+  );
+}
+
+function TabBar({ tab, stacked, dark, onTab }) {
+  const { s, C } = React.useContext(Ctx); const ins = useSafeAreaInsets();
+  const bg = dark ? '#000' : C.card, idle = dark ? '#8d8883' : C.muted, on = dark ? '#fff' : C.ink;
+  const Item = ({ name, icon, label, children }) => {
+    const active = !stacked && tab === name;
+    return <Pressable onPress={() => onTab(name)} accessibilityLabel={label} style={{ width: 56, height: 46, alignItems: 'center', justifyContent: 'center' }}>
+      {children || <Ionicons name={active ? icon : icon + '-outline'} size={25} color={active ? on : idle} />}
+      {active ? <View style={{ position: 'absolute', bottom: 0, width: 5, height: 5, borderRadius: 2, backgroundColor: C.orange }} /> : null}
+    </Pressable>;
+  };
+  return (
+    <View style={{ backgroundColor: bg, borderTopWidth: 1, borderTopColor: dark ? '#1c1c1c' : C.line, paddingTop: 8, paddingBottom: ins.bottom + 8, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
+      <Item name="home" icon="home" label="Home" />
+      <Item name="search" icon="search" label="Search" />
+      <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="add" size={28} color="#fff" /></Pressable>
+      <Item name="replay" icon="play-circle" label="Replay" />
+      <Item name="me" label="Profile"><Avatar u={s.users[s.me]} size={28} /></Item>
+    </View>
+  );
+}
+
+function Toast({ text }) {
+  const { C } = React.useContext(Ctx); const ins = useSafeAreaInsets();
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.spring(a, { toValue: 1, useNativeDriver: true }).start(); }, [text]);
+  return (
+    <Animated.View pointerEvents="none" style={{ position: 'absolute', bottom: ins.bottom + 80, alignSelf: 'center', maxWidth: '88%', backgroundColor: C.ink, borderRadius: 999, paddingVertical: 11, paddingHorizontal: 18, opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }}>
+      <Text style={{ color: C.bg, fontFamily: F.heavy, fontSize: 14, textAlign: 'center' }}>{text}</Text>
+    </Animated.View>
+  );
+}

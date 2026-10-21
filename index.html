@@ -1762,7 +1762,7 @@ function Auth(){
         if(f.pw.length<8)return setErr('Passwords need at least 8 characters.');
         const {data:free,error:e1}=await sb.rpc('handle_available',{h:handle});if(e1)throw e1;
         if(!free)return setErr(`@${handle} is taken. Try another.`);
-        const {data,error}=await sb.auth.signUp({email,password:f.pw,options:{data:{name:f.name.trim(),handle,birth:f.birth},emailRedirectTo:location.origin}});
+        const {data,error}=await sb.auth.signUp({email,password:f.pw,options:{data:{name:f.name.trim(),handle,birth:f.birth},emailRedirectTo:location.origin+location.pathname}});
         if(error){if(/registered|exists/i.test(error.message))return setErr('That email already has an account. Sign in instead.');if(/database error/i.test(error.message))return setErr('Couldn’t create that account. Try a different username.');throw error}
         if(!data.session){setMode('signin');setNote(`Check ${email} for a link to confirm your account, then sign in.`)}
       } else if(mode==='signin'){
@@ -1771,7 +1771,7 @@ function Auth(){
         if(error)return setErr(/confirm/i.test(error.message)?'Confirm your email first. Check your inbox for the link.':'That email and password don’t match.');
       } else {
         if(!emailOk(email))return setErr('Enter a valid email.');
-        const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin});if(error)throw error;
+        const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;
         setNote(`If ${email} has an account, a reset link is on its way.`);
       }
     }catch(x){setErr(friendly(x))}finally{setBusy(false)}

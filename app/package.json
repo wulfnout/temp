@@ -1,0 +1,27 @@
+{
+  "name": "temp-app",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "tunnel": "expo start --tunnel",
+    "fix": "expo install --fix"
+  },
+  "dependencies": {
+    "@expo-google-fonts/figtree": "^0.4.0",
+    "@expo-google-fonts/unbounded": "^0.4.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "expo": "~54.0.0",
+    "expo-font": "~14.0.0",
+    "expo-image-picker": "~17.0.0",
+    "expo-linear-gradient": "~15.0.0",
+    "expo-status-bar": "~3.0.0",
+    "expo-video": "~3.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.4",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-url-polyfill": "^2.0.0"
+  }
+}

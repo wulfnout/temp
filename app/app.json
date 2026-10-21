@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Temp",
+    "slug": "temp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#000000",
+    "ios": { "supportsTablet": false },
+    "android": {},
+    "plugins": [
+      ["expo-image-picker", { "photosPermission": "Temp uses your photos so you can post them and set your profile and header images." }],
+      "expo-video"
+    ]
+  }
+}

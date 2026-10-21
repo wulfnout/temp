@@ -75,11 +75,15 @@ export function ProfileScreen({ id, isTab }) {
   );
 }
 
+// Defined outside EditProfile so typing doesn't rebuild the box and close the keyboard.
+function Input({ C, style, ...p }) {
+  return <TextInput placeholderTextColor={C.muted} {...p} style={[{ backgroundColor: C.soft, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 13, color: C.ink, fontFamily: F.body, fontSize: 16, marginTop: 6 }, style]} />;
+}
+
 function EditProfile({ onClose }) {
   const { s, C, run } = useApp(); const me = s.users[s.me];
   const [name, setName] = useState(me.name); const [bio, setBio] = useState(me.bio); const [handle, setHandle] = useState(me.handle);
   const [avatar, setAvatar] = useState(null); const [header, setHeader] = useState(null); const [busy, setBusy] = useState(false);
-  const Input = (p) => <TextInput placeholderTextColor={C.muted} {...p} style={[{ backgroundColor: C.soft, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 13, color: C.ink, fontFamily: F.body, fontSize: 16, marginTop: 6 }, p.style]} />;
   const save = async () => { setBusy(true); const ok = await run(() => act.profile(s.me, { name: name.trim(), bio: bio.trim(), handle: handle.trim().replace(/^@/, '') !== me.handle ? handle.trim().replace(/^@/, '') : undefined, avatar, header }), { toast: 'Saved' }); setBusy(false); if (ok) onClose(); };
   return (
     <Sheet visible onClose={onClose} title="Edit profile" full right={<Btn small kind="orange" title={busy ? 'Saving…' : 'Save'} disabled={busy || !name.trim() || !handle.trim()} onPress={save} />}>
@@ -92,9 +96,9 @@ function EditProfile({ onClose }) {
           <View style={{ borderWidth: 4, borderColor: C.card, borderRadius: 50 }}><Avatar u={{ ...me, avatar: (avatar && avatar.uri) || me.avatar, ring: null }} size={74} /></View>
           <View style={{ position: 'absolute', top: 4, left: 4, width: 74, height: 74, borderRadius: 37, backgroundColor: 'rgba(0,0,0,.3)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="camera" size={18} color="#fff" /></View>
         </Pressable>
-        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Display name</T><Input value={name} onChangeText={setName} maxLength={40} />
-        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Username</T><Input value={handle} onChangeText={(v) => setHandle(v.replace(/\s/g, ''))} autoCapitalize="none" maxLength={20} />
-        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Bio</T><Input value={bio} onChangeText={setBio} multiline maxLength={160} style={{ minHeight: 80, textAlignVertical: 'top' }} />
+        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Display name</T><Input C={C} value={name} onChangeText={setName} maxLength={40} />
+        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Username</T><Input C={C} value={handle} onChangeText={(v) => setHandle(v.replace(/\s/g, ''))} autoCapitalize="none" maxLength={20} />
+        <T b muted style={{ marginTop: 12, fontSize: 13 }}>Bio</T><Input C={C} value={bio} onChangeText={setBio} multiline maxLength={160} style={{ minHeight: 80, textAlignVertical: 'top' }} />
       </ScrollView>
     </Sheet>
   );

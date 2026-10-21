@@ -6,8 +6,8 @@ import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, st
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
 
-export function Video({ uri, style, autoPlay, controls = true, loop = false, onEnd, playerRef }) {
-  const player = useVideoPlayer(uri, (p) => { p.loop = loop; p.muted = false; if (autoPlay) p.play(); });
+export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef }) {
+  const player = useVideoPlayer(uri, (p) => { p.loop = loop; p.muted = muted; if (autoPlay) p.play(); });
   if (playerRef) playerRef.current = player;
   React.useEffect(() => {
     if (!onEnd) return;

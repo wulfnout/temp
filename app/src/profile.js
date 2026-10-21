@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video } from './posts';
-import { Header, pickMedia } from './screens';
+import { Header, pickMedia, ReplayGrid } from './screens';
 import { act } from './data';
 import { sb, kfmt, F, THEMES, STICKER_PACKS, ago, friendly } from './lib';
 
@@ -20,7 +20,8 @@ export function ProfileScreen({ id, isTab }) {
   if (!u) return <View style={{ flex: 1, backgroundColor: C.bg }}><Header back /><Empty text="Loading…" /></View>;
   const blocked = s.blocked[uid];
   const all = s.posts.filter((p) => p.userId === uid);
-  const list = tab === 'posts' ? all.filter((p) => !p.reel) : tab === 'replays' ? all.filter((p) => p.reel) : s.posts.filter((p) => p.saved);
+  const reposted = (s.repostsBy[uid] || []).map((id) => s.posts.find((p) => p.id === id)).filter(Boolean);
+  const list = tab === 'posts' ? all.filter((p) => !p.reel) : tab === 'replays' ? all.filter((p) => p.reel) : tab === 'reposts' ? reposted : s.posts.filter((p) => p.saved);
   const fx = u.headerFx && HEADER_FX[u.headerFx];
   const setStickers = (next) => run(() => act.profileStickers(s.me, next));
   return (
@@ -61,11 +62,13 @@ export function ProfileScreen({ id, isTab }) {
         </View>
         {blocked ? <Empty text="Blocked" /> : <View style={{ paddingHorizontal: 16 }}>
           <View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4, marginTop: 12, marginBottom: 10 }}>
-            {[['posts', 'Posts'], ['replays', 'Replays'], ...(isMe ? [['saved', 'Saved']] : [])].map(([k, l]) => (
+            {[['posts', 'Posts'], ['replays', 'Replays'], ['reposts', 'Reposts'], ...(isMe ? [['saved', 'Saved']] : [])].map(([k, l]) => (
               <Pressable key={k} onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center' }}>
                 <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{l}</T></Pressable>))}
           </View>
-          {list.length ? list.map((p) => <PostCard key={p.id} p={p} />) : <Empty text="Nothing here yet" />}
+          {tab === 'replays' ? <ReplayGrid posts={list} /> : <>
+            {list.some((p) => p.reel) ? <View style={{ marginBottom: 10 }}><ReplayGrid posts={list.filter((p) => p.reel)} /></View> : null}
+            {list.filter((p) => !p.reel).length ? list.filter((p) => !p.reel).map((p) => <PostCard key={p.id} p={p} />) : list.length ? null : <Empty text="Nothing here yet" />}</>}
         </View>}
       </ScrollView>
       {pick ? <Sheet visible onClose={() => setPick(false)} title="Add a sticker" right={<Btn small kind="ghost" title="Fire Sale" onPress={() => { setPick(false); nav.push('shop'); }} />}>

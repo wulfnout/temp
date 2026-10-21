@@ -73,59 +73,108 @@ export function HomeScreen() {
 }
 
 /* ---------------- replay ---------------- */
-export function ReplayScreen() {
-  const { s, C, nav, run } = useApp();
-  const H = Dimensions.get('window').height - 64 - useSafeAreaInsets().bottom;
+export function ReplayScreen({ startId }) {
+  const { s, C, nav } = useApp(); const ins = useSafeAreaInsets();
+  const H = Dimensions.get('window').height - 64 - ins.bottom;
   const reels = s.posts.filter((p) => p.reel && !s.blocked[p.userId]);
-  const [active, setActive] = useState(reels[0] && reels[0].id);
+  const startIndex = Math.max(0, reels.findIndex((p) => p.id === startId));
+  const [active, setActive] = useState(startId || (reels[0] && reels[0].id));
+  useEffect(() => { if (!active && reels[0]) setActive(reels[0].id); }, [reels.length]);
+  useEffect(() => { if (startId) setActive(startId); }, [startId]);
   const onViewable = useRef(({ viewableItems }) => { const v = viewableItems[0]; if (v) { setActive(v.item.id); act.view(v.item.id); } }).current;
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <FlatList data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} snapToInterval={H} decelerationRate="fast"
+      <FlatList key={'reels-' + (startId || 'top')} data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} snapToInterval={H} decelerationRate="fast"
+        initialScrollIndex={reels.length ? startIndex : undefined} windowSize={3} maxToRenderPerBatch={2} initialNumToRender={2}
         getItemLayout={(_, i) => ({ length: H, offset: H * i, index: i })} onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
         ListEmptyComponent={<View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}><T b style={{ color: '#fff' }}>No Replays yet. Tap + to post one.</T></View>}
         renderItem={({ item }) => <Reel p={item} h={H} active={item.id === active} />} />
-      <View pointerEvents="box-none" style={{ position: 'absolute', top: useSafeAreaInsets().top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
+      <View pointerEvents="box-none" style={{ position: 'absolute', top: ins.top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
         <T d style={{ color: '#fff', fontSize: 22, letterSpacing: -1, flex: 1 }}>Replay</T>
         <IconBtn name="videocam-outline" color="#fff" label="New Replay" style={{ backgroundColor: 'rgba(255,255,255,.14)' }} onPress={() => nav.sheet('compose', { reel: true })} />
       </View>
     </View>
   );
 }
+
+// Thumbnail grid used on profiles and in search. Tapping opens the full-screen Replay viewer, already playing.
+export function ReplayGrid({ posts }) {
+  const { s, C, nav } = useApp();
+  if (!posts.length) return <Empty text="No Replays yet" />;
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, borderRadius: 20, overflow: 'hidden' }}>
+      {posts.map((p) => (
+        <Pressable key={p.id} onPress={() => nav.tab('replay', { startId: p.id })} accessibilityLabel={'Play Replay' + (p.text ? ': ' + p.text : '')}
+          style={{ width: '32.6%', aspectRatio: 9 / 14, backgroundColor: '#0a0a0a', overflow: 'hidden' }}>
+          {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} muted /> : (
+            <LinearGradient colors={REEL_SETS[(p.seed || 1) % REEL_SETS.length]} style={{ flex: 1, padding: 8, justifyContent: 'center' }}>
+              <T d numberOfLines={5} style={{ color: REEL_SETS[(p.seed || 1) % REEL_SETS.length][0] === '#f3ece6' ? '#0a0a0a' : '#fff', fontSize: 11, lineHeight: 14 }}>{p.text}</T>
+            </LinearGradient>)}
+          <View pointerEvents="none" style={{ position: 'absolute', left: 6, bottom: 6, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <Ionicons name="play" size={12} color="#fff" /><T h style={{ color: '#fff', fontSize: 11, textShadowColor: 'rgba(0,0,0,.6)', textShadowRadius: 4 }}>{kfmt(p.views)}</T></View>
+          {p.status === 'frozen' ? <View pointerEvents="none" style={{ position: 'absolute', top: 6, right: 6 }}><Ionicons name="snow" size={14} color="#fff" /></View> : null}
+        </Pressable>))}
+    </View>
+  );
+}
+
 function Reel({ p, h, active }) {
-  const { s, C, nav, run } = useApp(); const u = s.users[p.userId] || {}; const frozen = p.status === 'frozen';
+  const { s, C, nav, run } = useApp(); const u = s.users[p.userId] || {}; const frozen = p.status === 'frozen'; const mine = p.userId === s.me;
   const playerRef = useRef(null); const [ended, setEnded] = useState(false); const [paused, setPaused] = useState(false);
-  useEffect(() => { const pl = playerRef.current; if (!pl) return; try { if (active) { pl.currentTime = 0; pl.play(); setEnded(false); setPaused(false); } else pl.pause(); } catch (e) {} }, [active]);
-  const tap = () => { const pl = playerRef.current; if (!pl) return; if (ended) { pl.currentTime = 0; pl.play(); setEnded(false); return; } if (paused) { pl.play(); setPaused(false); } else { pl.pause(); setPaused(true); } };
-  const Rail = ({ icon, n, on, onPress, label, disabled }) => (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityLabel={label} style={{ alignItems: 'center', gap: 3, opacity: disabled ? 0.35 : 1 }}>
-      <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: on ? (icon === 'snow' ? '#fff' : C.orange) : 'rgba(255,255,255,.16)', alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name={icon} size={23} color={on && icon === 'snow' ? '#000' : '#fff'} /></View>
-      {n !== undefined ? <T h style={{ color: '#fff', fontSize: 12.5 }}>{kfmt(n)}</T> : null}
+  const icon = useRef(new Animated.Value(0)).current; const burst = useRef(new Animated.Value(0)).current; const lastTap = useRef(0); const tapTimer = useRef(null);
+  useEffect(() => {
+    const pl = playerRef.current; if (!pl) return;
+    try { if (active) { pl.currentTime = 0; pl.play(); setEnded(false); setPaused(false); } else { pl.pause(); } } catch (e) {}
+  }, [active]);
+  const flash = () => { icon.setValue(1); Animated.timing(icon, { toValue: 0, duration: 700, delay: 250, useNativeDriver: true }).start(); };
+  const heat = () => { if (!p.myHeat) run(() => act.react(p.id, 'heat'), { optimistic: { post: p.id, patch: { myHeat: true, heat: p.heat + 1 } } }); };
+  const togglePlay = () => {
+    const pl = playerRef.current; if (!pl) return;
+    if (ended) { pl.currentTime = 0; pl.play(); setEnded(false); setPaused(false); return; }
+    if (paused) { pl.play(); setPaused(false); } else { pl.pause(); setPaused(true); }
+    flash();
+  };
+  // one tap pauses or plays, a double tap heats
+  const tap = () => {
+    const now = Date.now();
+    if (now - lastTap.current < 280) { clearTimeout(tapTimer.current); heat(); burst.setValue(0); Animated.sequence([Animated.spring(burst, { toValue: 1, useNativeDriver: true }), Animated.timing(burst, { toValue: 0, duration: 350, delay: 250, useNativeDriver: true })]).start(); }
+    else tapTimer.current = setTimeout(togglePlay, 280);
+    lastTap.current = now;
+  };
+  const Rail = ({ icon: ic, n, on, onColor, onPress, label, disabled }) => (
+    <Pressable onPress={onPress} disabled={disabled} accessibilityLabel={label} accessibilityState={{ selected: !!on }} hitSlop={6} style={{ alignItems: 'center', gap: 2, opacity: disabled ? 0.35 : 1 }}>
+      <Ionicons name={ic} size={31} color={on ? onColor || C.orange : '#fff'} style={{ textShadowColor: 'rgba(0,0,0,.45)', textShadowRadius: 6 }} />
+      {n !== undefined ? <T h style={{ color: '#fff', fontSize: 12.5, textShadowColor: 'rgba(0,0,0,.6)', textShadowRadius: 4 }}>{kfmt(n)}</T> : null}
     </Pressable>);
   return (
     <View style={{ height: h, backgroundColor: '#0a0a0a' }}>
       <Pressable onPress={tap} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
-        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} playerRef={playerRef} onEnd={() => setEnded(true)} />
+        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} playerRef={playerRef} onEnd={() => setEnded(true)} />
           : <TextReel p={p} active={active} />}
       </Pressable>
-      {(ended || paused) && p.mediaUrl ? <View pointerEvents="none" style={{ position: 'absolute', top: '45%', alignSelf: 'center', width: 76, height: 76, borderRadius: 38, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name={ended ? 'refresh' : 'play'} size={32} color="#fff" /></View> : null}
+      {p.mediaUrl ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: '44%', alignSelf: 'center', width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(0,0,0,.4)', alignItems: 'center', justifyContent: 'center',
+        opacity: paused || ended ? 1 : icon, transform: [{ scale: icon.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }] }}>
+        <Ionicons name={ended ? 'refresh' : paused ? 'play' : 'pause'} size={34} color="#fff" /></Animated.View> : null}
+      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: '38%', alignSelf: 'center', opacity: burst, transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }}>
+        <Ionicons name="flame" size={130} color={C.orange} /></Animated.View>
       <View style={{ position: 'absolute', top: 62, left: 16 }}><Timer p={p} /></View>
-      <View style={{ position: 'absolute', left: 16, right: 84, bottom: 24, gap: 10 }}>
-        <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Avatar u={u} size={36} /><T h style={{ color: '#fff' }}>{u.handle}</T>
-          {u.id !== s.me && !u.following ? <Pressable onPress={() => run(() => act.follow(u.id, false, s.me))} style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,.7)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+      <View style={{ position: 'absolute', left: 16, right: 78, bottom: 22, gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Avatar u={u} size={36} /><T h style={{ color: '#fff' }}>{u.handle}</T></Pressable>
+          {!mine && !u.following ? <Pressable onPress={() => run(() => act.follow(u.id, false, s.me))} style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,.7)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
             <T h style={{ color: '#fff', fontSize: 12.5 }}>Follow</T></Pressable> : null}
-        </Pressable>
+        </View>
         {p.text && p.mediaUrl ? <RichText text={p.text} style={{ color: '#fff', fontFamily: F.bold }} onTag={(t) => nav.tab('search', { q: t })} /> : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="play" size={12} color="rgba(255,255,255,.8)" /><T b style={{ color: 'rgba(255,255,255,.8)', fontSize: 12.5 }}>{kfmt(p.views)} views</T></View>
       </View>
-      <View style={{ position: 'absolute', right: 10, bottom: 24, gap: 14 }}>
-        <Rail icon="flame" n={p.heat} on={p.myHeat} label="Heat" onPress={() => !p.myHeat && run(() => act.react(p.id, 'heat'), { optimistic: { post: p.id, patch: { myHeat: true, heat: p.heat + 1 } } })} />
-        <Rail icon="snow" n={p.freeze} on={p.myFreeze} label="Freeze" onPress={() => !p.myFreeze && run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } })} />
-        <Rail icon="chatbubble-outline" n={p.comments.length} label="Comments" disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} />
+      <View style={{ position: 'absolute', right: 12, bottom: 22, gap: 18, alignItems: 'center' }}>
+        <Rail icon={p.myHeat ? 'flame' : 'flame-outline'} n={p.heat} on={p.myHeat} label="Heat" onPress={heat} />
+        <Rail icon="snow" n={p.freeze} on={p.myFreeze} onColor="#9fdcff" label="Freeze" onPress={() => !p.myFreeze && run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } })} />
+        <Rail icon="chatbubble-ellipses-outline" n={p.comments.length} label={frozen ? 'Comments are off while frozen' : 'Comments'} disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} />
+        <Rail icon="repeat" n={p.reposts} on={p.myRepost} onColor="#4ade80" label={p.myRepost ? 'Undo repost' : 'Repost'} disabled={mine}
+          onPress={() => run(() => act.repost(p.id, p.myRepost, s.me), { toast: p.myRepost ? 'Repost removed' : 'Reposted to your profile', optimistic: { post: p.id, patch: { myRepost: !p.myRepost, reposts: p.reposts + (p.myRepost ? -1 : 1) } } })} />
         <Rail icon="paper-plane-outline" label="Send" onPress={() => nav.sheet('share', { post: p })} />
-        <Rail icon={p.saved ? 'bookmark' : 'bookmark-outline'} on={p.saved} label="Save" onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} />
+        <Rail icon={p.saved ? 'bookmark' : 'bookmark-outline'} on={p.saved} onColor="#ffd60a" label="Save" onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} />
       </View>
     </View>
   );
@@ -178,6 +227,7 @@ export function SearchScreen({ q: q0 }) {
         </> : <>
           {users.length ? <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 10 }}>
             {users.map((u) => <UserRow key={u.id} u={u} />)}</View> : null}
+          {posts.some((p) => p.reel) ? <View style={{ marginBottom: 10 }}><ReplayGrid posts={posts.filter((p) => p.reel)} /></View> : null}
           {posts.filter((p) => !p.reel).map((p) => <PostCard key={p.id} p={p} />)}
           {!users.length && !posts.length ? <Empty text={'No results for “' + q + '”'} /> : null}
         </>}
@@ -197,7 +247,7 @@ export function UserRow({ u, right }) {
 }
 
 /* ---------------- activity ---------------- */
-const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
+const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact', 'repost'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
 export function ActivityScreen() {
   const { s, C, nav } = useApp(); const [tab, setTab] = useState('social');
   useEffect(() => { const t = setTimeout(() => act.readNotifs(s.me, GROUPS[tab]), 1200); return () => clearTimeout(t); }, [tab]);
@@ -205,8 +255,8 @@ export function ActivityScreen() {
   const unread = (k) => s.notifs.filter((n) => !n.read && GROUPS[k].includes(n.type)).length;
   const text = (n) => ({ follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
     heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take went viral. ' + n.text,
-    storyComment: 'commented on your story: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
-  const icon = { storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
+    storyComment: 'commented on your story: ' + n.text, repost: 'reposted your post: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
+  const icon = { repost: 'repeat', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
   const Seg = ({ k, label }) => (
     <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>

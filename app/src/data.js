@@ -3,12 +3,12 @@ import { sb, ok, colorFor, upload } from './lib';
 const q = async (p) => { const { data, error } = await p; if (error) throw error; return data || []; };
 
 export const EMPTY = {
-  me: null, users: {}, posts: [], stories: [], seen: {}, threads: {}, unread: {}, seenBy: {}, notifs: [], blocked: {},
+  me: null, users: {}, posts: [], repostsBy: {}, stories: [], seen: {}, threads: {}, unread: {}, seenBy: {}, notifs: [], blocked: {},
   priv: { points: 0, owned: { stickers: { basic: 1 } }, theme: 'ember', custom: [], settings: {} }, week: {}, shop: [], deals: [], loaded: false,
 };
 
 export async function loadAll(myId) {
-  const [profiles, follows, blocks, posts, reacts, saves, stories, sviews, msgs, notifs, privRows, week, shop, deals] = await Promise.all([
+  const [profiles, follows, blocks, posts, reacts, saves, stories, sviews, msgs, notifs, privRows, week, shop, deals, reposts] = await Promise.all([
     q(sb.from('profiles').select('*').limit(5000)),
     q(sb.from('follows').select('follower,followee').limit(20000)),
     q(sb.from('blocks').select('blocked')),
@@ -23,6 +23,7 @@ export async function loadAll(myId) {
     q(sb.rpc('week_stats')),
     q(sb.from('shop_items').select('*')),
     q(sb.rpc('deals_today')).catch(() => []),
+    q(sb.from('reposts').select('user_id,post_id,created_at').order('created_at', { ascending: false }).limit(20000)),
   ]);
   const ids = posts.map((p) => p.id);
   const comments = ids.length ? await q(sb.from('comments').select('*').in('post_id', ids).order('created_at').limit(5000)) : [];
@@ -45,6 +46,8 @@ export async function loadAll(myId) {
   const mh = new Set(reacts.filter((r) => r.kind === 'heat').map((r) => r.post_id));
   const mf = new Set(reacts.filter((r) => r.kind === 'freeze').map((r) => r.post_id));
   const sv = new Set(saves.map((x) => x.post_id)), liked = new Set(myLikes.map((x) => x.comment_id));
+  const myReposts = new Set(reposts.filter((r) => r.user_id === myId).map((r) => r.post_id));
+  const repostsBy = {}; reposts.forEach((r) => { (repostsBy[r.user_id] = repostsBy[r.user_id] || []).push(r.post_id); });
   const cm = {};
   comments.forEach((c) => {
     if (!users[c.user_id]) return;
@@ -53,7 +56,7 @@ export async function loadAll(myId) {
   const P = posts.filter((p) => users[p.user_id]).map((p) => ({
     id: p.id, userId: p.user_id, text: p.text || '', mediaUrl: p.media_url, mediaType: p.media_type, gif: p.is_gif, reel: p.reel, seed: p.clip_seed || 1,
     createdAt: +new Date(p.created_at), status: p.status, burnEnds: p.burn_ends ? +new Date(p.burn_ends) : null, heat: p.heat, freeze: p.freezes, views: p.views,
-    myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [],
+    myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [], reposts: p.reposts || 0, myRepost: myReposts.has(p.id),
   }));
   const st = {};
   const sids = stories.map((x) => x.id);
@@ -77,7 +80,7 @@ export async function loadAll(myId) {
   const N = notifs.filter((n) => users[n.actor_id || n.user_id]).map((n) => ({ id: n.id, type: n.type, userId: n.actor_id || n.user_id, text: n.text || '', at: +new Date(n.created_at), read: n.read, postId: n.post_id }));
   const weekMap = {}; week.forEach((w) => (weekMap[w.user_id] = w));
   const priv = privRows[0] || EMPTY.priv;
-  return { me: myId, users, posts: P, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
+  return { me: myId, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
     priv: { ...EMPTY.priv, ...priv, settings: priv.settings || {}, custom: priv.custom || [], owned: priv.owned || EMPTY.priv.owned }, week: weekMap, shop, deals, loaded: true };
 }
 
@@ -85,6 +88,7 @@ export async function loadAll(myId) {
 export const act = {
   react: (postId, kind) => ok(sb.from('reactions').insert({ post_id: postId, kind })),
   view: (postId) => sb.rpc('add_view', { pid: postId }),
+  repost: (postId, reposted, me) => (reposted ? ok(sb.from('reposts').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('reposts').insert({ post_id: postId }))),
   save: (postId, saved, me) => (saved ? ok(sb.from('saves').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('saves').insert({ post_id: postId }))),
   async post(me, { text, asset, reel }) {
     const row = { text: text || '', reel: !!reel };

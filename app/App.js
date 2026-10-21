@@ -105,7 +105,7 @@ function Root() {
     switch (r.name) {
       case 'home': return <HomeScreen />;
       case 'search': return <SearchScreen q={r.params.q} />;
-      case 'replay': return <ReplayScreen />;
+      case 'replay': return <ReplayScreen startId={r.params.startId} />;
       case 'me': return <ProfileScreen isTab />;
       case 'profile': return <ProfileScreen id={r.params.id} />;
       case 'activity': return <ActivityScreen />;

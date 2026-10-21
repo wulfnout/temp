@@ -308,6 +308,8 @@ img,video{max-width:100%;display:block}
 .rail-btn{display:grid;justify-items:center;gap:3px;font-weight:800;font-size:12.5px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .rail-btn .rb{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .rail-btn.on .rb{background:var(--orange)}
+.rail-btn.rp.on .rb{background:#22c55e}
+.rail-btn:disabled{opacity:.35}
 .rail-btn.ice.on .rb{background:#fff;color:#000}
 .reel-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.2);z-index:3}
 .reel-prog div{height:100%;background:var(--orange)}
@@ -567,6 +569,7 @@ const P={
   camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
   replay:'<path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v5h5"/>',
+  repost:'<path d="M17 2.5l3.5 3.5L17 9.5M3.5 11V9a3 3 0 0 1 3-3h14M7 21.5L3.5 18 7 14.5M20.5 13v2a3 3 0 0 1-3 3h-14"/>',
   reels:'<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M10 8.8v6.4l5.2-3.2z"/>',
   search:'<circle cx="11" cy="11" r="7"/><path d="M20.5 20.5L16 16"/>',
   heart:'<path d="M12 20.5s-8-4.7-8-10.7A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.8c0 6-8 10.7-8 10.7z"/>',
@@ -716,7 +719,7 @@ const stick=async v=>v&&v.startsWith('I|blob:')?'I|'+await upload(blobFiles[v.sl
 
 async function loadAll(){
   const q=async p=>{const {data,error}=await p;if(error)throw error;return data||[]};
-  const [profiles,follows,blocks,posts,reacts,saves,stories,sviews,msgs,notifs,privRows,week,deals]=await Promise.all([
+  const [profiles,follows,blocks,posts,reacts,saves,stories,sviews,msgs,notifs,privRows,week,deals,reposts]=await Promise.all([
     q(sb.from('profiles').select('*').limit(5000)),
     q(sb.from('follows').select('follower,followee').limit(20000)),
     q(sb.from('blocks').select('blocked')),
@@ -730,6 +733,7 @@ async function loadAll(){
     q(sb.from('profile_private').select('*').eq('id',myId)),
     q(sb.rpc('week_stats')),
     q(sb.rpc('deals_today')),
+    q(sb.from('reposts').select('user_id,post_id,created_at').order('created_at',{ascending:false}).limit(20000)),
   ]);
   const ids=posts.map(p=>p.id);
   const comments=ids.length?await q(sb.from('comments').select('*').in('post_id',ids).order('created_at').limit(5000)):[];
@@ -745,12 +749,13 @@ async function loadAll(){
   const blocked={};blocks.forEach(b=>blocked[L(b.blocked)]=true);
   const mh=new Set(reacts.filter(r=>r.kind==='heat').map(r=>r.post_id)),mf=new Set(reacts.filter(r=>r.kind==='freeze').map(r=>r.post_id));
   const sv=new Set(saves.map(x=>x.post_id)),liked=new Set(myLikes.map(x=>x.comment_id));
+  const myRp=new Set(reposts.filter(r=>r.user_id===myId).map(r=>r.post_id));const repostsBy={};reposts.forEach(r=>{(repostsBy[L(r.user_id)]=repostsBy[L(r.user_id)]||[]).push(r.post_id)});
   const cm={};comments.forEach(c=>{if(!users[L(c.user_id)])return;(cm[c.post_id]=cm[c.post_id]||[]).push({id:c.id,userId:L(c.user_id),text:c.text||'',sticker:c.sticker,at:+new Date(c.created_at),likes:c.likes,myLike:liked.has(c.id),flags:MOD.classify(c.text||'')})});
   const P=posts.filter(p=>users[L(p.user_id)]).map(p=>({id:p.id,userId:L(p.user_id),text:p.text||'',
     media:p.media_url&&!p.reel?{type:p.media_type,url:p.media_url,gif:p.is_gif}:null,reel:p.reel,
     clip:p.reel?(p.media_url?{kind:'video',url:p.media_url}:{kind:'art',seed:p.clip_seed||1}):null,poster:p.reel&&!p.media_url?posterFor(p.clip_seed||1):null,
     createdAt:+new Date(p.created_at),status:p.status,burnEnds:p.burn_ends?+new Date(p.burn_ends):null,heat:p.heat,freeze:p.freezes,views:p.views,
-    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
+    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),reposts:p.reposts||0,myRepost:myRp.has(p.id),nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
   const sids=stories.map(x=>x.id);
   const [scom,sreact]=sids.length?await Promise.all([q(sb.from('story_comments').select('*').in('story_id',sids).order('created_at').limit(3000)),q(sb.from('story_reactions').select('story_id,user_id,emoji').in('story_id',sids).limit(10000))]):[[],[]];
   const sc={},sr={},smy={};
@@ -770,7 +775,7 @@ async function loadAll(){
   const settings={...DEFAULT_SETTINGS,...ps,notif:{...DEFAULT_SETTINGS.notif,...(ps.notif||{})},muted:ps.muted||[]};
   const temps={};let mine={heat:0,viral:0,earned:0};
   week.forEach(w=>{if(w.user_id===myId)mine={heat:w.heat,viral:w.viral,earned:w.earned};else temps[w.user_id]={heat:w.heat,viral:w.viral}});
-  return {now:Date.now(),users,posts:P,stories:Object.values(st),seen,threads,unread,seenBy,notifs:N,blocked,settings,
+  return {now:Date.now(),users,posts:P,repostsBy,stories:Object.values(st),seen,threads,unread,seenBy,notifs:N,blocked,settings,
     points:priv.points,owned:priv.owned,theme:priv.theme||'ember',custom:priv.custom||[],week:mine,temps,deals};
 }
 
@@ -794,6 +799,7 @@ async function remote(a,b){
     case 'follow':{const u=b.users[a.id];if(!u||a.id==='temp')return;
       if(u.following)await ok(sb.from('follows').delete().eq('follower',myId).eq('followee',R(a.id)));else await ok(sb.from('follows').insert({followee:R(a.id)}));return}
     case 'story':{const url=await upload(a.file);await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype,caption:a.caption||''}));return {reload:true,toast:'Your story is up'}}
+    case 'repost':{const p=P(a.id);if(!p||p.id<0)return;if(p.myRepost)await ok(sb.from('reposts').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('reposts').insert({post_id:a.id}));return 'reload'}
     case 'storyComment': if(a.id<0)return;await ok(sb.from('story_comments').insert({story_id:a.id,text:a.text}));return 'reload';
     case 'storyReact':{if(a.id<0)return;const it=b.stories.flatMap(x=>x.items).find(x=>x.id===a.id);
       if(it&&it.myReact===a.emoji)await ok(sb.from('story_reactions').delete().eq('story_id',a.id).eq('user_id',myId));
@@ -945,6 +951,7 @@ function reducer(s,a){
     case 'storyComment': return {...s,stories:s.stories.map(st=>({...st,items:st.items.map(it=>it.id===a.id?{...it,comments:[...(it.comments||[]),{id:nid(),userId:'me',text:a.text,at:s.now}]}:it)}))};
     case 'storyReact': return {...s,stories:s.stories.map(st=>({...st,items:st.items.map(it=>{if(it.id!==a.id)return it;const r={...(it.reacts||{})};
       if(it.myReact)r[it.myReact]=Math.max(0,(r[it.myReact]||1)-1);const nx=it.myReact===a.emoji?null:a.emoji;if(nx)r[nx]=(r[nx]||0)+1;return {...it,reacts:r,myReact:nx}})}))};
+    case 'repost': return {...s,posts:s.posts.map(p=>p.id===a.id?{...p,myRepost:!p.myRepost,reposts:Math.max(0,(p.reposts||0)+(p.myRepost?-1:1))}:p),toast:T(s.posts.find(p=>p.id===a.id&&p.myRepost)?'Repost removed':'Reposted to your profile')};
     case 'storyDone': return {...s,storyUploading:Math.max(0,(s.storyUploading||1)-1),toast:s.toast&&s.toast.sticky?null:s.toast};
     case 'hydrate':{const keep=s.posts.filter(p=>p.tutorial);const st=a.st;
       const users={...st.users};if(s.users.temp)users.temp=s.users.temp;
@@ -1256,6 +1263,7 @@ function Reel({p,s,active,dispatch,open}){
         <button className=${'rail-btn'+(p.myHeat?' on':'')} onClick=${()=>dispatch({type:'heat',id:p.id})} aria-label="Heat"><span className="rb"><${Icon} n="flame" s=${24} w=${2.2} fill=${p.myHeat?'currentColor':null}/></span>${counts?p.heat:''}</button>
         <button className=${'rail-btn ice'+(p.myFreeze?' on':'')} onClick=${()=>dispatch({type:'freeze',id:p.id})} aria-label="Freeze"><span className="rb"><${Icon} n="snow" s=${24} w=${2.2}/></span>${counts?p.freeze:''}</button>
         <button className="rail-btn" disabled=${p.status==='frozen'} onClick=${()=>open.comments(p.id)} aria-label="Comments"><span className="rb"><${Icon} n="comment" s=${23}/></span>${p.comments.length}</button>
+        <button className=${'rail-btn rp'+(p.myRepost?' on':'')} disabled=${p.userId==='me'} onClick=${()=>dispatch({type:'repost',id:p.id})} aria-label=${p.myRepost?'Undo repost':'Repost'}><span className="rb"><${Icon} n="repost" s=${23} w=${2.2}/></span>${kfmt(p.reposts||0)}</button>
         <button className="rail-btn" onClick=${()=>open.share(p.id)} aria-label="Send"><span className="rb"><${Icon} n="share" s=${22}/></span></button>
         <button className=${'rail-btn'+(p.saved?' on':'')} onClick=${()=>dispatch({type:'save',id:p.id})} aria-label="Save"><span className="rb"><${Icon} n="save" s=${22} fill=${p.saved?'currentColor':null}/></span></button>
       </div>
@@ -1699,13 +1707,13 @@ function Search({s,dispatch,open,query,setQuery}){
   </div>`;
 }
 
-const GROUPS={social:['follow','heat','freeze','viral','storyReact'],comments:['mention','likeComment','reply','storyComment']};
+const GROUPS={social:['follow','heat','freeze','viral','storyReact','repost'],comments:['mention','likeComment','reply','storyComment']};
 function Activity({s,dispatch,open}){
   const [tab,setTab]=useState('social');
   useEffect(()=>{const t=setTimeout(()=>dispatch({type:'readNotifs',types:GROUPS[tab]}),1200);return()=>clearTimeout(t)},[tab]);
   const unread=k=>s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]&&GROUPS[k].includes(n.type)).length;
   const list=s.notifs.filter(n=>!s.blocked[n.userId]&&GROUPS[tab].includes(n.type));
-  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take went viral: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
+  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take went viral: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reposted your post: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
   const icon={viral:'flame',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
   return html`<div>
     <div className="seg" role="group" aria-label="Activity type">
@@ -1727,7 +1735,8 @@ function Profile({s,id,dispatch,open,back,startTab}){
   const reels=s.posts.filter(p=>p.userId===id&&p.reel&&p.status!=='gone');
   const saved=s.posts.filter(p=>p.saved&&visible(s,p));
   const following=Object.values(s.users).filter(x=>x.following).length;
-  const tabs=[['posts','Posts'],['replays','Replays'],...(isMe?[['saved','Saved']]:[])];
+  const reposted=((s.repostsBy||{})[id]||[]).map(pid=>s.posts.find(p=>p.id===pid)).filter(p=>p&&visible(s,p));
+  const tabs=[['posts','Posts'],['replays','Replays'],['reposts','Reposts'],...(isMe?[['saved','Saved']]:[])];
   return html`<div>
     <div className="prof">
       <div className=${'header-img'+(u.headerFx?' fx-'+u.headerFx:'')}>${u.header&&!u.headerFx&&html`<img src=${u.header} alt="" />`}
@@ -1755,6 +1764,9 @@ function Profile({s,id,dispatch,open,back,startTab}){
     <div className="seg">${tabs.map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
     ${tab==='posts'&&html`<div className="feed">${all.map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>${!all.length&&html`<div className="empty">No posts yet</div>`}`}
     ${tab==='replays'&&html`${reels.length?html`<div className="grid3">${reels.map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`:html`<div className="empty">No replays yet</div>`}`}
+    ${tab==='reposts'&&html`${reposted.some(p=>p.reel)&&html`<div className="grid3">${reposted.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
+      <div className="feed">${reposted.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
+      ${!reposted.length&&html`<div className="empty">No reposts yet</div>`}`}
     ${tab==='saved'&&html`<div className="feed">${saved.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
       ${saved.some(p=>p.reel)&&html`<div className="grid3">${saved.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
       ${!saved.length&&html`<div className="empty">Nothing saved</div>`}`}`}

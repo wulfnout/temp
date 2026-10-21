@@ -115,7 +115,8 @@ export function SettingsScreen() {
   const Item = ({ icon, label, val, onPress, right, warn }) => (
     <Pressable onPress={onPress} disabled={!onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 56, borderTopWidth: 1, borderTopColor: C.line, marginTop: -1 }}>
       <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}><Ionicons name={icon} size={17} color={warn ? C.orange : C.ink} /></View>
-      <T h style={{ flex: 1, color: warn ? C.orange : C.ink }}>{label}</T>{val ? <T b muted>{val}</T> : null}{right}
+      <T h style={{ flex: 1, color: warn ? C.orange : C.ink }}>{label}</T>{val ? <T b muted>{val}</T> : null}
+      {right ? <View style={{ alignSelf: 'stretch', justifyContent: 'center' }}>{right}</View> : null}
       {onPress && !right ? <Ionicons name="chevron-forward" size={18} color={C.muted} /> : null}</Pressable>);
   const dmFrom = st.dmFrom || 'everyone'; const dmNext = { everyone: 'following', following: 'none', none: 'everyone' }; const dmLabel = { everyone: 'Everyone', following: 'People you follow', none: 'No one' };
   return (
@@ -134,8 +135,7 @@ export function SettingsScreen() {
           <Item icon="eye-off-outline" label="Hide counts" right={<Switch value={!!st.hideCounts} onValueChange={(v) => setSetting('hideCounts', v)} trackColor={{ true: C.orange }} />} />
         </Group>
         <Group>
-          <Item icon="globe-outline" label="Open the website" val="Same account" />
-          <Item icon="information-circle-outline" label="About" val="Temp for Expo Go" />
+          <Item icon="information-circle-outline" label="About" val="Temp 1.0" />
         </Group>
         <Group>
           <Item icon="log-out-outline" label="Log out" onPress={() => Alert.alert('Log out of Temp?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Log out', onPress: () => sb.auth.signOut() }])} />

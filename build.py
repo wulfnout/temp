@@ -392,7 +392,8 @@ head='''<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<style>html,body{overflow-x:hidden;overflow-x:clip;overscroll-behavior-x:none;max-width:100%;-webkit-text-size-adjust:100%;touch-action:pan-y}input,textarea,select{font-size:16px!important}.stories,.deals,.picker{touch-action:pan-x pan-y;overscroll-behavior-x:contain}</style>
 <meta name="theme-color" content="#ff5500">
 <meta name="description" content="Temp: hot takes with a shelf life.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230a0a0a'/%3E%3Ctext x='12' y='46' font-family='Arial Black,Arial' font-weight='900' font-size='38' fill='%23ffffff'%3Et%3C/text%3E%3Crect x='42' y='36' width='10' height='10' rx='2' fill='%23ff5500'/%3E%3C/svg%3E">

@@ -210,6 +210,45 @@ export function Sheet({ visible, onClose, title, right, children, full }) {
   );
 }
 
+// Pill tabs: tap a tab, or drag the white pill along the bar and let go on the one you want.
+export function SegTabs({ items, value, onChange, size = 14, style }) {
+  const { C } = useApp();
+  const n = items.length; const idx = Math.max(0, items.findIndex(([k]) => k === value));
+  const [w, setW] = useState(0); const seg = w ? (w - 8) / n : 0;
+  const x = useRef(new Animated.Value(0)).current; const [hover, setHover] = useState(null);
+  const st = useRef({}); st.current = { seg, idx, n, items, onChange, w };
+  useEffect(() => { if (seg) Animated.spring(x, { toValue: idx * seg, damping: 20, stiffness: 260, useNativeDriver: true }).start(); }, [idx, seg]);
+  const at = (px) => { const k = st.current; return Math.max(0, Math.min(k.n - 1, Math.floor((px - 4) / (k.seg || 1)))); };
+  const pan = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: (e, d) => Math.abs(d.dx) > 6 && Math.abs(d.dx) > Math.abs(d.dy),
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: (e) => { st.current.start = e.nativeEvent.locationX; st.current.moved = false; },
+    onPanResponderMove: (e, d) => {
+      const k = st.current; if (Math.abs(d.dx) > 4) k.moved = true; if (!k.moved) return;
+      const pos = Math.max(0, Math.min((k.n - 1) * k.seg, k.idx * k.seg + d.dx)); x.setValue(pos);
+      const h = Math.round(pos / (k.seg || 1)); if (h !== k.hover) { k.hover = h; setHover(h); }
+    },
+    onPanResponderRelease: (e, d) => {
+      const k = st.current; let to;
+      if (!k.moved) to = at(k.start); else to = Math.max(0, Math.min(k.n - 1, Math.round((k.idx * k.seg + d.dx) / (k.seg || 1))));
+      k.hover = null; setHover(null);
+      Animated.spring(x, { toValue: to * k.seg, damping: 20, stiffness: 260, useNativeDriver: true }).start();
+      if (to !== k.idx) k.onChange(k.items[to][0]);
+    },
+  })).current;
+  const on = hover != null ? hover : idx;
+  return (
+    <View {...pan.panHandlers} onLayout={(e) => setW(e.nativeEvent.layout.width)} accessibilityRole="tablist"
+      style={[{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4 }, style]}>
+      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 999, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
+      {items.map(([k, l], i) => (
+        <View key={k} accessible accessibilityRole="tab" accessibilityLabel={l} accessibilityState={{ selected: i === idx }} style={{ flex: 1, paddingVertical: 9, alignItems: 'center' }}>
+          <T h style={{ color: i === on ? C.bg : C.muted, fontSize: size }}>{l}</T></View>))}
+    </View>
+  );
+}
+
 export function Empty({ text }) { return <T b muted style={{ textAlign: 'center', paddingVertical: 48 }}>{text}</T>; }
 
 export function Check({ u }) { return null; }

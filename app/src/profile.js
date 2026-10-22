@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, An
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, tapAway, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
+import { useApp, tapAway, SegTabs, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video } from './posts';
 import { Header, pickMedia, ReplayGrid } from './screens';
 import { GifPicker } from './gif';
@@ -60,11 +60,7 @@ export function ProfileScreen({ id, isTab }) {
             onRemoveSticker={(i) => setStickers(u.stickers.filter((_, j) => j !== i))} /> : null}
         </View>
         {blocked ? <Empty text="Blocked" /> : <View style={{ paddingHorizontal: 16 }}>
-          <View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4, marginTop: 12, marginBottom: 10 }}>
-            {[['posts', 'Posts'], ['replays', 'Replays'], ['reposts', 'Reposts'], ...(isMe ? [['saved', 'Saved']] : [])].map(([k, l]) => (
-              <Pressable key={k} onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center' }}>
-                <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{l}</T></Pressable>))}
-          </View>
+          <SegTabs items={[['posts', 'Posts'], ['replays', 'Replays'], ['reposts', 'Reposts'], ...(isMe ? [['saved', 'Saved']] : [])]} value={tab} onChange={setTab} style={{ marginTop: 12, marginBottom: 10 }} />
           {tab === 'replays' ? <ReplayGrid posts={list} /> : <>
             {list.some((p) => p.reel) ? <View style={{ marginBottom: 10 }}><ReplayGrid posts={list.filter((p) => p.reel)} /></View> : null}
             {list.filter((p) => !p.reel).length ? list.filter((p) => !p.reel).map((p) => <PostCard key={p.id} p={p} />) : list.length ? null : <Empty text="Nothing here yet" />}</>}
@@ -193,11 +189,7 @@ export function ShopScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
             {deals.slice(0, 4).map((d) => { const it = s.shop.find((x) => x.kind === d.kind && x.id === d.id); if (!it) return null; return <Card key={d.kind + d.id} k={d.kind} it={it} price={d.price} off={d.off} />; })}
           </View></> : null}
-        <View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4, marginTop: 20, marginBottom: 10 }}>
-          {[['stickers', 'Stickers'], ['themes', 'Themes'], ['rings', 'Rings'], ['headers', 'Headers']].map(([k, l]) => (
-            <Pressable key={k} onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center' }}>
-              <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 13 }}>{l}</T></Pressable>))}
-        </View>
+        <SegTabs items={[['stickers', 'Stickers'], ['themes', 'Themes'], ['rings', 'Rings'], ['headers', 'Headers']]} value={tab} onChange={setTab} size={13} style={{ marginTop: 20, marginBottom: 10 }} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
           {items.map((it) => <Card key={it.id} k={tab} it={it} price={it.price} />)}
         </View>

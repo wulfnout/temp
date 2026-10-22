@@ -48,7 +48,7 @@ img,video{max-width:100%;display:block}
 .top-title{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.03em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .top-actions{display:flex;gap:6px;margin-left:auto}
 .circle{width:42px;height:42px;border-radius:50%;background:var(--card);display:grid;place-items:center;position:relative;flex:none}
-.seg{display:flex;background:var(--card);border-radius:999px;padding:4px;margin-top:10px;gap:2px}
+.seg{display:flex;background:var(--card);border-radius:999px;padding:4px;margin-top:10px;gap:2px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .seg button{flex:1;padding:9px 4px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted);transition:background .2s,color .2s;white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .badge{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--orange);color:var(--on-orange);font-size:11px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--bg)}
@@ -2101,6 +2101,13 @@ function PlusView({s,dispatch}){
 // tap any empty spot (not a field or button) to put the keyboard away
 document.addEventListener('pointerup',e=>{const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
   if(e.target.closest('input,textarea,button,a,label,select,[role="button"]'))return;a.blur()},true);
+// pill tab bars (.seg): slide a finger along the bar and the tab under it is picked as you go
+(()=>{let seg=null,last=null,x0=0,moved=false;
+  document.addEventListener('pointerdown',e=>{const sg=e.target.closest('.seg');if(!sg)return;seg=sg;x0=e.clientX;moved=false;last=e.target.closest('.seg button')},true);
+  document.addEventListener('pointermove',e=>{if(!seg)return;if(Math.abs(e.clientX-x0)>6)moved=true;if(!moved)return;
+    const r=seg.getBoundingClientRect();const y=r.top+r.height/2;const x=Math.max(r.left+6,Math.min(r.right-6,e.clientX));
+    const b=document.elementFromPoint(x,y);const btn=b&&b.closest&&b.closest('.seg button');if(btn&&btn!==last&&seg.contains(btn)){last=btn;btn.click()}},true);
+  const end=()=>{seg=null};document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);})();
 function BarsOnScroll({on}){
   useEffect(()=>{const b=document.body;if(!on){b.classList.remove('bars-off');return}
     let last=scrollY;const f=()=>{const y=scrollY,dy=y-last;last=y;if(y<40)b.classList.remove('bars-off');else if(dy>6)b.classList.add('bars-off');else if(dy<-6)b.classList.remove('bars-off')};

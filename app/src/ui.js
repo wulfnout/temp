@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Image, Animated, Easing, Modal, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Pressable, Image, Animated, Easing, Modal, StyleSheet, KeyboardAvoidingView, Keyboard, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -174,11 +174,16 @@ export const tapAway = { onStartShouldSetResponder: () => true, onResponderRelea
 
 export function Sheet({ visible, onClose, title, right, children, full }) {
   const { C } = useApp(); const ins = useSafeAreaInsets();
+  const [kb, setKb] = useState(false); // keyboard up: drop the home-bar padding so there's no gap above it
+  useEffect(() => { const a = Keyboard.addListener('keyboardWillShow', () => setKb(true)), b = Keyboard.addListener('keyboardWillHide', () => setKb(false));
+    const c = Keyboard.addListener('keyboardDidShow', () => setKb(true)), d = Keyboard.addListener('keyboardDidHide', () => setKb(false));
+    return () => { a.remove(); b.remove(); c.remove(); d.remove(); }; }, []);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: C.scrim }} onPress={() => { Keyboard.dismiss(); onClose(); }} accessibilityLabel="Close" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: full ? '94%' : '88%' }}>
-        <View {...tapAway} style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: ins.bottom + 16, maxHeight: '100%' }}>
+      {/* the dimmed area above the sheet always fills whatever space is left, so a tap there closes it (and the keyboard) */}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.scrim }}>
+        <Pressable style={{ flex: 1, minHeight: full ? '6%' : '12%' }} onPress={() => { Keyboard.dismiss(); onClose(); }} accessibilityLabel="Close" />
+        <View {...tapAway} style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: kb ? 10 : ins.bottom + 16, flexShrink: 1 }}>
           <View style={{ width: 38, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 }} />
           {title ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
             <T d style={{ fontSize: 19, letterSpacing: -0.6 }}>{title}</T>{right}</View> : null}

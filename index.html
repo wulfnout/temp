@@ -578,6 +578,8 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.prof-orb{width:104px;height:104px;border:4px solid var(--card);box-sizing:content-box}
+.n-name{font-weight:800;font-size:inherit;color:inherit;padding:0;display:inline}
 .sv-burn{display:inline-flex;align-items:center;gap:3px;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;padding:5px 9px;font-weight:800;font-size:12px;align-self:center}
 .vt-area{position:absolute;inset:0;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .fullv-box .vt-area{touch-action:none}
@@ -601,7 +603,7 @@ img,video{max-width:100%;display:block}
 .fullv-box{position:absolute;left:50%;top:50%;width:100vw;height:100dvh;transform:translate(-50%,-50%)}
 .fullv-box.land{width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
 .fullv-box video{width:100%;height:100%;object-fit:contain}
-.fullv-ui{position:absolute;inset:0;pointer-events:none}.fullv-ui>*{pointer-events:auto}
+.fullv-ui{position:absolute;inset:0;pointer-events:none;z-index:3}.fullv-ui>*{pointer-events:auto}
 .fullv-top{position:absolute;top:max(14px,env(safe-area-inset-top,0px));left:16px;right:16px;display:flex;justify-content:space-between}
 .fullv-top button,.fullv-bar button{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center}
 .fullv-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center}
@@ -1260,10 +1262,11 @@ function useVidTaps(getV,{onSingle,onCenterDouble}={}){
   const r=useRef({last:0,timer:null,hold:null,fast:false,side:null,until:0,total:0,ft:null});const [fast,setFast]=useState(false);const [flash,setFlash]=useState(null);
   const seek=side=>{const v=getV();if(!v)return;const d=side==='L'?-5:5;v.currentTime=Math.max(0,Math.min((v.duration||1e9)-.2,v.currentTime+d));
     const k=r.current;k.total=k.side===side&&Date.now()<k.until?k.total+5:5;k.side=side;k.until=Date.now()+650;setFlash({side,n:k.total});clearTimeout(k.ft);k.ft=setTimeout(()=>setFlash(null),650)};
-  const down=e=>{const k=r.current;clearTimeout(k.hold);k.hold=setTimeout(()=>{const v=getV();if(!v)return;k.fast=true;v.playbackRate=2;v.play().catch(()=>{});setFast(true)},350)};
+  const down=e=>{const k=r.current;clearTimeout(k.hold);k.mouse=e.pointerType==='mouse';if(k.mouse)return;k.hold=setTimeout(()=>{const v=getV();if(!v)return;k.fast=true;v.playbackRate=2;v.play().catch(()=>{});setFast(true)},350)};
   const up=e=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=1;setFast(false);k.last=0;return}
     const b=e.currentTarget.getBoundingClientRect();const land=e.currentTarget.dataset.rot==='1';
     const frac=land?(e.clientY-b.top)/b.height:(e.clientX-b.left)/b.width;const zone=frac<.33?'L':frac>.67?'R':'C';const now=Date.now();
+    if(e.pointerType==='mouse'){if(e.button!==0)return;onSingle&&onSingle();if(now-k.last<300){k.last=0;onSingle&&onSingle();zone==='C'?onCenterDouble&&onCenterDouble():seek(zone)}else k.last=now;return}
     if(zone!=='C'&&zone===k.side&&now<k.until){clearTimeout(k.timer);k.last=0;return seek(zone)}
     if(now-k.last<300){clearTimeout(k.timer);k.last=0;zone==='C'?onCenterDouble&&onCenterDouble():seek(zone);return}
     k.last=now;clearTimeout(k.timer);k.timer=setTimeout(()=>onSingle&&onSingle(),300)};
@@ -1314,7 +1317,7 @@ function FeedVideo({url,auto,p,s,dispatch}){
   const fmt=t=>{t=Math.max(0,Math.round(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
   const stop=e=>e.stopPropagation();const [full,setFull]=useState(null);const tp=useRef({t:0,k:null});
   useEffect(()=>{if(full&&v.current)v.current.pause();else if(!full&&seen&&!paused&&v.current)v.current.play().catch(()=>{})},[full]);
-  const tap=e=>{const now=Date.now();clearTimeout(tp.current.k);if(now-tp.current.t<300){tp.current.t=0;return}tp.current.t=now;tp.current.k=setTimeout(()=>setFull({at:v.current?v.current.currentTime:0}),300)};
+  const tap=e=>{if(e&&e.nativeEvent&&e.nativeEvent.pointerType==='mouse'||e&&e.detail&&!('ontouchstart' in window)){setFull({at:v.current?v.current.currentTime:0});return}const now=Date.now();clearTimeout(tp.current.k);if(now-tp.current.t<300){tp.current.t=0;return}tp.current.t=now;tp.current.k=setTimeout(()=>setFull({at:v.current?v.current.currentTime:0}),300)};
   return html`<div className="fv" onClick=${tap}>${full&&ReactDOM.createPortal(html`<${FullVideo} url=${url} at=${full.at} p=${p} s=${s} dispatch=${dispatch} onClose=${at=>{setFull(null);if(v.current&&at!=null)v.current.currentTime=at}}/>`,document.body)}<video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
     ${left!=null&&isFinite(left)&&html`<span className="fv-time">${fmt(left)}</span>`}
     <div className="fv-btns" onDoubleClick=${stop} onClick=${stop}><button onClick=${e=>{stop(e);setPaused(!paused)}} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${14} fill=${paused?'#fff':null}/></button>
@@ -2111,7 +2114,7 @@ document.addEventListener('pointerup',e=>{const a=document.activeElement;if(!a||
   if(e.target.closest('input,textarea,button,a,label,select,[role="button"]'))return;a.blur()},true);
 // pill tab bars (.seg): slide a finger along the bar and the tab under it is picked as you go
 (()=>{let seg=null,last=null,x0=0,moved=false;
-  document.addEventListener('pointerdown',e=>{const sg=e.target.closest('.seg');if(!sg)return;seg=sg;x0=e.clientX;moved=false;last=e.target.closest('.seg button')},true);
+  document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const sg=e.target.closest('.seg');if(!sg)return;seg=sg;x0=e.clientX;moved=false;last=e.target.closest('.seg button')},true);
   document.addEventListener('pointermove',e=>{if(!seg)return;if(Math.abs(e.clientX-x0)>6)moved=true;if(!moved)return;
     const r=seg.getBoundingClientRect();const y=r.top+r.height/2;const x=Math.max(r.left+6,Math.min(r.right-6,e.clientX));
     const b=document.elementFromPoint(x,y);const btn=b&&b.closest&&b.closest('.seg button');if(btn&&btn!==last&&seg.contains(btn)){last=btn;btn.click()}},true);
@@ -2184,7 +2187,7 @@ function Activity({s,dispatch,open}){
       <button aria-pressed=${tab==='comments'} onClick=${()=>setTab('comments')}>Comments${unread('comments')>0&&html`<span className="cnt">${unread('comments')}</span>`}</button></div>
     ${list.length?html`<div className="list-card">${list.map(n=>{const u=s.users[n.userId];return html`<div className=${'thread-row notif'+(n.read?'':' unread')} key=${n.id}>
       <button style=${{position:'relative'}} onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${46}/><span className="n-ico"><${Icon} n=${icon[n.type]} s=${11} w=${2.6}/></span></button>
-      <div className="grow" style=${{fontWeight:500,fontSize:14.5}}><b>${u.handle}</b> ${text(n)} <span className="sub">${ago(s.now-n.at)}</span></div>
+      <div className="grow" style=${{fontWeight:500,fontSize:14.5}}><button className="n-name" onClick=${()=>open.profile(u.id)}>${u.handle}</button> ${text(n)} <span className="sub">${ago(s.now-n.at)}</span></div>
       ${n.type==='follow'&&html`<button className=${'btn sm'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id:u.id})}>${u.following?'Following':'Follow back'}</button>`}
       ${!n.read&&html`<span className="dot-badge" style=${{position:'static',boxShadow:'none'}}></span>`}
     </div>`})}</div>`:html`<div className="empty">Nothing yet</div>`}
@@ -2205,7 +2208,8 @@ function Profile({s,id,dispatch,open,back,startTab}){
       <div className=${'header-img'+(u.headerFx?' fx-'+u.headerFx:'')}>${u.header&&!u.headerFx&&html`<img src=${u.header} alt="" />`}
         ${back&&html`<button className="header-btn l" onClick=${back} aria-label="Back"><${Icon} n="back" s=${20}/></button>`}
         ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${20}/></button>`}</div>
-      <div className="prof-top"><${Avatar} u=${u} size=${96}/>
+      <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);if(!st)return html`<${Avatar} u=${u} size=${96}/>`;const un=st.items.some(i=>!s.seen[i.id]);
+        return html`<button className=${'orb prof-orb'+(un?'':' seen')} onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${92} noRing=${true}/></button>`})()}
         <div className="prof-btns">
           ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${16} w=${2.2}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`

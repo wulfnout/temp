@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, An
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, tapAway, SegTabs, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
+import { useApp, tapAway, SegTabs, StoryOrb, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video } from './posts';
 import { Header, pickMedia, ReplayGrid } from './screens';
 import { GifPicker } from './gif';
@@ -35,7 +35,9 @@ export function ProfileScreen({ id, isTab }) {
             {isMe ? <IconBtn name="settings-outline" label="Settings" onPress={() => nav.push('settings')} color="#fff" style={{ position: 'absolute', top: ins.top + 8, right: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -46 }}>
-            <View style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></View>
+            {(() => { const story = s.stories.find((x) => x.userId === uid); if (!story) return <View style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></View>;
+              const unseen = story.items.some((i) => !s.seen[i.id]);
+              return <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><StoryOrb u={u} size={96} seen={!unseen} onPress={() => nav.sheet('story', { userId: uid })} label={'Story from @' + u.handle} /></View>; })()}
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1 }}>
               {isMe ? <>
                 <Pressable onPress={() => nav.push('shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.ink, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 }}>

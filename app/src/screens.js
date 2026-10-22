@@ -287,7 +287,7 @@ export function ActivityScreen() {
             <Pressable onPress={() => nav.push('profile', { id: u.id })}><Avatar u={u} size={44} />
               <View style={{ position: 'absolute', right: -4, bottom: -4, width: 20, height: 20, borderRadius: 7, backgroundColor: C.orange, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name={icon[n.type] || 'notifications'} size={10} color="#fff" /></View></Pressable>
-            <T style={{ flex: 1, fontSize: 14.5 }}>{n.type === 'viral' ? null : <T h style={{ fontSize: 14.5 }}>{u.handle} </T>}{text(n)} <T muted style={{ fontSize: 13 }}>{ago(Date.now() - n.at)}</T></T>
+            <T style={{ flex: 1, fontSize: 14.5 }}>{n.type === 'viral' ? null : <T h style={{ fontSize: 14.5 }} onPress={() => u.id && nav.push('profile', { id: u.id })} accessibilityRole="link">{u.handle} </T>}{text(n)} <T muted style={{ fontSize: 13 }}>{ago(Date.now() - n.at)}</T></T>
             {!n.read ? <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: C.orange }} /> : null}
           </View>); }} />
     </View>

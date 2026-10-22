@@ -623,11 +623,15 @@ img,video{max-width:100%;display:block}
 .il{position:relative;display:inline-block}
 .il .ch{display:inline-block;color:#fff;opacity:0;transform:translateY(10px);
   animation:iin .6s cubic-bezier(.2,.9,.3,1) var(--in) forwards,iheat .45s ease-in var(--b) forwards,ichar .25s linear calc(var(--b) + .45s) forwards,icrumble .6s ease-in calc(var(--b) + .55s) forwards}
-.il .ch.dot{width:17px;height:17px;border-radius:4px;margin:0 0 9px 5px;background:#ff5500}
+.il .ch.dot{width:17px;height:17px;border-radius:4px;margin:0 0 9px 5px;background:#ff5500;
+  animation:iin .6s cubic-bezier(.2,.9,.3,1) var(--in) forwards,dheat .45s ease-in var(--b) forwards,dchar .25s linear calc(var(--b) + .45s) forwards,dcrumble .6s ease-in calc(var(--b) + .55s) forwards}
 @keyframes iin{to{opacity:1;transform:none}}
-@keyframes iheat{0%{color:#fff;background-color:#ff5500;text-shadow:none}50%{color:#ffe7b0;background-color:#ffd27a;text-shadow:0 0 6px #ffd27a,0 0 18px #ff8a2b,0 0 36px #ff5500}100%{color:#ff7a1a;background-color:#ff7a1a;text-shadow:0 0 8px #ff5500,0 0 26px #ff2d00,0 0 54px #ff2d00}}
-@keyframes ichar{from{color:#ff7a1a;background-color:#ff7a1a;text-shadow:0 0 8px #ff5500,0 0 26px #ff2d00}to{color:#2e2e2e;background-color:#2e2e2e;text-shadow:0 0 6px rgba(255,85,0,.35)}}
-@keyframes icrumble{0%{color:#2e2e2e;background-color:#2e2e2e;opacity:1;transform:none;filter:none}100%{color:#1c1c1c;background-color:#1c1c1c;opacity:0;transform:translateY(-16px) scale(.86) skewX(-6deg);filter:blur(3px)}}
+@keyframes iheat{0%{color:#fff;text-shadow:none}50%{color:#ffe7b0;text-shadow:0 0 6px #ffd27a,0 0 18px #ff8a2b,0 0 36px #ff5500}100%{color:#ff7a1a;text-shadow:0 0 8px #ff5500,0 0 26px #ff2d00,0 0 54px #ff2d00}}
+@keyframes dheat{0%{background:#ff5500;box-shadow:none}50%{background:#ffd27a;box-shadow:0 0 18px #ff8a2b}100%{background:#ff7a1a;box-shadow:0 0 26px #ff2d00}}
+@keyframes dchar{to{background:#2e2e2e;box-shadow:none}}
+@keyframes dcrumble{0%{background:#2e2e2e;opacity:1;transform:none;filter:none}100%{background:#1c1c1c;opacity:0;transform:translateY(-16px) scale(.86) rotate(-12deg);filter:blur(3px)}}
+@keyframes ichar{from{color:#ff7a1a;text-shadow:0 0 8px #ff5500,0 0 26px #ff2d00}to{color:#2e2e2e;text-shadow:0 0 6px rgba(255,85,0,.35)}}
+@keyframes icrumble{0%{color:#2e2e2e;opacity:1;transform:none;filter:none}100%{color:#1c1c1c;opacity:0;transform:translateY(-16px) scale(.86) skewX(-6deg);filter:blur(3px)}}
 .il-fl{position:absolute;left:0;right:0;bottom:55%;height:60%;pointer-events:none}
 .il-fl svg{position:absolute;bottom:0;width:42%;opacity:0;transform-origin:50% 100%;filter:drop-shadow(0 0 4px #ff5500);animation:ifl .6s ease-out forwards,lick .18s ease-in-out infinite alternate}
 @keyframes ifl{0%{opacity:0;transform:scale(.3)}25%{opacity:1;transform:scale(1.1)}70%{opacity:.9}100%{opacity:0;transform:translateY(-40%) scale(.5)}}

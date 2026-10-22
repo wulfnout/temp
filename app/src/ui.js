@@ -97,7 +97,6 @@ export function StickerPicker({ onPick }) {
 export function Timer({ p }) {
   const { C } = useApp(); const now = useNow(1000);
   if (p.status === 'frozen') return <Pill bg={C.ink} fg={C.bg} icon="snow" text="Frozen" />;
-  if (p.status === 'burning') return <Pill bg={C.orange} fg="#fff" icon="flame" text={hms(p.burnEnds - now)} />;
   return null;
 }
 function Pill({ bg, fg, icon, text }) {

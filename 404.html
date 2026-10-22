@@ -103,7 +103,9 @@ img,video{max-width:100%;display:block}
 .reel.is-frozen canvas,.reel.is-frozen video,.reel.is-frozen .reel-info{filter:grayscale(1);opacity:.55}
 .rail-btn:disabled{opacity:.35;cursor:not-allowed}
 .life{position:absolute;left:0;bottom:0;height:3px;transition:width .25s linear}
-.life.burning{background:var(--orange)} .life.frozen{background:var(--ink)}
+.life.burning{background:var(--orange)}
+.lifebar{display:flex;align-items:center;margin-top:12px}.lifebar i{height:3px;border-radius:2px;background:var(--orange);transition:flex .25s linear}
+.lifebar span{display:inline-flex;align-items:center;gap:3px;background:var(--orange);color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap} .life.frozen{background:var(--ink)}
 .p-actions{display:flex;align-items:center;gap:6px;margin-top:12px}
 .react{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:999px;background:var(--soft);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;transition:background .2s,color .2s,transform .15s}
 .react:active{transform:scale(.94)}
@@ -1166,8 +1168,7 @@ function Timer({p,now}){
   if(p.status==='normal')return null;
   if(p.status==='frozen')return html`<span className="timer frozen" data-tour=${tag}><${Icon} n="snow" s=${14} w=${2.4}/>Frozen</span>`;
   if(p.status==='kept')return html`<span className="timer burning" data-tour=${tag}><${Icon} n="pin" s=${14} w=${2.4}/>Kept</span>`;
-  const hot=p.status==='burning'||p.status==='gone';
-  return html`<span className="timer burning" data-tour=${tag}><${Icon} n="flame" s=${14} w=${2.4}/>${hms(p.burnEnds-now)}</span>`;
+  return null; // heat time lives on the orange line under the post
 }
 
 function Post({p,s,dispatch,open}){
@@ -1214,7 +1215,8 @@ function Post({p,s,dispatch,open}){
       </div>
     </div>
     ${top&&!frozen&&html`<button className="p-comments" onClick=${()=>open.comments(p.id)}><b>${s.users[top.userId].handle}</b> ${top.sticker?stickerLabel(top.sticker):top.text}${cs.length>1?' · View all '+cs.length:''}</button>`}
-    ${live&&html`<div className="life burning" style=${{width:pct*100+'%'}}></div>`}
+    ${live&&(()=>{const left=Math.max(0,p.burnEnds-s.now),h=Math.floor(left/36e5),m=Math.floor(left%36e5/6e4);const lbl=h?h+'h '+m+'m':m?m+'m':'<1m';
+      return html`<div className="lifebar" aria-label=${'Heated, '+lbl+' left'}><i style=${{flex:Math.max(.001,pct)}}></i><span data-tour=${p.tour?'state-'+p.tour:null}><${Icon} n="flame" s=${11} w=${2.6}/>${lbl}</span><b style=${{flex:1-Math.max(.001,pct)}}></b></div>`})()}
   </article>`;
 }
 

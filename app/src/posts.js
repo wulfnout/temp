@@ -91,11 +91,21 @@ export function PostCard({ p }) {
     </View>
   );
 }
+// heat countdown: the orange line shrinks toward its end with a small time pill riding on the tip
 function BurnBar({ p }) {
   const { C } = useApp(); const [, f] = useState(0);
-  React.useEffect(() => { const t = setInterval(() => f((x) => x + 1), 5000); return () => clearInterval(t); }, []);
-  const pct = Math.max(0, Math.min(1, (p.burnEnds - Date.now()) / 864e5));
-  return <View style={{ position: 'absolute', left: 0, bottom: 0, height: 3, width: pct * 100 + '%', backgroundColor: C.orange }} />;
+  React.useEffect(() => { const t = setInterval(() => f((x) => x + 1), 15000); return () => clearInterval(t); }, []);
+  const left = Math.max(0, p.burnEnds - Date.now()); const pct = Math.max(0.001, Math.min(1, left / 864e5));
+  const h = Math.floor(left / 3600e3), m = Math.floor((left % 3600e3) / 60e3);
+  const label = h ? h + 'h ' + m + 'm' : m ? m + 'm' : '<1m';
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }} accessibilityLabel={'Heated, ' + label + ' left'}>
+      <View style={{ flex: pct, height: 3, borderRadius: 2, backgroundColor: C.orange }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: C.orange, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+        <Ionicons name="flame" size={11} color="#fff" /><T h style={{ color: '#fff', fontSize: 11, fontVariant: ['tabular-nums'] }}>{label}</T></View>
+      <View style={{ flex: 1 - pct }} />
+    </View>
+  );
 }
 
 /* ---------- sheets ---------- */

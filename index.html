@@ -1229,7 +1229,7 @@ function StoryDraft({draft,onPost,onClose}){
         ${cap.trim()&&html`<p className="sv-cap">${cap}</p>`}
         <div className="sv-bar">
           <div className="sv-input"><label htmlFor="story-cap" className="vh">Caption</label>
-            <input id="story-cap" autoFocus placeholder="Add a caption…" maxLength=${150} value=${cap} onChange=${e=>setCap(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&onPost(cap.trim())}/></div>
+            <input id="story-cap" placeholder="Add a caption…" maxLength=${150} value=${cap} onChange=${e=>setCap(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&onPost(cap.trim())}/></div>
           <button className="btn orange" onClick=${()=>onPost(cap.trim())}>Share</button>
         </div>
       </div>
@@ -1559,7 +1559,7 @@ function Composer({s,dispatch,onClose,startReel,open}){
     <div className="compose"><${Avatar} u=${s.users.me} size=${42}/>
       <div style=${{minWidth:0}}>
         <label htmlFor="compose-text" className="vh">Post</label>
-        <textarea id="compose-text" autoFocus placeholder=${reel?'Caption, or a take to animate':'What’s your take?'} value=${text} onChange=${e=>{setText(e.target.value);setErr(null)}}></textarea>
+        <textarea id="compose-text" placeholder=${reel?'Caption, or a take to animate':'What’s your take?'} value=${text} onChange=${e=>{setText(e.target.value);setErr(null)}}></textarea>
         ${media&&html`<div className="c-preview"><div className="media">${media.type==='video'?html`<video src=${media.url} controls playsInline muted></video>`:html`<img src=${media.url} alt="" />`}${media.gif&&html`<span className="gif-tag">GIF</span>`}</div>
           <button className="c-remove" aria-label="Remove" onClick=${()=>setMedia(null)}><${Icon} n="x" s=${16}/></button></div>`}
         <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>

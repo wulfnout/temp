@@ -226,7 +226,7 @@ export function Composer({ reel: reel0, onClose }) {
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Avatar u={me} size={42} />
         <View style={{ flex: 1 }}>
-          <TextInput value={text} onChangeText={setText} autoFocus multiline placeholder={reel ? 'Caption, or a take to animate' : 'What’s your take?'} placeholderTextColor={C.muted}
+          <TextInput value={text} onChangeText={setText} multiline placeholder={reel ? 'Caption, or a take to animate' : 'What’s your take?'} placeholderTextColor={C.muted}
             style={{ color: C.ink, fontFamily: F.body, fontSize: 19, minHeight: 100, textAlignVertical: 'top', paddingTop: 8 }} />
           {asset ? <View style={{ borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
             {asset.type === 'video' ? <Video uri={asset.uri} style={{ width: '100%', height: 220 }} /> : <Image source={{ uri: asset.uri }} style={{ width: '100%', height: 220 }} />}
@@ -265,7 +265,7 @@ export function StoryDraft({ asset, onClose }) {
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: ins.bottom + 12, gap: 10 }}>
           {cap.trim() ? <T h style={{ color: '#fff', fontSize: 16, textShadowColor: 'rgba(0,0,0,.7)', textShadowRadius: 8 }}>{cap}</T> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <TextInput value={cap} onChangeText={setCap} placeholder="Add a caption…" placeholderTextColor="rgba(255,255,255,.7)" maxLength={150} autoFocus
+            <TextInput value={cap} onChangeText={setCap} placeholder="Add a caption…" placeholderTextColor="rgba(255,255,255,.7)" maxLength={150}
               style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 11 }} />
             <Btn kind="orange" title="Share" onPress={() => postStory(asset, cap.trim())} />
           </View>

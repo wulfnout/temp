@@ -14,6 +14,7 @@ import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, Story
 import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
 import { Recorder } from './src/recorder';
 import { Intro } from './src/ash';
+import { LiveScreen } from './src/live';
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
@@ -162,6 +163,7 @@ function Root() {
       case 'home': return <HomeScreen />;
       case 'search': return <SearchScreen q={r.params.q} />;
       case 'replay': return <ReplayScreen startId={r.params.startId} />;
+      case 'live': return <LiveScreen />;
       case 'me': return <ProfileScreen isTab />;
       case 'profile': return <ProfileScreen id={r.params.id} />;
       case 'activity': return <ActivityScreen />;
@@ -214,6 +216,7 @@ function TabBar({ tab, stacked, dark, onTab }) {
       <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 0.9, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null), width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name="add" size={28} color="#fff" /></Pressable>
       <Item name="replay" icon="play-circle" label="Replay" />
+      <Item name="live" icon="mic" label="Live Takes" />
       <Item name="me" label="Profile"><Avatar u={s.users[s.me]} size={28} /></Item>
     </View>
   );

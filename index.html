@@ -580,6 +580,51 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+/* chat: drag sideways for times, voice notes */
+.msgs{--shift:0px;overflow-x:hidden;touch-action:pan-y}
+.mrow{position:relative;display:flex;flex-direction:column;transform:translateX(var(--shift));transition:transform .25s cubic-bezier(.2,.9,.3,1)}
+.msgs.peeking .mrow{transition:none}
+.mt{position:absolute;top:50%;right:-66px;transform:translateY(-50%);font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap;width:60px;text-align:left}
+.msgs.peek-l .mt{right:auto;left:-66px;text-align:right}
+.msg.vmsg{padding:8px 12px 8px 8px}
+.voice{display:flex;align-items:center;gap:10px;min-width:210px}
+.v-play{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;flex:none}
+.voice.mine .v-play{background:#fff;color:var(--orange)}
+.v-wave{flex:1;height:26px;display:flex;align-items:center;gap:2px;cursor:pointer}.v-wave i{flex:1;border-radius:2px;background:currentColor;min-height:3px}
+.v-time{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;min-width:32px;text-align:right}
+.send.mic{background:var(--orange)}
+.rec-bar{gap:10px;padding-left:14px}.rec-bar .grow{flex:1}
+.rec-dot2{width:10px;height:10px;border-radius:50%;background:#ff2d2d;animation:tick 1s ease-in-out infinite}
+/* Live Takes */
+.live-lobby{padding-block:6px 20px}
+.live-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#1a0700,#3a1204 60%,#ff5500);color:#fff;border-radius:26px;padding:20px}
+.live-hero h2{margin:0;font-family:var(--display);font-size:26px;letter-spacing:-.04em}.live-hero p{margin:4px 0 0;opacity:.8;font-weight:600}
+.live-hero .btn{display:inline-flex;gap:6px;align-items:center}
+.live-make{background:var(--card);border-radius:22px;padding:14px;margin-top:12px;display:grid;gap:10px}
+.live-make input{background:var(--soft);border:0;border-radius:14px;padding:12px 14px;color:var(--ink);font-size:16px;font-weight:600}
+.live-make-row{display:flex;gap:8px;justify-content:flex-end}
+.live-h{font-family:var(--display);font-size:15px;margin:22px 4px 10px}
+.live-card{display:grid;gap:8px;text-align:left;width:100%;background:var(--card);border-radius:22px;padding:16px;margin-bottom:10px}
+.live-dot{justify-self:start;background:#ff2d2d;color:#fff;font-weight:900;font-size:10.5px;letter-spacing:.08em;padding:3px 8px;border-radius:999px;animation:tick 1.6s ease-in-out infinite}
+.live-title{font-family:var(--display);font-size:18px;letter-spacing:-.03em}
+.live-people{display:flex}.live-people>*{margin-right:-8px;border:2px solid var(--card);border-radius:50%}
+.live-room{padding-block:6px 120px;position:relative}
+.live-room-head{display:grid;gap:8px;margin:4px 0 14px}.live-room-head h2{margin:0;font-family:var(--display);font-size:22px;letter-spacing:-.04em}
+.live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:14px 8px}.live-grid.small{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+.live-p{display:grid;justify-items:center;gap:3px;text-align:center;min-width:0}.live-p b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.live-av{position:relative;border-radius:50%;padding:3px;transition:box-shadow .1s}
+.live-av.talking{box-shadow:0 0 0 calc(2px + var(--lv)*5px) var(--orange),0 0 calc(10px + var(--lv)*20px) var(--orange)}
+.live-mute,.live-hand{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-style:normal;font-size:13px}
+.live-hand{left:-2px;right:auto;top:-2px;bottom:auto}
+.live-ctl{display:grid;gap:4px;margin-top:4px}.live-ctl button{font-size:11.5px;font-weight:800;color:var(--orange)}
+.live-bar{position:fixed;left:0;right:0;bottom:calc(63px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);z-index:30}
+.embed .live-bar{bottom:env(safe-area-inset-bottom,0px)}
+.live-reacts{flex:1;display:flex;justify-content:center;gap:4px}.live-reacts button{font-size:24px;width:42px;height:42px;border-radius:50%;background:var(--card)}
+.live-mic{width:52px;height:52px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:22px}.live-mic.on{background:var(--orange);color:#fff}
+.live-floaters{position:fixed;left:0;right:0;bottom:130px;height:0;pointer-events:none;max-width:560px;margin:0 auto;z-index:31}
+.live-floaters span{position:absolute;bottom:0;font-size:30px;animation:floatUp 2.6s ease-out forwards}
+@keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1;transform:translateY(-20px) scale(1.1)}100%{opacity:0;transform:translateY(-260px) scale(1)}}
+.app.embed{padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0}
 .c-pending{display:flex;align-items:flex-end;gap:8px;margin-top:10px}.c-pending img{width:120px;height:90px;object-fit:cover;border-radius:14px;background:var(--soft)}
 .c-pending button{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center}
 .fire-licks{position:absolute;inset:0;z-index:-1;pointer-events:none}
@@ -718,7 +763,7 @@ img,video{max-width:100%;display:block}
 <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
-const {useState,useEffect,useReducer,useRef,useLayoutEffect,useCallback} = React;
+const {useState,useEffect,useReducer,useRef,useLayoutEffect,useCallback,useMemo} = React;
 const html = htm.bind(React.createElement);
 
 /* RULES: new posts are NORMAL. Heat -> HOT (24h, then gone; DM shares keep a copy).
@@ -762,6 +807,7 @@ const P={
   eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
   mute:'<path d="M4 9.5h4l5-4v13l-5-4H4zM17 9l4 6M21 9l-4 6"/>',
   sound:'<path d="M4 9.5h4l5-4v13l-5-4H4zM16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>',
   shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>',
@@ -873,7 +919,17 @@ const DEFAULT_SETTINGS={theme:'system',private:false,activity:true,receipts:true
   muted:[],sensitive:'standard',autoplay:true,dataSaver:false,breakMins:0,quiet:false,language:'English',nsfw:false,hideHate:false};
 
 /* ================= live backend ================= */
-const sb=supabase.createClient('https://izrtdycmvgqpitohdeog.supabase.co','sb_publishable_zm6EuiQhiR7qQYVIFA2Nhg_TxpdUnSd');
+// ?embed=live is the Live Takes page the app shows in its Live tab; the app hands over its sign-in token
+const EMBED=new URLSearchParams(location.search).get('embed')==='live';
+let EMBED_TOKEN=EMBED?decodeURIComponent((location.hash.match(/t=([^&]+)/)||[])[1]||''):'';
+if(EMBED)history.replaceState(null,'',location.pathname+location.search);
+function jwtSub(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub}catch(e){return null}}
+const sb=EMBED?supabase.createClient('https://izrtdycmvgqpitohdeog.supabase.co','sb_publishable_zm6EuiQhiR7qQYVIFA2Nhg_TxpdUnSd',{
+    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
+    global:{fetch:(u,o={})=>{const h=new Headers(o.headers||{});if(EMBED_TOKEN)h.set('Authorization','Bearer '+EMBED_TOKEN);return fetch(u,{...o,headers:h})}}})
+  :supabase.createClient('https://izrtdycmvgqpitohdeog.supabase.co','sb_publishable_zm6EuiQhiR7qQYVIFA2Nhg_TxpdUnSd');
+if(EMBED&&EMBED_TOKEN){try{sb.realtime.setAuth(EMBED_TOKEN)}catch(e){}}
+if(EMBED){const q=new URLSearchParams(location.search);if(q.get('theme'))document.documentElement.dataset.theme=q.get('theme');const ac=q.get('accent');if(ac&&/^#[0-9a-f]{3,8}$/i.test(ac))document.documentElement.style.setProperty('--orange',ac)}
 let myId=null, liveCh=null; const typingT={};
 const L=u=>u===myId?'me':u, R=id=>id==='me'?myId:id;
 const PALETTE=['#ff5500','#0a0a0a','#c2410c','#2b2b2b','#ff7a33','#9a3412','#1a1a1a','#ea580c'];
@@ -951,7 +1007,7 @@ async function loadAll(){
   const threads={},unread={},seenBy={};
   msgs.forEach(m=>{const other=L(m.sender===myId?m.recipient:m.sender);if(!users[other])return;
     const snap=m.snap?{...m.snap,userId:L(m.snap.userId)}:null;
-    (threads[other]=threads[other]||[]).push({id:m.id,from:L(m.sender),text:m.text||'',sticker:m.sticker,postId:m.post_id,snap,note:m.note,react:m.react,at:+new Date(m.created_at)});
+    (threads[other]=threads[other]||[]).push({id:m.id,from:L(m.sender),text:m.text||'',sticker:m.sticker,postId:m.post_id,snap,note:m.note,react:m.react,audio:m.audio_url,ms:m.audio_ms,at:+new Date(m.created_at),readAt:m.read_at?+new Date(m.read_at):0});
     if(m.recipient===myId&&!m.read_at)unread[other]=true;
     if(m.sender===myId&&m.read_at)seenBy[other]=Math.max(seenBy[other]||0,+new Date(m.read_at))});
   const N=notifs.filter(n=>users[L(n.actor_id||n.user_id)]).map(n=>({id:n.id,type:n.type,userId:L(n.actor_id||n.user_id),text:n.text||'',at:+new Date(n.created_at),read:n.read,postId:n.post_id}));
@@ -991,7 +1047,7 @@ async function remote(a,b){
     case 'seen': if(a.id>0)await sb.from('story_views').upsert({story_id:a.id},{onConflict:'story_id,user_id',ignoreDuplicates:true});return;
     case 'dm':{if(a.to==='temp')return;const p=a.postId?P(a.postId):null;
       const snap=p?{userId:R(p.userId),text:p.text,media:p.media&&!String(p.media.url).startsWith('blob:')?p.media:(p.clip&&p.clip.kind==='video'?{type:'video',url:p.clip.url}:null)}:null;
-      await ok(sb.from('messages').insert({recipient:R(a.to),text:a.text||'',sticker:await stick(a.sticker),post_id:p&&p.id>0?p.id:null,snap,note:a.note||null}));return 'reload'}
+      await ok(sb.from('messages').insert({recipient:R(a.to),text:a.text||'',sticker:await stick(a.sticker),post_id:p&&p.id>0?p.id:null,snap,note:a.note||null,audio_url:a.audio||null,audio_ms:a.ms||null}));return 'reload'}
     case 'reactMsg':{const m=(b.threads[a.to]||[]).find(x=>x.id===a.mid);if(!m||m.id<0)return;await ok(sb.from('messages').update({react:m.react?null:'❤️'}).eq('id',a.mid));return}
     case 'read': if(a.id==='temp')return;await ok(sb.from('messages').update({read_at:new Date().toISOString()}).eq('sender',R(a.id)).eq('recipient',myId).is('read_at',null));return;
     case 'readNotifs':{let q=sb.from('notifications').update({read:true}).eq('user_id',myId).eq('read',false);if(a.types)q=q.in('type',a.types);await ok(q);return}
@@ -1117,7 +1173,7 @@ function reducer(s,a){
       const t=s.threads[a.to]||[];
       const sp=a.postId?s.posts.find(x=>x.id===a.postId):null;
       const snap=sp?{userId:sp.userId,text:sp.text,media:sp.media||(sp.poster?{type:'image',url:sp.poster}:null)}:null;
-      return {...s,threads:{...s.threads,[a.to]:[...t,{id:nid(),from:'me',text:a.text||'',sticker:a.sticker||null,postId:a.postId||null,snap,note:a.note||null,at:s.now}]},toast:a.postId||a.note?T(`Sent to @${s.users[a.to].handle}`):s.toast};
+      return {...s,threads:{...s.threads,[a.to]:[...t,{id:nid(),from:'me',text:a.text||'',sticker:a.sticker||null,postId:a.postId||null,snap,note:a.note||null,audio:a.audio||null,ms:a.ms||null,at:s.now}]},toast:a.postId||a.note?T(`Sent to @${s.users[a.to].handle}`):s.toast};
     }
     case 'typing': return {...s,typing:{...s.typing,[a.id]:a.on},seenBy:a.on?{...s.seenBy,[a.id]:s.now}:s.seenBy};
     case 'incoming':{
@@ -2294,6 +2350,15 @@ function DMList({s,open}){
 function Thread({s,id,dispatch,simulateReply,onTyping,open}){
   const [t,setT]=useState('');const end=useRef();const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);
   const msgs=s.threads[id]||[];
+  const [vsend,setVsend]=useState(false);
+  const vr=useVoiceRecorder(async(file,ms)=>{setVsend(true);try{const url=await upload(file);dispatch({type:'dm',to:id,audio:url,ms})}catch(e){setErr(friendly(e))}setVsend(false)});
+  // drag the conversation sideways to peek at send times, like iMessage
+  const box=useRef();const drag=useRef(null);
+  const dDown=e=>{if(e.target.closest('button,input,audio,a,.v-wave'))return;drag.current={x:e.clientX,y:e.clientY,on:false}};
+  const dMove=e=>{const d=drag.current;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.on){if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.3){if(Math.abs(dy)>10)drag.current=null;return}d.on=true}
+    const el=box.current;if(!el)return;const sh=Math.max(-70,Math.min(70,dx));el.style.setProperty('--shift',sh+'px');el.classList.toggle('peek-l',sh>0);el.classList.add('peeking')};
+  const dUp=()=>{drag.current=null;const el=box.current;if(!el)return;el.classList.remove('peeking');el.style.setProperty('--shift','0px')};
+  const clock=at=>new Date(at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
   useEffect(()=>{dispatch({type:'read',id})},[id,msgs.length]);
   useEffect(()=>{end.current&&end.current.scrollIntoView({block:'end'})},[msgs.length,s.typing[id]]);
   const send=()=>{if(!t.trim())return;const why=MOD.rules(MOD.classify(t),s.users.me.plus,isAdult(s));if(why)return setErr(why);dispatch({type:'dm',to:id,text:t.trim()});setT('');simulateReply(id)};
@@ -2302,26 +2367,28 @@ function Thread({s,id,dispatch,simulateReply,onTyping,open}){
   const seen=s.settings.receipts&&lastMine&&s.seenBy[id]&&s.seenBy[id]>=lastMine.at;
   const onlyEmoji=x=>/^\p{Extended_Pictographic}{1,3}$/u.test(x||'');
   return html`<div>
-    <div className="msgs">
+    <div className="msgs" ref=${box} onPointerDown=${dDown} onPointerMove=${dMove} onPointerUp=${dUp} onPointerCancel=${dUp} onPointerLeave=${dUp}>
       ${msgs.map(m=>{
         const mine=m.from==='me';
         if(m.postId){const live=s.posts.find(x=>x.id===m.postId&&x.status!=='gone');const p=live?{...live,media:live.media||(live.poster?{type:'image',url:live.poster}:null)}:m.snap;
           if(!p)return null;
-          return html`<div key=${m.id} className=${'shared'+(mine?'':' theirs')}>
+          return html`<div className="mrow" key=${m.id}><span className="mt">${clock(m.at)}</span><div className=${'shared'+(mine?'':' theirs')}>
             ${p.media&&(p.media.type==='video'?html`<video src=${p.media.url} controls playsInline muted></video>`:html`<img src=${p.media.url} alt="" />`)}
-            <div className="sh-body"><span className="sh-by">@${s.users[p.userId].handle}${!live?' · gone from the timeline':''}</span>${p.text&&html`<span>${p.text}</span>`}</div></div>`}
-        return html`<${React.Fragment} key=${m.id}>
+            <div className="sh-body"><span className="sh-by">@${s.users[p.userId].handle}${!live?' · gone from the timeline':''}</span>${p.text&&html`<span>${p.text}</span>`}</div></div></div>`}
+        return html`<div className="mrow" key=${m.id}><span className="mt">${clock(m.at)}</span>
           ${m.note&&html`<div className=${'msg-note'+(mine?' mine':'')}>${m.note}</div>`}
-          <div className=${'msg'+(mine?' mine':'')+(m.sticker?' stk':onlyEmoji(m.text)?' big':'')+(m.react?' has-react':'')} onDoubleClick=${()=>dispatch({type:'reactMsg',to:id,mid:m.id})}>${m.sticker?html`<${Sticker} v=${m.sticker} size=${58}/>`:m.text}${m.react&&html`<span className="msg-react">${m.react}</span>`}</div><//>`})}
-      ${seen&&!s.typing[id]&&msgs[msgs.length-1]===lastMine&&html`<div className="seen">Seen</div>`}
+          <div className=${'msg'+(mine?' mine':'')+(m.audio?' vmsg':m.sticker?' stk':onlyEmoji(m.text)?' big':'')+(m.react?' has-react':'')} onDoubleClick=${()=>dispatch({type:'reactMsg',to:id,mid:m.id})}>${m.audio?html`<${VoiceMsg} url=${m.audio} ms=${m.ms} mine=${mine}/>`:m.sticker?html`<${Sticker} v=${m.sticker} size=${58}/>`:m.text}${m.react&&html`<span className="msg-react">${m.react}</span>`}</div></div>`})}
+      ${!s.typing[id]&&lastMine&&msgs[msgs.length-1]===lastMine&&html`<div className="seen">${seen||lastMine.readAt?'Seen'+((lastMine.readAt||s.seenBy[id])?' '+clock(Math.max(lastMine.readAt||0,s.seenBy[id]||0)):''):(lastMine.id>0?'Delivered':'Sending…')}</div>`}
       ${s.typing[id]&&html`<div className="typing" aria-label="typing"><span></span><span></span><span></span></div>`}
       <div ref=${end}></div>
     </div>
-    <div className="dm-input">${pick&&html`<${StickerPicker} s=${s} onPick=${sendSticker}/>`}${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{sendSticker('G|'+g.url);setGif(false)}}/>`}<${ModError} err=${err} open=${open}/><div className="inputbar"><label htmlFor="dm-in" className="vh">Message</label>
+    <div className="dm-input">${vr.rec||vsend?html`<div className="inputbar rec-bar"><span className="rec-dot2"></span><b>${vsend?'Sending…':fmtSec(vr.rec.ms)}</b><span className="grow sub">${vsend?'':'Recording'}</span>
+        ${!vsend&&html`<button className="stk-btn" onClick=${()=>vr.stop(false)} aria-label="Cancel voice message"><${Icon} n="x" s=${20}/></button><button className="send" onClick=${()=>vr.stop(true)} aria-label="Send voice message"><${Icon} n="share" s=${18}/></button>`}</div>`:null}
+      <div style=${vr.rec||vsend?{display:'none'}:null}>${pick&&html`<${StickerPicker} s=${s} onPick=${sendSticker}/>`}${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{sendSticker('G|'+g.url);setGif(false)}}/>`}<${ModError} err=${err} open=${open}/><div className="inputbar"><label htmlFor="dm-in" className="vh">Message</label>
       <input id="dm-in" placeholder="Message…" value=${t} onChange=${e=>{setT(e.target.value);setErr(null);onTyping&&onTyping(id)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
       <button className="stk-btn gif-btn" aria-label="GIFs" aria-pressed=${gif} onClick=${()=>{setGif(!gif);setPick(false)}}>GIF</button>
       <button className="stk-btn" aria-label="Stickers" aria-pressed=${pick} onClick=${()=>setPick(!pick)}><${Icon} n="smile" s=${22}/></button>
-      <button className="send" disabled=${!t.trim()} onClick=${send} aria-label="Send"><${Icon} n="share" s=${18}/></button></div></div>
+      ${t.trim()?html`<button className="send" onClick=${send} aria-label="Send"><${Icon} n="share" s=${18}/></button>`:html`<button className="send mic" onClick=${vr.start} aria-label="Record a voice message"><${Icon} n="mic" s=${19}/></button>`}</div></div></div>
   </div>`;
 }
 
@@ -2487,6 +2554,176 @@ function Tour({s,ids,step,setStep,onEnd}){
 }
 
 /* ---------- app ---------- */
+/* ---------- voice messages ---------- */
+function pickAudioMime(){const c=['audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm'];for(const m of c){try{if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}catch(e){}}return ''}
+function fmtSec(ms){const t=Math.max(0,Math.round((ms||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
+function VoiceMsg({url,ms,mine}){
+  const a=useRef();const [play,setPlay]=useState(false);const [pos,setPos]=useState(0);const [dur,setDur]=useState(ms||0);
+  const bars=useMemo(()=>{const r=rnd(Math.abs(hashStr(url||'v'))%9973+1);return Array.from({length:28},()=>.25+r()*.75)},[url]);
+  const frac=dur?Math.min(1,pos/dur):0;
+  const toggle=e=>{e.stopPropagation();const el=a.current;if(!el)return;if(el.paused){el.play().catch(()=>{})}else el.pause()};
+  return html`<div className=${'voice'+(mine?' mine':'')}>
+    <button className="v-play" onClick=${toggle} aria-label=${play?'Pause voice message':'Play voice message'}><${Icon} n=${play?'pause':'play'} s=${16} fill=${play?null:'currentColor'}/></button>
+    <div className="v-wave" onClick=${e=>{e.stopPropagation();const el=a.current;if(!el||!dur)return;const r=e.currentTarget.getBoundingClientRect();el.currentTime=(e.clientX-r.left)/r.width*dur/1000;}}>${bars.map((h,i)=>html`<i key=${i} style=${{height:(h*100)+'%',opacity:i/bars.length<=frac?1:.4}}></i>`)}</div>
+    <span className="v-time">${fmtSec(play||pos?pos:dur)}</span>
+    <audio ref=${a} src=${url} preload="metadata" onPlay=${()=>setPlay(true)} onPause=${()=>setPlay(false)} onEnded=${()=>{setPlay(false);setPos(0)}}
+      onLoadedMetadata=${e=>{const d=e.target.duration;if(isFinite(d)&&d>0)setDur(d*1000)}} onTimeUpdate=${e=>setPos(e.target.currentTime*1000)}></audio></div>`;
+}
+// recording bar used in chats: tap the mic, talk, send or cancel (60s max)
+function useVoiceRecorder(onDone){
+  const r=useRef({});const [rec,setRec]=useState(null);
+  useEffect(()=>{if(!rec)return;const t=setInterval(()=>{const ms=Date.now()-rec.start;setRec(x=>x&&{...x,ms});if(ms>=60000)stop(true)},200);return()=>clearInterval(t)},[rec&&rec.start]);
+  async function start(){
+    try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});const mime=pickAudioMime();
+      const mr=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);const chunks=[];mr.ondataavailable=e=>e.data&&e.data.size&&chunks.push(e.data);mr.start(250);
+      r.current={mr,stream,chunks,mime:mr.mimeType||mime||'audio/webm'};setRec({start:Date.now(),ms:0})}
+    catch(e){alert('Temp needs your microphone to record a voice message.')}
+  }
+  function stop(send){const k=r.current;if(!k.mr)return;const start=rec?rec.start:Date.now();
+    k.mr.onstop=()=>{k.stream.getTracks().forEach(t=>t.stop());const ms=Date.now()-start;if(send&&ms>600){const type=k.mime.split(';')[0];const ext=type.includes('mp4')||type.includes('aac')?'m4a':'webm';
+      onDone(new File(k.chunks,'voice.'+ext,{type}),ms)}};
+    try{k.mr.stop()}catch(e){}r.current={};setRec(null)}
+  return {rec,start,stop};
+}
+
+/* ---------- Live Takes: audio rooms (peer to peer, small rooms) ---------- */
+const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}];
+class LiveEngine{
+  constructor(roomId,me,onChange){this.roomId=roomId;this.me=me;this.onChange=onChange;this.pcs={};this.audio={};this.levels={};this.local=null;this.muted=true;this.ac=null;this.an={};this.loop=null}
+  async join(){
+    this.ac=new (window.AudioContext||window.webkitAudioContext)();try{await this.ac.resume()}catch(e){}
+    this.ch=sb.channel('liveroom-'+this.roomId,{config:{broadcast:{self:false},presence:{key:this.me}}});
+    this.ch.on('broadcast',{event:'sig'},({payload})=>this.signal(payload))
+      .on('broadcast',{event:'react'},({payload})=>this.onChange({react:payload}))
+      .on('presence',{event:'sync'},()=>this.sync());
+    await new Promise(res=>this.ch.subscribe(async st=>{if(st==='SUBSCRIBED'){try{await this.ch.track({at:Date.now()})}catch(e){}res()}}));
+    this.loop=setInterval(()=>this.meter(),160);
+  }
+  send(p){this.ch&&this.ch.send({type:'broadcast',event:'sig',payload:{...p,from:this.me}}).catch(()=>{})}
+  react(e){this.ch&&this.ch.send({type:'broadcast',event:'react',payload:{e,from:this.me}}).catch(()=>{})}
+  sync(){const ids=Object.keys(this.ch.presenceState()).filter(k=>k!==this.me);ids.forEach(id=>this.pc(id));Object.keys(this.pcs).forEach(id=>{if(!ids.includes(id))this.drop(id)});}
+  pc(id){
+    if(this.pcs[id])return this.pcs[id];
+    const pc=new RTCPeerConnection({iceServers:ICE});const st={pc,polite:this.me>id,making:false,ignore:false};this.pcs[id]=st;
+    pc.onnegotiationneeded=async()=>{try{st.making=true;await pc.setLocalDescription();this.send({to:id,desc:pc.localDescription})}catch(e){}finally{st.making=false}};
+    pc.onicecandidate=e=>{if(e.candidate)this.send({to:id,cand:e.candidate})};
+    pc.ontrack=e=>{const stream=e.streams[0]||new MediaStream([e.track]);let el=this.audio[id];if(!el){el=new Audio();el.autoplay=true;el.playsInline=true;this.audio[id]=el}
+      el.srcObject=stream;el.play().catch(()=>{});try{const src=this.ac.createMediaStreamSource(stream);const an=this.ac.createAnalyser();an.fftSize=512;src.connect(an);this.an[id]=an}catch(e){}};
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed')try{pc.restartIce()}catch(e){}};
+    if(this.local)this.local.getTracks().forEach(t=>pc.addTrack(t,this.local));
+    // the newer side starts the conversation so both ends connect even before anyone talks
+    if(this.me<id&&!this.local){pc.addTransceiver('audio',{direction:'recvonly'})}
+    return st;
+  }
+  async signal({from,to,desc,cand}){
+    if(to!==this.me||!from)return;const st=this.pc(from);const pc=st.pc;
+    try{
+      if(desc){const coll=desc.type==='offer'&&(st.making||pc.signalingState!=='stable');st.ignore=!st.polite&&coll;if(st.ignore)return;
+        await pc.setRemoteDescription(desc);if(desc.type==='offer'){await pc.setLocalDescription();this.send({to:from,desc:pc.localDescription})}}
+      else if(cand){try{await pc.addIceCandidate(cand)}catch(e){if(!st.ignore)throw e}}
+    }catch(e){console.warn('live signal',e)}
+  }
+  drop(id){const st=this.pcs[id];if(st)try{st.pc.close()}catch(e){}delete this.pcs[id];const el=this.audio[id];if(el){el.srcObject=null}delete this.audio[id];delete this.an[id]}
+  async setSpeaking(on,muted){
+    if(on&&!this.local){
+      this.local=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+      try{const src=this.ac.createMediaStreamSource(this.local);const an=this.ac.createAnalyser();an.fftSize=512;src.connect(an);this.an[this.me]=an}catch(e){}
+      Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));
+    }
+    if(!on&&this.local){Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track)try{st.pc.removeTrack(sn)}catch(e){}}));this.local.getTracks().forEach(t=>t.stop());this.local=null;delete this.an[this.me]}
+    this.muted=!!muted;if(this.local)this.local.getAudioTracks().forEach(t=>t.enabled=!this.muted);
+  }
+  meter(){const lv={};const buf=new Uint8Array(256);Object.entries(this.an).forEach(([id,an])=>{an.getByteTimeDomainData(buf);let s=0;for(const v of buf){const d=(v-128)/128;s+=d*d}lv[id]=Math.sqrt(s/buf.length)});
+    if(this.local&&this.muted)lv[this.me]=0;this.onChange({levels:lv})}
+  leave(){clearInterval(this.loop);Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}try{this.ac&&this.ac.close()}catch(e){}}
+}
+const liveUser=p=>p?{id:p.id,uid:p.id,name:p.name||p.handle,handle:p.handle,avatar:p.avatar_url,color:colorFor(p.id),ring:p.ring}:{id:'?',name:'Someone',handle:'someone',color:'#ff5500'};
+const LIVE_FRESH=70e3;
+function useLiveData(){
+  const [rooms,setRooms]=useState([]);const [members,setMembers]=useState([]);const [people,setPeople]=useState({});const [tick,setTick]=useState(0);
+  const load=useCallback(async()=>{
+    const since=new Date(Date.now()-12*36e5).toISOString();
+    const {data:r}=await sb.from('live_rooms').select('*').is('ended_at',null).gte('created_at',since).order('created_at',{ascending:false});
+    const ids=(r||[]).map(x=>x.id);const {data:m}=ids.length?await sb.from('live_members').select('*').in('room_id',ids).is('left_at',null):{data:[]};
+    const need=[...new Set([...(r||[]).map(x=>x.host_id),...(m||[]).map(x=>x.user_id)])].filter(id=>!people[id]);
+    if(need.length){const {data:p}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').in('id',need);setPeople(x=>{const n={...x};(p||[]).forEach(q=>n[q.id]=liveUser(q));return n})}
+    setRooms(r||[]);setMembers(m||[]);
+  },[people]);
+  useEffect(()=>{load();const ch=sb.channel('live-lobby-'+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'*',schema:'public',table:'live_rooms'},()=>load()).on('postgres_changes',{event:'*',schema:'public',table:'live_members'},()=>load()).subscribe();
+    const t=setInterval(()=>{load();setTick(x=>x+1)},20000);return()=>{sb.removeChannel(ch);clearInterval(t)}},[]);
+  const now=Date.now();const fresh=m=>now-new Date(m.last_seen)<LIVE_FRESH;
+  const live=rooms.map(r=>({...r,members:members.filter(m=>m.room_id===r.id&&fresh(m))})).filter(r=>r.members.some(m=>m.user_id===r.host_id));
+  return {rooms:live,people,reload:load};
+}
+function LiveView({me,onExit}){
+  const {rooms,people,reload}=useLiveData();const [roomId,setRoomId]=useState(null);const [making,setMaking]=useState(false);const [title,setTitle]=useState('');const [err,setErr]=useState('');
+  const room=rooms.find(r=>r.id===roomId);
+  async function start(){
+    const t=title.trim();if(!t)return;setErr('');
+    const {data,error}=await sb.from('live_rooms').insert({title:t}).select().single();if(error){setErr(friendly(error));return}
+    const {error:e2}=await sb.from('live_members').upsert({room_id:data.id,user_id:me,role:'host',muted:false,hand:false,left_at:null,last_seen:new Date().toISOString()});
+    if(e2){setErr(friendly(e2));return}setMaking(false);setTitle('');await reload();setRoomId(data.id)}
+  async function join(id){const host=(rooms.find(r=>r.id===id)||{}).host_id===me;await sb.from('live_members').upsert({room_id:id,user_id:me,role:host?'host':'listener',hand:false,muted:!host,left_at:null,last_seen:new Date().toISOString()});await reload();setRoomId(id)}
+  if(roomId)return html`<${LiveRoom} key=${roomId} roomId=${roomId} room=${room} people=${people} me=${me} reload=${reload} onLeave=${()=>{setRoomId(null);reload()}}/>`;
+  return html`<div className="live-lobby">
+    <div className="live-hero"><div><h2>Live Takes</h2><p>Hop on and say it out loud.</p></div><button className="btn orange" onClick=${()=>setMaking(true)}><${Icon} n="mic" s=${18}/>Go live</button></div>
+    ${making&&html`<div className="live-make"><label htmlFor="live-title" className="vh">What's the take?</label><input id="live-title" maxLength=${80} placeholder="What's the take?" value=${title} onInput=${e=>setTitle(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&start()}/>
+      <div className="live-make-row"><button className="btn ghost" onClick=${()=>{setMaking(false);setErr('')}}>Cancel</button><button className="btn orange" disabled=${!title.trim()} onClick=${start}>Start</button></div>${err&&html`<p className="mod-err">${err}</p>`}</div>`}
+    <h3 className="live-h">Live now</h3>
+    ${rooms.length?rooms.map(r=>{const host=people[r.host_id]||liveUser(null);const sp=r.members.filter(m=>m.role!=='listener');const ls=r.members.filter(m=>m.role==='listener').length;
+      return html`<button className="live-card" key=${r.id} onClick=${()=>join(r.id)}>
+        <span className="live-dot">LIVE</span><b className="live-title">${r.title}</b>
+        <span className="live-people">${sp.slice(0,5).map(m=>html`<${Avatar} key=${m.user_id} u=${people[m.user_id]||liveUser(null)} size=${30} noRing=${true}/>`)}</span>
+        <span className="sub">${host.name} · ${sp.length} speaking · ${ls} listening</span></button>`})
+    :html`<div className="empty">No one's live right now. Start one.</div>`}
+  </div>`;
+}
+function LiveRoom({roomId,room,people,me,reload,onLeave}){
+  const eng=useRef(null);const [levels,setLevels]=useState({});const [floaters,setFloaters]=useState([]);const [err,setErr]=useState('');const [ready,setReady]=useState(false);
+  const members=room?room.members:[];const mine=members.find(m=>m.user_id===me);const isHost=room&&room.host_id===me;
+  const role=mine?mine.role:'listener';const speaking=role!=='listener';
+  useEffect(()=>{const e=new LiveEngine(roomId,me,ev=>{if(ev.levels)setLevels(ev.levels);if(ev.react){const f={id:Math.random(),e:ev.react.e,x:10+Math.random()*80};setFloaters(x=>[...x.slice(-14),f]);setTimeout(()=>setFloaters(x=>x.filter(y=>y!==f)),2600)}});
+    eng.current=e;e.join().then(()=>setReady(true)).catch(()=>setErr('Couldn’t connect to the room.'));
+    const hb=setInterval(()=>sb.from('live_members').update({last_seen:new Date().toISOString()}).eq('room_id',roomId).eq('user_id',me),20000);
+    const bye=()=>{navigator.sendBeacon&&0;};addEventListener('pagehide',bye);
+    return()=>{clearInterval(hb);removeEventListener('pagehide',bye);e.leave()}},[roomId]);
+  // turn the mic on/off as the host moves people up to speak
+  useEffect(()=>{if(!ready||!eng.current)return;eng.current.setSpeaking(speaking,mine?mine.muted:true).catch(()=>setErr('Temp needs your microphone to speak.'))},[ready,speaking,mine&&mine.muted]);
+  useEffect(()=>{if(room===undefined&&ready){const t=setTimeout(onLeave,1500);return()=>clearTimeout(t)}},[room,ready]);
+  const upd=(uid,patch)=>sb.from('live_members').update(patch).eq('room_id',roomId).eq('user_id',uid).then(({error})=>{if(error)setErr(friendly(error));reload()});
+  async function leave(){if(isHost){if(!confirm('End this Live Take for everyone?'))return;await sb.from('live_rooms').update({ended_at:new Date().toISOString()}).eq('id',roomId)}
+    await sb.from('live_members').update({left_at:new Date().toISOString()}).eq('room_id',roomId).eq('user_id',me);onLeave()}
+  const react=e=>{eng.current&&eng.current.react(e);const f={id:Math.random(),e,x:10+Math.random()*80};setFloaters(x=>[...x.slice(-14),f]);setTimeout(()=>setFloaters(x=>x.filter(y=>y!==f)),2600)};
+  if(!room)return html`<div className="live-room"><div className="empty">${ready?'This Live Take has ended.':'Joining…'}</div><button className="btn ghost wide" onClick=${onLeave}>Back</button></div>`;
+  const sp=members.filter(m=>m.role!=='listener').sort((a,b)=>(b.role==='host')-(a.role==='host'));const ls=members.filter(m=>m.role==='listener').sort((a,b)=>b.hand-a.hand);
+  const person=(m,big)=>{const u=people[m.user_id]||liveUser(null);const lv=levels[m.user_id]||0;const talking=m.role!=='listener'&&!m.muted&&lv>.04;
+    return html`<div className=${'live-p'+(big?' big':'')} key=${m.user_id}>
+      <span className=${'live-av'+(talking?' talking':'')} style=${{'--lv':Math.min(1,lv*6)}}><${Avatar} u=${u} size=${big?64:48} noRing=${true}/>
+        ${m.role!=='listener'&&m.muted&&html`<i className="live-mute"><${Icon} n="mute" s=${12}/></i>`}${m.hand&&html`<i className="live-hand">✋</i>`}</span>
+      <b>${u.name}</b><span className="sub">${m.role==='host'?'Host':m.role==='speaker'?'Speaker':''}</span>
+      ${isHost&&m.user_id!==me&&html`<span className="live-ctl">${m.role==='listener'?html`<button onClick=${()=>upd(m.user_id,{role:'speaker'})}>Invite to speak</button>`:html`<button onClick=${()=>upd(m.user_id,{role:'listener'})}>Move to listeners</button>${!m.muted&&html`<button onClick=${()=>upd(m.user_id,{muted:true})}>Mute</button>`}`}</span>`}
+    </div>`};
+  return html`<div className="live-room">
+    <div className="live-room-head"><span className="live-dot">LIVE</span><h2>${room.title}</h2></div>
+    <div className="live-grid">${sp.map(m=>person(m,true))}</div>
+    ${ls.length>0&&html`<h3 className="live-h">Listening · ${ls.length}</h3><div className="live-grid small">${ls.map(m=>person(m,false))}</div>`}
+    ${err&&html`<p className="mod-err">${err}</p>`}
+    <div className="live-floaters" aria-hidden="true">${floaters.map(f=>html`<span key=${f.id} style=${{left:f.x+'%'}}>${f.e}</span>`)}</div>
+    <div className="live-bar">
+      <button className="btn ghost" onClick=${leave}>${isHost?'End':'Leave quietly'}</button>
+      <div className="live-reacts">${['🔥','😂','😮','🧊'].map(e=>html`<button key=${e} onClick=${()=>react(e)} aria-label=${'React '+e}>${e}</button>`)}</div>
+      ${speaking?html`<button className=${'live-mic'+(mine&&!mine.muted?' on':'')} onClick=${()=>upd(me,{muted:!(mine&&mine.muted)})} aria-label=${mine&&mine.muted?'Unmute':'Mute'}><${Icon} n=${mine&&mine.muted?'mute':'mic'} s=${22}/></button>`
+        :html`<button className=${'live-mic'+(mine&&mine.hand?' on':'')} onClick=${()=>upd(me,{hand:!(mine&&mine.hand)})} aria-label=${mine&&mine.hand?'Lower hand':'Raise hand'}>✋</button>`}
+    </div>
+  </div>`;
+}
+// stand-alone Live page the app opens inside its Live tab
+function LiveEmbed(){
+  const [tok,setTok]=useState(EMBED_TOKEN);useEffect(()=>{window.__tempToken=t=>{EMBED_TOKEN=t;try{sb.realtime.setAuth(t)}catch(e){}setTok(t)}},[]);
+  const me=jwtSub(tok);if(!me)return html`<div className="empty">Sign in to join Live Takes.</div>`;
+  return html`<div className="app embed"><${LiveView} me=${me}/></div>`;
+}
+
 function App(){
   const [s,raw]=useReducer(reducer,null,emptyState);
   const [view,setView]=useState({tab:'home'});
@@ -2620,6 +2857,9 @@ function App(){
   } else if(view.tab==='shop'||view.tab==='plus'){
     body=view.tab==='shop'?html`<${ShopView} s=${s} dispatch=${dispatch} open=${open}/>`:html`<${PlusView} s=${s} dispatch=${dispatch}/>`;
     top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'me'}))}<span className="top-title">${view.tab==='shop'?'Fire Sale':'Temp+'}</span></div></div>`;
+  } else if(view.tab==='live'){
+    body=html`<${LiveView} me=${myId}/>`;
+    top=html`<div className="top"><div className="top-row"><h1 className="logo">live<i></i></h1></div></div>`;
   } else if(view.tab==='replay'){
     body=html`<${Replay} s=${s} dispatch=${dispatch} open=${open} startId=${view.reelId}/>`;
   } else {
@@ -2638,6 +2878,7 @@ function App(){
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>
       <button className="create" aria-label="New post" data-tour="nav-create" onClick=${guard(()=>setSheet({kind:'compose',reel:isReplay}))}><${Icon} n="plus" s=${26} w=${2.6}/></button>
       <button aria-label="Replay" data-tour="nav-replay" aria-current=${isReplay?'page':null} onClick=${guard(()=>setView({tab:'replay'}))}><${Icon} n="reels" s=${25}/></button>
+      <button aria-label="Live Takes" aria-current=${view.tab==='live'?'page':null} onClick=${guard(()=>setView({tab:'live'}))}><${Icon} n="mic" s=${24}/></button>
       <button aria-label="Profile" data-tour="nav-me" aria-current=${['me','settings','shop','plus'].includes(view.tab)?'page':null} onClick=${guard(()=>setView({tab:'me'}))}><${Avatar} u=${s.users.me} size=${28}/></button>
     </div></nav>
 
@@ -2661,7 +2902,7 @@ function App(){
   </div>`;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/><${Intro}/>`);
+ReactDOM.createRoot(document.getElementById('root')).render(EMBED?html`<${LiveEmbed}/>`:html`<${App}/><${Intro}/>`);
 </script>
 
 </body>

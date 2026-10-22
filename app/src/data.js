@@ -74,7 +74,7 @@ export async function loadAll(myId) {
   msgs.forEach((m) => {
     const other = m.sender === myId ? m.recipient : m.sender;
     if (!users[other]) return;
-    (threads[other] = threads[other] || []).push({ id: m.id, from: m.sender, text: m.text || '', sticker: m.sticker, postId: m.post_id, snap: m.snap, note: m.note, react: m.react, at: +new Date(m.created_at) });
+    (threads[other] = threads[other] || []).push({ id: m.id, from: m.sender, text: m.text || '', sticker: m.sticker, postId: m.post_id, snap: m.snap, note: m.note, react: m.react, audio: m.audio_url, ms: m.audio_ms, at: +new Date(m.created_at), readAt: m.read_at ? +new Date(m.read_at) : 0 });
     if (m.recipient === myId && !m.read_at) unread[other] = true;
     if (m.sender === myId && m.read_at) seenBy[other] = Math.max(seenBy[other] || 0, +new Date(m.read_at));
   });
@@ -109,9 +109,9 @@ export const act = {
     ? ok(sb.from('story_reactions').delete().eq('story_id', id).eq('user_id', me))
     : ok(sb.from('story_reactions').upsert({ story_id: id, user_id: me, emoji }, { onConflict: 'story_id,user_id' }))),
   seenStory: (id) => sb.from('story_views').upsert({ story_id: id }, { onConflict: 'story_id,user_id', ignoreDuplicates: true }),
-  dm: (to, { text, sticker, post, note }) => {
+  dm: (to, { text, sticker, post, note, audio, ms }) => {
     const snap = post ? { userId: post.userId, text: post.text, media: post.mediaUrl ? { type: post.mediaType || (post.reel ? 'video' : 'image'), url: post.mediaUrl } : null } : null;
-    return ok(sb.from('messages').insert({ recipient: to, text: text || '', sticker: sticker || null, post_id: post ? post.id : null, snap, note: note || null }));
+    return ok(sb.from('messages').insert({ recipient: to, text: text || '', sticker: sticker || null, post_id: post ? post.id : null, snap, note: note || null, audio_url: audio || null, audio_ms: ms || null }));
   },
   reactMsg: (m) => ok(sb.from('messages').update({ react: m.react ? null : '❤️' }).eq('id', m.id)),
   read: (other, me) => sb.from('messages').update({ read_at: new Date().toISOString() }).eq('sender', other).eq('recipient', me).is('read_at', null),

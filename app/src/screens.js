@@ -6,10 +6,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
 import { PostCard, Video, RichText, useVideoTaps } from './posts';
+import { VoiceBubble, useVoiceRecorder, fmtSec } from './voice';
 import { act } from './data';
 import { ReplayOverlay } from './recorder';
 import { GifPicker } from './gif';
-import { sb, ago, kfmt, F, THEMES, tempOf } from './lib';
+import { sb, ago, kfmt, F, THEMES, tempOf, upload, friendly } from './lib';
 
 export async function pickMedia(kind = 'all') {
   const types = kind === 'image' ? ['images'] : kind === 'video' ? ['videos'] : ['images', 'videos'];
@@ -337,42 +338,64 @@ export function ThreadScreen({ id }) {
   const seen = lastMine && s.seenBy[id] && s.seenBy[id] >= lastMine.at && msgs[msgs.length - 1] === lastMine;
   const send = () => { if (!t.trim()) return; const v = t.trim(); setT(''); run(() => act.dm(id, { text: v })); };
   const lastTap = useRef({});
+  const [vsend, setVsend] = useState(false);
+  const vr = useVoiceRecorder(async (asset, ms) => { setVsend(true); try { const url = await upload(s.me, asset); await run(() => act.dm(id, { audio: url, ms })); } catch (e) { nav.toast(friendly(e)); } setVsend(false); });
+  // drag the chat sideways to peek at send times, like iMessage
+  const shift = useRef(new Animated.Value(0)).current; const [peekLeft, setPeekLeft] = useState(false);
+  const peek = useRef(PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (e, d) => d.x0 > 40 && Math.abs(d.dx) > 10 && Math.abs(d.dx) > Math.abs(d.dy) * 1.4,
+    onPanResponderMove: (e, d) => { const v = Math.max(-70, Math.min(70, d.dx)); shift.setValue(v); setPeekLeft(v > 0); },
+    onPanResponderRelease: () => Animated.spring(shift, { toValue: 0, useNativeDriver: true, speed: 18 }).start(),
+    onPanResponderTerminate: () => Animated.spring(shift, { toValue: 0, useNativeDriver: true }).start(),
+  })).current;
+  const clock = (at) => new Date(at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const TimeTag = ({ at }) => <T b muted style={{ position: 'absolute', top: '50%', marginTop: -8, fontSize: 11.5, width: 62, [peekLeft ? 'left' : 'right']: -68, textAlign: peekLeft ? 'right' : 'left' }}>{clock(at)}</T>;
+  const lastSeenAt = lastMine ? Math.max(lastMine.readAt || 0, s.seenBy[id] || 0) : 0;
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
       <Header back title={u.name} sub={isTyping ? 'typing…' : null} right={<Pressable onPress={() => nav.push('profile', { id })}><Avatar u={u} size={36} /></Pressable>} />
+      <View {...peek.panHandlers} style={{ flex: 1, overflow: 'hidden' }}>
       <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" ref={list} data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: 16, gap: 4 }}
         onContentSizeChange={() => list.current && list.current.scrollToEnd({ animated: false })}
         ListEmptyComponent={<Empty text={'Say hi to @' + u.handle} />}
-        ListFooterComponent={<>{seen && !isTyping ? <T b muted style={{ alignSelf: 'flex-end', fontSize: 12, marginTop: 2 }}>Seen</T> : null}{isTyping ? <TypingDots /> : null}</>}
+        ListFooterComponent={<>{lastMine && msgs[msgs.length - 1] === lastMine && !isTyping ? <T b muted style={{ alignSelf: 'flex-end', fontSize: 12, marginTop: 2 }}>{seen || lastMine.readAt ? 'Seen ' + clock(lastSeenAt) : 'Delivered'}</T> : null}{isTyping ? <TypingDots /> : null}</>}
         renderItem={({ item: m }) => {
           const mine = m.from === s.me;
           const dbl = () => { const n = Date.now(); if (n - (lastTap.current[m.id] || 0) < 280) run(() => act.reactMsg(m)); lastTap.current[m.id] = n; };
           if (m.postId || m.snap) {
             const live = s.posts.find((x) => x.id === m.postId); const p = live ? { userId: live.userId, text: live.text, media: live.mediaUrl ? { type: live.mediaType, url: live.mediaUrl } : null } : m.snap;
             if (!p) return null;
-            return <View style={{ alignSelf: mine ? 'flex-end' : 'flex-start', width: '75%', backgroundColor: C.card, borderRadius: 22, overflow: 'hidden', marginVertical: 2 }}>
+            return <Animated.View style={{ transform: [{ translateX: shift }] }}><TimeTag at={m.at} /><View style={{ alignSelf: mine ? 'flex-end' : 'flex-start', width: '75%', backgroundColor: C.card, borderRadius: 22, overflow: 'hidden', marginVertical: 2 }}>
               {p.media && p.media.type !== 'video' ? <Image source={{ uri: p.media.url }} style={{ width: '100%', height: 180 }} /> : null}
               {p.media && p.media.type === 'video' ? <Video uri={p.media.url} style={{ width: '100%', height: 200 }} /> : null}
-              <View style={{ padding: 12 }}><T h muted style={{ fontSize: 12 }}>@{(s.users[p.userId] || {}).handle}{!live ? ' · gone from the timeline' : ''}</T>{p.text ? <T>{p.text}</T> : null}</View></View>;
+              <View style={{ padding: 12 }}><T h muted style={{ fontSize: 12 }}>@{(s.users[p.userId] || {}).handle}{!live ? ' · gone from the timeline' : ''}</T>{p.text ? <T>{p.text}</T> : null}</View></View></Animated.View>;
           }
-          return <>
+          return <Animated.View style={{ transform: [{ translateX: shift }] }}><TimeTag at={m.at} />
             {m.note ? <T b muted style={{ fontSize: 12, alignSelf: mine ? 'flex-end' : 'flex-start', marginHorizontal: 6 }}>{m.note}</T> : null}
             <Pressable onPress={dbl} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '78%', marginBottom: m.react ? 12 : 0 }}>
-              {m.sticker ? <View style={{ padding: 4 }}><Sticker v={m.sticker} size={58} /></View>
+              {m.audio ? <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 8, paddingLeft: 8, paddingRight: 12 }}><VoiceBubble url={m.audio} ms={m.ms} mine={mine} /></View>
+                : m.sticker ? <View style={{ padding: 4 }}><Sticker v={m.sticker} size={58} /></View>
                 : <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 15 }}><T style={{ color: mine ? '#fff' : C.ink }}>{m.text}</T></View>}
               {m.react ? <T style={{ position: 'absolute', bottom: -12, [mine ? 'left' : 'right']: 8, backgroundColor: C.card, borderRadius: 999, paddingHorizontal: 5, fontSize: 13, overflow: 'hidden' }}>{m.react}</T> : null}
-            </Pressable></>;
+            </Pressable></Animated.View>;
         }} />
+      </View>
       <View style={{ paddingHorizontal: 16, paddingBottom: ins.bottom + 8, paddingTop: 6 }}>
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.dm(id, { sticker: e })); }} /> : null}
         {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.dm(id, { sticker: 'G|' + g.url })); }} /> : null}
+        {vr.on || vsend ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, backgroundColor: C.card, borderRadius: 999, paddingLeft: 16, padding: 4, height: 48 }}>
+          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#ff2d2d' }} />
+          <T h style={{ fontVariant: ['tabular-nums'] }}>{vsend ? 'Sending…' : fmtSec(vr.on.ms)}</T><T muted b style={{ flex: 1 }}>{vsend ? '' : 'Recording'}</T>
+          {!vsend ? <><Pressable onPress={() => vr.stop(false)} accessibilityLabel="Cancel voice message" style={{ padding: 8 }}><Ionicons name="close" size={22} color={C.muted} /></Pressable>
+            <Pressable onPress={() => vr.stop(true)} accessibilityLabel="Send voice message" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={17} color="#fff" /></Pressable></> : null}
+        </View> :
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, borderRadius: 999, paddingLeft: 16, padding: 4 }}>
           <TextInput value={t} onChangeText={(v) => { setT(v); if (v) sendTyping(id); }} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
-          <Pressable onPress={send} disabled={!t.trim()} accessibilityLabel="Send" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() ? 1 : 0.3 }}>
-            <Ionicons name="paper-plane" size={17} color="#fff" /></Pressable>
-        </View>
+          <Pressable onPress={t.trim() ? send : vr.start} accessibilityLabel={t.trim() ? 'Send' : 'Record a voice message'} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={t.trim() ? 'paper-plane' : 'mic'} size={t.trim() ? 17 : 19} color="#fff" /></Pressable>
+        </View>}
       </View>
     </KeyboardAvoidingView>
   );

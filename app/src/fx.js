@@ -32,7 +32,7 @@ function jitter(c, seed, lo, hi, n = 10, hard) {
   }
   return c.interpolate({ inputRange: inp, outputRange: out });
 }
-const fill = StyleSheet.absoluteFillObject;
+const fill = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 };
 const clamp01 = (v) => v.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' });
 
 /* ---------------- rings ---------------- */

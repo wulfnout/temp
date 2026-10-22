@@ -1536,7 +1536,7 @@ function Replay({s,dispatch,open,startId}){
     return()=>io.disconnect();
   },[reels.length]);
   const sw=useRef(null);
-  return html`<div className="reels" ref=${box} onTouchStart=${e=>{const t=e.touches[0];sw.current={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=sw.current;sw.current=null;if(!a)return;const t=e.changedTouches[0];const dx=t.clientX-a.x,dy=t.clientY-a.y;if(dx<-70&&Math.abs(dx)>Math.abs(dy)*2)open.leaveReplay()}}>
+  return html`<div className="reels" ref=${box} onTouchStart=${e=>{const t=e.touches[0];sw.current={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=sw.current;sw.current=null;if(!a)return;const t=e.changedTouches[0];const dx=t.clientX-a.x,dy=t.clientY-a.y;if(dx>70&&Math.abs(dx)>Math.abs(dy)*2)open.leaveReplay()}}>
     <div className="reel-top" style=${{position:'fixed',maxWidth:520,margin:'0 auto',color:'#fff'}}><h2>Replay</h2>
       <button className="circle" style=${{background:'rgba(255,255,255,.14)',color:'#fff'}} aria-label="New Replay" onClick=${()=>open.compose(true)}><${Icon} n="camera"/></button></div>
     ${reels.map(p=>html`<${Reel} key=${p.id} p=${p} s=${s} active=${active===p.id} dispatch=${dispatch} open=${open}/>`)}

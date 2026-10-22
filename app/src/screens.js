@@ -88,8 +88,8 @@ export function ReplayScreen({ startId }) {
   const { s, C, nav } = useApp(); const ins = useSafeAreaInsets();
   const [H, setH] = useState(0); // exact page height, measured, so the next Replay never peeks in
   const swipe = useRef(PanResponder.create({
-    onMoveShouldSetPanResponderCapture: (e, d) => d.dx < -14 && Math.abs(d.dx) > Math.abs(d.dy) * 2,
-    onPanResponderRelease: (e, d) => { if (d.dx < -70 || d.vx < -0.5) nav.leaveReplay(); },
+    onMoveShouldSetPanResponderCapture: (e, d) => d.dx > 14 && Math.abs(d.dx) > Math.abs(d.dy) * 2,
+    onPanResponderRelease: (e, d) => { if (d.dx > 70 || d.vx > 0.5) nav.leaveReplay(); },
     onPanResponderTerminationRequest: () => false,
   })).current;
   const reels = s.posts.filter((p) => p.reel && !s.blocked[p.userId]);

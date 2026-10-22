@@ -279,7 +279,8 @@ img,video{max-width:100%;display:block}
 .sv-head .t{font-weight:500;opacity:.75;font-size:13px}
 .sv-btns{margin-left:auto;display:flex}
 .sv-close{width:38px;height:38px;display:grid;place-items:center;color:#fff}
-.sv-tap{position:absolute;top:0;bottom:120px;width:40%;z-index:1}
+.sv-touch{position:absolute;left:0;right:0;top:70px;bottom:120px;z-index:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.sv-count{position:absolute;inset:0;display:grid;place-items:center;z-index:2;pointer-events:none;font-family:var(--display);font-weight:800;font-size:96px;color:#000;text-shadow:0 0 18px rgba(255,255,255,.85)}
 .sv-tap.l{left:0} .sv-tap.r{right:0;width:60%}
 .sv-foot{position:absolute;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:3;display:grid;gap:10px}
 .sv-reacts{display:flex;justify-content:space-around}
@@ -1200,14 +1201,25 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   const [ui,setUi]=useState(Math.max(0,order.indexOf(startUser)));
   const [ii,setIi]=useState(0);
   const [prog,setProg]=useState(0);
-  const [hold,setHold]=useState(false);
+  const [hold,setHold]=useState(0);const [dragY,setDragY]=useState(0);const vid=useRef();const g=useRef({});
   const [text,setText]=useState('');
   const [picker,setPicker]=useState(false);
   const [panel,setPanel]=useState(false);
   const st=s.stories.find(x=>x.userId===order[ui]);
   const item=st&&st.items[ii];
-  const paused=hold||text.length>0||picker||panel;
-  useEffect(()=>{if(item)dispatch({type:'seen',id:item.id});setPicker(false);setPanel(false);setText('')},[item&&item.id]);
+  const paused=hold>0||text.length>0||picker||panel;
+  useEffect(()=>{if(item)dispatch({type:'seen',id:item.id});setPicker(false);setPanel(false);setText('');setHold(0)},[item&&item.id]);
+  useEffect(()=>{if(!hold)return;const t=setTimeout(()=>setHold(hold-1),1000);return()=>clearTimeout(t)},[hold]);
+  useEffect(()=>{const v=vid.current;if(!v)return;try{paused?v.pause():v.play().catch(()=>{})}catch(e){}},[paused]);
+  function replay(){setProg(0);const v=vid.current;if(v){v.currentTime=0;if(!paused)v.play().catch(()=>{})}}
+  // tap left = replay, tap right = next, hold = pause (15s countdown), swipe down = close
+  function down(e){g.current={x:e.clientX,y:e.clientY,moved:false,held:false,id:e.pointerId,t:setTimeout(()=>{g.current.held=true;setHold(15)},220)};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(x){}}
+  function move(e){const d=g.current;if(d.x==null)return;const dy=e.clientY-d.y,dx=e.clientX-d.x;if(dy>8&&dy>Math.abs(dx)){d.moved=true;clearTimeout(d.t);setDragY(dy)}}
+  function up(e){const d=g.current;if(d.x==null)return;clearTimeout(d.t);g.current={};
+    if(d.moved){const dy=e.clientY-d.y;if(dy>120){onClose();return}setDragY(0);setHold(0);return}
+    if(d.held){setHold(0);return}
+    const r=e.currentTarget.getBoundingClientRect();if(e.clientX-r.left<r.width*.35)replay();else next()}
+  function cancel(){clearTimeout(g.current.t);g.current={};setDragY(0);setHold(0)}
   function next(){if(!st)return onClose();if(ii<st.items.length-1){setIi(ii+1)}else if(ui<order.length-1){setUi(ui+1);setIi(0)}else onClose();setProg(0)}
   function prev(){if(ii>0)setIi(ii-1);else if(ui>0){setUi(ui-1);setIi(0)}setProg(0)}
   useEffect(()=>{if(paused)return;const t=setInterval(()=>setProg(p=>Math.min(1,p+0.02)),100);return()=>clearInterval(t)},[ui,ii,paused]);
@@ -1220,16 +1232,17 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   const sendComment=()=>{const t=text.trim();if(!t)return;dispatch({type:'storyComment',id:item.id,text:t});setText('');setPanel(true)};
   const react=e=>{dispatch({type:'storyReact',id:item.id,emoji:e});setPicker(false)};
   const stop=e=>e.stopPropagation();
-  return html`<div className="sv" role="dialog" aria-label="Story">
-    <div className="sv-in" onPointerDown=${()=>setHold(true)} onPointerUp=${()=>setHold(false)} onPointerLeave=${()=>setHold(false)}>
-      <div className="sv-media">${item.type==='video'?html`<video src=${item.url} autoPlay muted playsInline></video>`:html`<img src=${item.url} alt="" />`}</div>
+  return html`<div className="sv" role="dialog" aria-label="Story" style=${{background:dragY?'rgba(0,0,0,'+Math.max(.3,1-dragY/600)+')':undefined}}>
+    <div className="sv-in" style=${dragY?{transform:'translateY('+dragY+'px)',transition:'none'}:{transition:'transform .2s ease'}}>
+      <div className="sv-media">${item.type==='video'?html`<video ref=${vid} key=${item.id} src=${item.url} autoPlay muted playsInline></video>`:html`<img src=${item.url} alt="" />`}</div>
       <div className="sv-bars">${st.items.map((it,i)=>html`<div key=${it.id}><span style=${{width:(i<ii?1:i===ii?prog:0)*100+'%'}}></span></div>`)}</div>
       <div className="sv-head"><${Avatar} u=${u} size=${32}/><span>${u.handle} <span className="t">${item.uploading?'Posting…':ago(s.now-item.at)}</span></span>
         <div className="sv-btns">
           ${mine&&html`<button className="sv-close" onClick=${onAdd} aria-label="Add to your story"><${Icon} n="plus"/></button>`}
           <button className="sv-close" onClick=${onClose} aria-label="Close"><${Icon} n="x"/></button></div></div>
-      <button className="sv-tap l" aria-label="Previous" onClick=${prev}></button>
-      <button className="sv-tap r" aria-label="Next" onClick=${next}></button>
+      <div className="sv-touch" role="button" tabIndex="-1" aria-label="Tap left to replay, right for next, hold to pause, swipe down to close"
+        onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${cancel} onContextMenu=${e=>e.preventDefault()}></div>
+      ${hold>0&&html`<div className="sv-count" aria-live="polite">${hold}</div>`}
       <div className="sv-foot" onPointerDown=${stop}>
         ${item.caption&&html`<p className="sv-cap">${item.caption}</p>`}
         ${panel&&html`<div className="sv-panel" role="region" aria-label="Story comments">

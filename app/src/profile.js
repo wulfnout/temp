@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, Animated, Easing, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, Animated, Easing, Dimensions, PanResponder, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -281,14 +281,41 @@ export function StoryViewer({ userId, onClose }) {
   const st = s.stories.find((x) => x.userId === order[ui]); const item = st && st.items[ii];
   const next = () => { if (!st) return onClose(); if (ii < st.items.length - 1) setIi(ii + 1); else if (ui < order.length - 1) { setUi(ui + 1); setIi(0); } else onClose(); };
   const prev = () => { if (ii > 0) setIi(ii - 1); else if (ui > 0) { setUi(ui - 1); setIi(0); } };
-  const paused = picker || panel || text.length > 0;
+  const [hold, setHold] = useState(0); // seconds left while holding to pause
+  const player = useRef(null); const drag = useRef(new Animated.Value(0)).current;
+  const paused = picker || panel || text.length > 0 || hold > 0;
+  const restart = () => { anim.current && anim.current.stop(); prog.setValue(0); if (!paused) startAnim(0);
+    try { if (player.current) { player.current.currentTime = 0; player.current.play(); } } catch (e) {} };
+  // hold to pause, up to 15 seconds with a countdown in the middle
+  useEffect(() => { if (!hold) return; const t = setTimeout(() => setHold(hold - 1), 1000); return () => clearTimeout(t); }, [hold]);
+  const g = useRef({}); g.current = { next, restart, onClose, setHold, hold };
+  const pan = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (e, d) => d.dy > 8 && Math.abs(d.dy) > Math.abs(d.dx),
+    onPanResponderGrant: () => { g.current.moved = false; g.current.held = false;
+      g.current.timer = setTimeout(() => { g.current.held = true; g.current.setHold(15); }, 220); },
+    onPanResponderMove: (e, d) => { if (d.dy > 8 && Math.abs(d.dy) > Math.abs(d.dx)) { g.current.moved = true; clearTimeout(g.current.timer); drag.setValue(d.dy); } },
+    onPanResponderRelease: (e, d) => {
+      clearTimeout(g.current.timer); const x = e.nativeEvent.pageX;
+      if (g.current.moved) {
+        if (d.dy > 120 || d.vy > 1) Animated.timing(drag, { toValue: Dimensions.get('window').height, duration: 180, useNativeDriver: true }).start(() => g.current.onClose());
+        else { Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); g.current.setHold(0); }
+        return;
+      }
+      if (g.current.held) { g.current.setHold(0); return; }
+      if (x < Dimensions.get('window').width * 0.35) g.current.restart(); else g.current.next();
+    },
+    onPanResponderTerminate: () => { clearTimeout(g.current.timer); Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); g.current.setHold(0); },
+  })).current;
   const startAnim = (from) => {
     const total = item.type === 'video' ? 15000 : 5000;
     anim.current = Animated.timing(prog, { toValue: 1, duration: Math.max(200, total * (1 - from)), easing: Easing.linear, useNativeDriver: false });
     anim.current.start(({ finished }) => finished && next());
   };
-  useEffect(() => { if (!item) return; act.seenStory(item.id); setPicker(false); setPanel(false); setText(''); prog.setValue(0); startAnim(0); return () => anim.current && anim.current.stop(); }, [ui, ii]);
-  useEffect(() => { if (!item) return; if (paused) { anim.current && anim.current.stop(); } else { prog.stopAnimation((v) => startAnim(v || 0)); } }, [paused]);
+  useEffect(() => { if (!item) return; act.seenStory(item.id); setPicker(false); setPanel(false); setText(''); setHold(0); prog.setValue(0); startAnim(0); return () => anim.current && anim.current.stop(); }, [ui, ii]);
+  useEffect(() => { if (!item) return;
+    try { if (player.current) paused ? player.current.pause() : player.current.play(); } catch (e) {}
+    if (paused) { anim.current && anim.current.stop(); } else { prog.stopAnimation((v) => startAnim(v || 0)); } }, [paused]);
   if (!st || !item) return null;
   const u = s.users[st.userId] || {}; const mine = st.userId === s.me;
   const local = mine2[item.id] || {};
@@ -300,9 +327,11 @@ export function StoryViewer({ userId, onClose }) {
     run(() => act.storyComment(item.id, t)); };
   const react = (e) => { setPicker(false); setMine2({ ...mine2, [item.id]: { ...local, react: myReact === e ? null : e } }); run(() => act.storyReact(item.id, e, myReact, s.me)); };
   return (
-    <Modal visible animationType="fade" onRequestClose={onClose}>
+    <Modal visible animationType="fade" transparent onRequestClose={onClose}>
+      <Animated.View style={{ flex: 1, backgroundColor: '#000', opacity: drag.interpolate({ inputRange: [0, 600], outputRange: [1, 0.3], extrapolate: 'clamp' }) }}>
+      <Animated.View style={{ flex: 1, transform: [{ translateY: drag.interpolate({ inputRange: [-1, 0, 2000], outputRange: [0, 0, 2000] }) }] }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
-        {item.type === 'video' ? <Video key={item.id} uri={item.url} style={{ flex: 1 }} controls={false} autoPlay /> : <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />}
+        {item.type === 'video' ? <Video key={item.id} uri={item.url} style={{ flex: 1 }} controls={false} autoPlay playerRef={player} /> : <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />}
         <View style={{ position: 'absolute', top: ins.top + 8, left: 12, right: 12, flexDirection: 'row', gap: 4 }}>
           {st.items.map((it, i) => <View key={it.id} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,.3)', overflow: 'hidden' }}>
             <Animated.View style={{ height: 3, backgroundColor: '#fff', width: i < ii ? '100%' : i === ii ? prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) : '0%' }} /></View>)}
@@ -311,8 +340,9 @@ export function StoryViewer({ userId, onClose }) {
           <Avatar u={u} size={32} /><T h style={{ color: '#fff', flex: 1 }}>{u.handle}  <T style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>{ago(Date.now() - item.at)}</T></T>
           <Pressable onPress={onClose} accessibilityLabel="Close" hitSlop={12}><Ionicons name="close" size={26} color="#fff" /></Pressable>
         </View>
-        <Pressable onPress={prev} style={{ position: 'absolute', left: 0, top: 100, bottom: 160, width: '35%' }} accessibilityLabel="Previous" />
-        <Pressable onPress={next} style={{ position: 'absolute', right: 0, top: 100, bottom: 160, width: '65%' }} accessibilityLabel="Next" />
+        <View {...pan.panHandlers} style={{ position: 'absolute', left: 0, right: 0, top: 100, bottom: 160 }} accessible accessibilityLabel="Story. Tap left to replay, tap right for next, hold to pause, swipe down to close" />
+        {hold ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+          <T style={{ fontFamily: F.display, fontSize: 96, color: '#000', textShadowColor: 'rgba(255,255,255,.85)', textShadowRadius: 18 }}>{hold}</T></View> : null}
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: ins.bottom + 12, gap: 8 }}>
           {item.caption ? <T h style={{ color: '#fff', fontSize: 16, textShadowColor: 'rgba(0,0,0,.7)', textShadowRadius: 8 }}>{item.caption}</T> : null}
           {panel ? <View style={[glass, { borderRadius: 22, padding: 12, maxHeight: 280 }]}>
@@ -343,6 +373,8 @@ export function StoryViewer({ userId, onClose }) {
           </View>
         </View>
       </KeyboardAvoidingView>
+      </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }

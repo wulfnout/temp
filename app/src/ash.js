@@ -40,7 +40,7 @@ export function Intro({ onDone }) {
   const at = (v, inp, out) => v.interpolate({ inputRange: inp, outputRange: out, extrapolate: 'clamp' });
   const r = rng(11);
   const piece = (ch, i) => {
-    const inS = i * 0.08, b = 1.0 + i * 0.16;
+    const inS = i * 0.08, b = 1.0 + i * 0.03; // the whole logo glows together
     const body = ch
       ? <View>
           <Animated.Text style={{ fontFamily: F.display, fontSize: 64, letterSpacing: -3, color: at(tJ, [0, b, b + 0.22, b + 0.45, b + 0.7], ['#ffffff', '#ffffff', '#ffe7b0', '#ff7a1a', '#2e2e2e']) }}>{ch}</Animated.Text>
@@ -52,15 +52,6 @@ export function Intro({ onDone }) {
           <Animated.View style={{ position: 'absolute', left: -4, top: -4, width: 25, height: 25, borderRadius: 7, backgroundColor: '#ff5500', shadowColor: '#ff2d00', shadowOpacity: 1, shadowRadius: 14,
             opacity: at(tN, [0, b, b + 0.3, b + 0.55, b + 0.72], [0, 0, 0.6, 0.6, 0]) }} />
         </View>;
-    // one flame per letter, wrapped around it and rising from its base
-    const fs = ch ? 78 : 30, s0 = b + 0.02;
-    const flames = <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: ch ? -4 : 6, alignItems: 'center',
-      opacity: at(tN, [0, s0, s0 + 0.18, s0 + 0.5, s0 + 0.72], [0, 0, 0.95, 0.9, 0]),
-      transform: [{ translateY: at(tN, [s0, s0 + 0.72], [6, -10]) }, { scale: at(tN, [s0, s0 + 0.18, s0 + 0.72], [0.4, 1.05, 0.7]) }] }}>
-      <Animated.View style={{ transform: [{ scaleY: flick.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] }) }, { scaleX: flick.interpolate({ inputRange: [0, 1], outputRange: [1.04, 0.96] }) }] }}>
-        <Ionicons name="flame" size={fs} color="#ff5500" style={{ textShadowColor: '#ff2d00', textShadowRadius: 16 }} />
-        <View style={{ position: 'absolute', left: fs * 0.2, top: fs * 0.28 }}><Ionicons name="flame" size={fs * 0.6} color="#ffd27a" /></View>
-      </Animated.View></Animated.View>;
     const flakes = Array.from({ length: 16 }).map((_, k) => {
       const e = r() < 0.3; const st = b + 0.5 + r() * 0.35; const dx = (r() - 0.35) * 70, dy = -(50 + r() * 110), rot = r() * 600 - 300;
       const w = 2 + r() * 4.5, hh = 1.5 + r() * 3.5;
@@ -69,7 +60,6 @@ export function Intro({ onDone }) {
         opacity: at(tN, [0, st, st + 0.13, st + 1.3], [0, 0, 1, 0]),
         transform: [{ translateX: at(tN, [st, st + 1.3], [0, dx]) }, { translateY: at(tN, [st, st + 1.3], [0, dy]) }, { rotate: at(tN, [st, st + 1.3], ['0deg', rot + 'deg']) }] }} />; });
     return <View key={i}>
-      {flames}
       <Animated.View style={{ opacity: at(tN, [0, inS, inS + 0.6, b + 0.55, b + 1.15], [0, 0, 1, 1, 0]),
         transform: [{ translateY: at(tN, [inS, inS + 0.6, b + 0.55, b + 1.15], [10, 0, 0, -16]) }, { scale: at(tN, [b + 0.55, b + 1.15], [1, 0.86]) }, { skewX: at(tN, [b + 0.55, b + 1.15], ['0deg', '-6deg']) }] }}>{body}</Animated.View>
       {flakes}

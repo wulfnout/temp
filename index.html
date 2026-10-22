@@ -1271,11 +1271,10 @@ function Intro(){
   const [on,setOn]=useState(true);useEffect(()=>{const t=setTimeout(()=>setOn(false),3400);return()=>clearTimeout(t)},[]);
   if(!on)return null;
   const r=rnd(11);
-  const piece=(ch,i)=>{const burn=1.0+i*.16;
+  const piece=(ch,i)=>{const burn=1.0+i*.03;
     const flakes=Array.from({length:16}).map((_,k)=>{const e=r()<.3;return html`<i key=${k} style=${{left:(10+r()*80)+'%',top:(15+r()*75)+'%','--dx':((r()-.35)*70)+'px','--dy':(-(50+r()*110))+'px','--rot':(r()*600-300)+'deg',
       animationDelay:(burn+.5+r()*.35)+'s',width:(2+r()*4.5)+'px',height:(1.5+r()*3.5)+'px',background:e?(k%2?'#ff8a2b':'#ffd27a'):['#5c5c5c','#3a3a3a','#8a8a8a'][k%3],borderRadius:e?'50%':'1px',boxShadow:e?'0 0 6px #ff5500':'none'}}></i>`});
-    const fl=html`<svg viewBox="0 0 24 24" style=${{animationDelay:(burn+.02)+'s, '+(burn+.02)+'s'}}><path d=${FLAME_D} fill="#ff5500"/><path d=${FLAME_D} fill="#ffd27a" transform="translate(4.8 7.5) scale(.6)"/></svg>`;
-    return html`<span className="il" key=${i} style=${{'--in':(i*.08)+'s','--b':burn+'s'}}>${ch?html`<span className="ch">${ch}</span>`:html`<b className="ch dot"></b>`}<span className="il-fl">${fl}</span><span className="il-ash">${flakes}</span></span>`};
+    return html`<span className="il" key=${i} style=${{'--in':(i*.08)+'s','--b':burn+'s'}}>${ch?html`<span className="ch">${ch}</span>`:html`<b className="ch dot"></b>`}<span className="il-ash">${flakes}</span></span>`};
   return html`<div className="intro" aria-hidden="true"><div className="intro-glow"></div><div className="intro-logo">${['t','e','m','p',null].map(piece)}</div></div>`;
 }
 function AshBurn({onDone}){

@@ -38,6 +38,37 @@ export function RichText({ text, style, onTag }) {
     ? <T key={i} b style={[style, { color: C.orange, fontFamily: F.bold }]} onPress={() => onTag && onTag(t)}>{t}</T> : t)}</T>;
 }
 
+// Video gestures shared by Replays and the full-screen player:
+// double tap left = back 5s, right = forward 5s (keep tapping to skip more), middle = onCenterDouble;
+// press and hold = 2x speed until you let go; one tap = onSingle.
+export function useVideoTaps(getPlayer, { onSingle, onCenterDouble } = {}) {
+  const [w, setW] = useState(1); const [fast, setFast] = useState(false); const [flash, setFlash] = useState(null);
+  const r = useRef({ last: 0, timer: null, seekUntil: 0, side: null, total: 0, flashT: null });
+  const seek = (side) => {
+    const pl = getPlayer(); if (!pl) return; const d = side === 'L' ? -5 : 5;
+    try { const dur = pl.duration || 0; pl.currentTime = Math.max(0, Math.min(dur ? dur - 0.2 : 1e9, (pl.currentTime || 0) + d)); } catch (e) {}
+    const k = r.current; k.total = k.side === side && Date.now() < k.seekUntil ? k.total + 5 : 5; k.side = side; k.seekUntil = Date.now() + 650;
+    setFlash({ side, n: k.total, id: Date.now() }); clearTimeout(k.flashT); k.flashT = setTimeout(() => setFlash(null), 650);
+  };
+  const onPress = (e) => {
+    const x = e.nativeEvent.locationX; const zone = x < w * 0.33 ? 'L' : x > w * 0.67 ? 'R' : 'C'; const k = r.current; const now = Date.now();
+    if (zone !== 'C' && zone === k.side && now < k.seekUntil) { clearTimeout(k.timer); k.last = 0; return seek(zone); } // still skipping
+    if (now - k.last < 280) { clearTimeout(k.timer); k.last = 0; if (zone === 'C') onCenterDouble && onCenterDouble(); else seek(zone); return; }
+    k.last = now; clearTimeout(k.timer); k.timer = setTimeout(() => onSingle && onSingle(), 280);
+  };
+  const onLongPress = () => { const pl = getPlayer(); if (!pl) return; try { pl.playbackRate = 2; pl.play(); } catch (e) {} setFast(true); };
+  const onPressOut = () => { if (!fast) return; const pl = getPlayer(); try { pl && (pl.playbackRate = 1); } catch (e) {} setFast(false); };
+  const press = { onPress, onLongPress, delayLongPress: 350, onPressOut, onLayout: (e) => setW(e.nativeEvent.layout.width || 1) };
+  const pill = { backgroundColor: 'rgba(0,0,0,.55)', borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6 };
+  const Overlay = ({ top = 70 }) => <>
+    {fast ? <View pointerEvents="none" style={[pill, { position: 'absolute', top, alignSelf: 'center' }]}><T h style={{ color: '#fff', fontSize: 13 }}>2x</T><Ionicons name="play-forward" size={14} color="#fff" /></View> : null}
+    {flash ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, [flash.side === 'L' ? 'left' : 'right']: 0, width: '33%', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,.08)', borderTopRightRadius: flash.side === 'L' ? 999 : 0, borderBottomRightRadius: flash.side === 'L' ? 999 : 0, borderTopLeftRadius: flash.side === 'R' ? 999 : 0, borderBottomLeftRadius: flash.side === 'R' ? 999 : 0 }}>
+      <View style={pill}><Ionicons name={flash.side === 'L' ? 'play-back' : 'play-forward'} size={15} color="#fff" /><T h style={{ color: '#fff', fontSize: 13 }}>{(flash.side === 'L' ? '-' : '+') + flash.n + 's'}</T></View></View> : null}
+  </>;
+  return { press, Overlay, fast };
+}
+
 // Feed video, Twitter-style: landscape 16:9 frame, plays muted on its own while on screen, loops, no system controls.
 // Tap opens it full screen; double tap still heats the post.
 function fmt(t) { t = Math.max(0, Math.round(t || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
@@ -98,14 +129,16 @@ function FullVideo({ uri, start, ar, onClose }) {
   const bw = land ? H : W, bh = land ? W : H; // the player box, turned sideways in landscape
   const pad = land ? { top: 14, side: Math.max(ins.top, 20), bottom: 14 } : { top: ins.top + 6, side: 14, bottom: ins.bottom + 10 };
   const btn = { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' };
+  const g = useVideoTaps(() => player, { onSingle: () => setUi((v) => !v), onCenterDouble: () => setPaused((v) => !v) });
   const seek = (x) => { if (!dur) return; const to = Math.max(0, Math.min(dur, (x / barW) * dur)); try { player.currentTime = to; } catch (e) {} setT(to); };
   return (
     <Modal visible animationType="fade" onRequestClose={close} supportedOrientations={['portrait']}>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         <View style={{ position: 'absolute', width: bw, height: bh, left: (W - bw) / 2, top: (H - bh) / 2, transform: [{ rotate: land ? '90deg' : '0deg' }] }}>
-          <Pressable onPress={() => setUi(!ui)} style={{ flex: 1 }} accessibilityLabel={ui ? 'Hide controls' : 'Show controls'}>
+          <Pressable {...g.press} style={{ flex: 1 }} accessibilityLabel={ui ? 'Hide controls' : 'Show controls'}>
             <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
           </Pressable>
+          <g.Overlay top={pad.top + 6} />
           {ui ? <>
             <View style={{ position: 'absolute', top: pad.top, left: pad.side, right: pad.side, flexDirection: 'row', justifyContent: 'space-between' }}>
               <Pressable onPress={close} style={btn} accessibilityLabel="Close"><Ionicons name="close" size={24} color="#fff" /></Pressable>

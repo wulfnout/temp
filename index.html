@@ -578,6 +578,12 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.vt-area{position:absolute;inset:0;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.fullv-box .vt-area{touch-action:none}
+.vt-fast{position:absolute;top:84px;left:50%;transform:translateX(-50%);z-index:4;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:6px 12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:2px;pointer-events:none}
+.vt-seek{position:absolute;top:0;bottom:0;width:33%;z-index:4;display:grid;place-items:center;background:rgba(255,255,255,.08);pointer-events:none;animation:fade .15s}
+.vt-seek.L{left:0;border-radius:0 999px 999px 0}.vt-seek.R{right:0;border-radius:999px 0 0 999px}
+.vt-seek b{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:6px 12px;font-size:13px}
 .fv{position:relative;background:#000;aspect-ratio:16/9;cursor:pointer}.fv video{width:100%;height:100%;max-height:none!important;object-fit:contain!important;display:block}
 .fullv{position:fixed;inset:0;z-index:150;background:#000;cursor:default}
 .fullv-box{position:absolute;left:50%;top:50%;width:100vw;height:100dvh;transform:translate(-50%,-50%)}
@@ -1232,6 +1238,24 @@ function AshBurn({onDone}){
     <div className="ash-char"></div><div className="ash-flakes"><${Flakes} n=${90} seed=${3} from=${.1} embers=${.25}/></div></div>`;
 }
 // feed video, Twitter-style: muted autoplay while on screen, loops, own little controls (no browser HUD)
+// video gestures for Replays and full screen: double tap left/right = -5s/+5s (keep tapping to skip more),
+// double tap middle = onCenterDouble, hold = 2x speed while held, one tap = onSingle
+function useVidTaps(getV,{onSingle,onCenterDouble}={}){
+  const r=useRef({last:0,timer:null,hold:null,fast:false,side:null,until:0,total:0,ft:null});const [fast,setFast]=useState(false);const [flash,setFlash]=useState(null);
+  const seek=side=>{const v=getV();if(!v)return;const d=side==='L'?-5:5;v.currentTime=Math.max(0,Math.min((v.duration||1e9)-.2,v.currentTime+d));
+    const k=r.current;k.total=k.side===side&&Date.now()<k.until?k.total+5:5;k.side=side;k.until=Date.now()+650;setFlash({side,n:k.total});clearTimeout(k.ft);k.ft=setTimeout(()=>setFlash(null),650)};
+  const down=e=>{const k=r.current;clearTimeout(k.hold);k.hold=setTimeout(()=>{const v=getV();if(!v)return;k.fast=true;v.playbackRate=2;v.play().catch(()=>{});setFast(true)},350)};
+  const up=e=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=1;setFast(false);k.last=0;return}
+    const b=e.currentTarget.getBoundingClientRect();const land=e.currentTarget.dataset.rot==='1';
+    const frac=land?(e.clientY-b.top)/b.height:(e.clientX-b.left)/b.width;const zone=frac<.33?'L':frac>.67?'R':'C';const now=Date.now();
+    if(zone!=='C'&&zone===k.side&&now<k.until){clearTimeout(k.timer);k.last=0;return seek(zone)}
+    if(now-k.last<300){clearTimeout(k.timer);k.last=0;zone==='C'?onCenterDouble&&onCenterDouble():seek(zone);return}
+    k.last=now;clearTimeout(k.timer);k.timer=setTimeout(()=>onSingle&&onSingle(),300)};
+  const cancel=()=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=1;setFast(false)}};
+  const overlay=html`${fast&&html`<span className="vt-fast">2x <${Icon} n="play" s=${11} fill="#fff"/><${Icon} n="play" s=${11} fill="#fff"/></span>`}
+    ${flash&&html`<span className=${'vt-seek '+flash.side}><b>${flash.side==='L'?'−':'+'}${flash.n}s</b></span>`}`;
+  return {handlers:{onPointerDown:down,onPointerUp:up,onPointerCancel:cancel,onPointerLeave:cancel,onContextMenu:e=>e.preventDefault()},overlay};
+}
 function FullVideo({url,at,onClose}){
   const v=useRef();const [land,setLand]=useState(innerHeight>innerWidth);const [ui,setUi]=useState(true);const [paused,setPaused]=useState(false);const [muted,setMuted]=useState(false);const [t,setT]=useState(at||0);const [dur,setDur]=useState(0);
   useEffect(()=>{const el=v.current;if(!el)return;el.currentTime=at||0;el.muted=false;el.play().catch(()=>{el.muted=true;setMuted(true);el.play().catch(()=>{})})},[]);
@@ -1240,8 +1264,9 @@ function FullVideo({url,at,onClose}){
   useEffect(()=>{if(!ui||paused)return;const k=setTimeout(()=>setUi(false),2800);return()=>clearTimeout(k)},[ui,paused]);
   useEffect(()=>{const k=e=>{if(e.key==='Escape')close()};addEventListener('keydown',k);return()=>removeEventListener('keydown',k)});
   const close=()=>onClose(v.current?v.current.currentTime:null);const fmt=x=>{x=Math.max(0,Math.round(x||0));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};
-  const stop=e=>e.stopPropagation();
-  return html`<div className="fullv" onClick=${stop} role="dialog" aria-label="Video"><div className=${'fullv-box'+(land?' land':'')} onClick=${()=>setUi(!ui)}>
+  const stop=e=>e.stopPropagation();const g=useVidTaps(()=>v.current,{onSingle:()=>setUi(x=>!x),onCenterDouble:()=>setPaused(x=>!x)});
+  return html`<div className="fullv" onClick=${stop} role="dialog" aria-label="Video"><div className=${'fullv-box'+(land?' land':'')}>
+    <div className="vt-area" data-rot=${land?'1':'0'} ...${g.handlers}></div>${g.overlay}
     <video ref=${v} src=${url} playsInline loop onTimeUpdate=${e=>{setT(e.target.currentTime);setDur(e.target.duration||0)}}></video>
     ${ui&&html`<div className="fullv-ui" onClick=${stop}>
       <div className="fullv-top"><button onClick=${close} aria-label="Close"><${Icon} n="x" s=${22}/></button><button onClick=${()=>setLand(!land)} aria-label=${land?'Turn upright':'Turn sideways'}><${Icon} n="replay" s=${20}/></button></div>
@@ -1590,18 +1615,16 @@ function Reel({p,s,active,dispatch,open}){
   const vid=()=>document.querySelector(`[data-reel="${p.id}"] video`);
   const togglePause=()=>{paused.current=!paused.current;setPz(paused.current);const v=vid();if(v){paused.current?v.pause():v.play().catch(()=>{})}};
   const restart=()=>{setEnded(false);paused.current=false;setPz(false);setRunKey(k=>k+1)};
-  const tap=()=>{const now=Date.now();
-    if(now-lastTap.current<300){if(!p.myHeat)dispatch({type:'heat',id:p.id});setBurst(now)}
-    else setTimeout(()=>{if(lastTap.current===now){ended?restart():togglePause()}},300);
-    lastTap.current=now};
+  const g=useVidTaps(()=>p.clip.kind==='video'?vid():null,{onSingle:()=>{ended?restart():togglePause()},onCenterDouble:()=>{if(!p.myHeat)dispatch({type:'heat',id:p.id});setBurst(Date.now())}});
   useEffect(()=>{if(!active){paused.current=false;setPz(false);setEnded(false)}},[active]);
   const counts=!s.settings.hideCounts||p.userId==='me';
   const running=active&&(s.settings.autoplay&&!s.settings.dataSaver||manual);
   return html`<section className=${'reel'+(p.status==='frozen'?' is-frozen':'')} data-reel=${p.id} data-id=${p.id}>
     <div className="reel-in">
-      <div style=${{position:'absolute',inset:0}} onClick=${()=>{if(!running){setManual(true);return}tap()}}>
+      <div style=${{position:'absolute',inset:0}}>
         <${ReelClip} p=${p} active=${running} paused=${paused} runKey=${runKey} onEnd=${()=>setEnded(true)}/>
       </div>
+      <div className="vt-area" ...${running?g.handlers:{onClick:()=>setManual(true)}}></div>${g.overlay}
       <div className="reel-shade"></div>
       ${(pz||ended||!running)&&html`<div className="reel-pause"><span><${Icon} n=${ended?'replay':'play'} s=${30} w=${ended?2.4:1.9} fill=${ended?null:'#fff'}/></span></div>`}
       ${burst>0&&Date.now()-burst<950&&html`<div className="burst" key=${burst}><svg width="140" height="140" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P.flame}}></svg></div>`}

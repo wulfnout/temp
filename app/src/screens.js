@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
-import { PostCard, Video, RichText } from './posts';
+import { PostCard, Video, RichText, useVideoTaps } from './posts';
 import { act } from './data';
 import { ReplayOverlay } from './recorder';
 import { GifPicker } from './gif';
@@ -151,13 +151,10 @@ function Reel({ p, h, active }) {
     if (paused) { pl.play(); setPaused(false); } else { pl.pause(); setPaused(true); }
     flash();
   };
-  // one tap pauses or plays, a double tap heats
-  const tap = () => {
-    const now = Date.now();
-    if (now - lastTap.current < 280) { clearTimeout(tapTimer.current); heat(); burst.setValue(0); Animated.sequence([Animated.spring(burst, { toValue: 1, useNativeDriver: true }), Animated.timing(burst, { toValue: 0, duration: 350, delay: 250, useNativeDriver: true })]).start(); }
-    else tapTimer.current = setTimeout(togglePlay, 280);
-    lastTap.current = now;
-  };
+  // one tap pauses or plays; double tap the middle heats, the sides skip 5s; hold for 2x
+  const heatTap = () => { heat(); burst.setValue(0); Animated.sequence([Animated.spring(burst, { toValue: 1, useNativeDriver: true }), Animated.timing(burst, { toValue: 0, duration: 350, delay: 250, useNativeDriver: true })]).start(); };
+  const g = useVideoTaps(() => playerRef.current, { onSingle: togglePlay, onCenterDouble: heatTap });
+
   const Rail = ({ icon: ic, n, on, onColor, onPress, label, disabled }) => (
     <Pressable onPress={onPress} disabled={disabled} accessibilityLabel={label} accessibilityState={{ selected: !!on }} hitSlop={6} style={{ alignItems: 'center', gap: 2, opacity: disabled ? 0.35 : 1 }}>
       <Ionicons name={ic} size={31} color={on ? onColor || C.orange : '#fff'} style={{ textShadowColor: 'rgba(0,0,0,.45)', textShadowRadius: 6 }} />
@@ -165,11 +162,12 @@ function Reel({ p, h, active }) {
     </Pressable>);
   return (
     <View style={{ height: h, backgroundColor: '#0a0a0a' }}>
-      <Pressable onPress={tap} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
+      <Pressable {...g.press} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
         {p.mediaUrl ? <View pointerEvents="none" style={{ flex: 1 }}><Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} loop playerRef={playerRef} trim={p.overlay} /></View>
           : <TextReel p={p} active={active} />}
         <ReplayOverlay overlay={p.overlay} />
       </Pressable>
+      {p.mediaUrl ? <g.Overlay top={110} /> : null}
       {p.mediaUrl ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: '44%', alignSelf: 'center', width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(0,0,0,.4)', alignItems: 'center', justifyContent: 'center',
         opacity: paused || ended ? 1 : icon, transform: [{ scale: icon.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }] }}>
         <Ionicons name={ended ? 'refresh' : paused ? 'play' : 'pause'} size={34} color="#fff" /></Animated.View> : null}

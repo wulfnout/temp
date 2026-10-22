@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, Pressable, Text, BackHandler, Animated, ActivityIndicator } from 'react-native';
+import { View, Pressable, Text, BackHandler, Animated, ActivityIndicator, AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Unbounded_700Bold, Unbounded_800ExtraBold } from '@expo-google-fonts/unbounded';
 import { Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold } from '@expo-google-fonts/figtree';
-import { sb, useColors, friendly, F } from './src/lib';
+import { sb, useColors, friendly, isNetErr, F } from './src/lib';
 import { loadAll, EMPTY, act } from './src/data';
 import { Ctx, Avatar } from './src/ui';
 import { AuthScreen } from './src/auth';
@@ -47,10 +47,17 @@ function Root() {
     if (!myId) return;
     if (loading.current) { again.current = true; return; }
     loading.current = true;
-    try { const d = await loadAll(myId); setS(d); } catch (e) { say(friendly(e)); }
+    // background refresh: quietly retry dropped connections instead of showing an error
+    for (let i = 0; i < 3; i++) {
+      try { const d = await loadAll(myId); setS(d); break; }
+      catch (e) { if (!isNetErr(e)) { say(friendly(e)); break; } await new Promise((r) => setTimeout(r, 1200 * (i + 1))); }
+    }
     loading.current = false;
     if (again.current) { again.current = false; reload(); }
   }, [myId]);
+
+  // refresh when coming back to the app
+  useEffect(() => { const sub = AppState.addEventListener('change', (st) => { if (st === 'active') reload(); }); return () => sub.remove(); }, [reload]);
 
   useEffect(() => {
     if (!myId) { setS(EMPTY); setStack([]); setTab({ name: 'home', params: {} }); return; }

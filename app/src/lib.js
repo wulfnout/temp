@@ -45,11 +45,16 @@ export const tempOf = (w) => Math.min(240, 32 + ((w && w.heat) || 0) * 6 + ((w &
 const LEVELS = [[50, 'Frozen'], [80, 'Cool'], [110, 'Warm'], [150, 'Hot'], [190, 'Scorching'], [1e9, 'Molten']];
 export const levelOf = (d) => LEVELS.find(([m]) => d < m)[1];
 export function nextWeekStart() { const d = new Date(); const day = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day + 7); }
+// dropped or cancelled requests (phone switching apps or networks) — not worth an error message
+export function isNetErr(e) {
+  const m = (e && (e.message || e.error_description)) || String(e || '');
+  return /Failed to fetch|fetch failed|Network request failed|cancelled|canceled|aborted|AbortError|timed out|UnexpectedException|NSURLErrorDomain|network connection was lost/i.test(m);
+}
 export function friendly(e) {
   const m = (e && (e.message || e.error_description)) || String(e || 'Something went wrong.');
   if (/duplicate key|already exists/i.test(m)) return 'Already done.';
   if (/row-level security/i.test(m)) return 'You can’t do that here.';
-  if (/Failed to fetch|Network request failed/i.test(m)) return 'No connection. Try again.';
+  if (isNetErr(e)) return 'No connection. Try again.';
   return m.replace(/^.*?ERROR:\s*/, '');
 }
 export async function ok(p) { const { data, error } = await p; if (error) throw new Error(friendly(error)); return data; }

@@ -577,6 +577,10 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.fv{position:relative;background:#000}.fv video{width:100%;max-height:600px;object-fit:cover;display:block}
+.fv-time{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:3px 8px;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
+.fv-btns{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}.fv-btns button{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}
+.fv-big{position:absolute;inset:0;margin:auto;width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;pointer-events:none}
 /* intro + ash */
 .intro{position:fixed;inset:0;z-index:200;background:#000;display:grid;place-items:center;pointer-events:none;animation:introOut .35s ease 2.75s forwards}
 .intro-logo{position:relative;display:flex;align-items:flex-end;font-family:var(--display);font-weight:800;font-size:64px;letter-spacing:-.05em;line-height:1}
@@ -710,6 +714,7 @@ const P={
   moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   mute:'<path d="M4 9.5h4l5-4v13l-5-4H4zM17 9l4 6M21 9l-4 6"/>',
+  sound:'<path d="M4 9.5h4l5-4v13l-5-4H4zM16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>',
   shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>',
   flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
@@ -1215,6 +1220,20 @@ function AshBurn({onDone}){
   return html`<div className="ashburn" aria-hidden="true"><div className="ash-front">${Array.from({length:10}).map((_,i)=>html`<span key=${i} style=${{left:i*11+'%','--d':(i%4)*.07+'s'}}><${Icon} n="flame" s=${30}/></span>`)}</div>
     <div className="ash-char"></div><div className="ash-flakes"><${Flakes} n=${90} seed=${3} from=${.1} embers=${.25}/></div></div>`;
 }
+// feed video, Twitter-style: muted autoplay while on screen, loops, own little controls (no browser HUD)
+function FeedVideo({url,auto}){
+  const v=useRef();const [muted,setMuted]=useState(true);const [paused,setPaused]=useState(!auto);const [left,setLeft]=useState(null);const [seen,setSeen]=useState(false);
+  useEffect(()=>{const el=v.current;if(!el)return;const io=new IntersectionObserver(([e])=>setSeen(e.isIntersecting&&e.intersectionRatio>=.5),{threshold:[0,.5,1]});io.observe(el);return()=>io.disconnect()},[]);
+  useEffect(()=>{const el=v.current;if(!el)return;if(seen&&!paused)el.play().catch(()=>{});else el.pause()},[seen,paused]);
+  useEffect(()=>{if(v.current)v.current.muted=muted},[muted]);
+  const fmt=t=>{t=Math.max(0,Math.round(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+  const stop=e=>e.stopPropagation();
+  return html`<div className="fv"><video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
+    ${left!=null&&isFinite(left)&&html`<span className="fv-time">${fmt(left)}</span>`}
+    <div className="fv-btns" onDoubleClick=${stop}><button onClick=${e=>{stop(e);setPaused(!paused)}} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${14} fill=${paused?'#fff':null}/></button>
+      <button onClick=${e=>{stop(e);setMuted(!muted)}} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${15}/></button></div>
+    ${paused&&html`<span className="fv-big" aria-hidden="true"><${Icon} n="play" s=${26} fill="#fff"/></span>`}</div>`;
+}
 function Post({p,s,dispatch,open}){
   const u=s.users[p.userId];
   const [burst,setBurst]=useState(0);const [reveal,setReveal]=useState(false);const ref=useRef();
@@ -1242,7 +1261,7 @@ function Post({p,s,dispatch,open}){
       <div className=${covered?'covered':''}>
         ${p.text&&html`<p className=${'p-text'+(!p.media&&p.text.length<90?' big':'')}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
         ${p.media&&html`<div className="media" onDoubleClick=${dbl}>
-            ${p.media.type==='video'?html`<video src=${p.media.url} controls playsInline muted loop autoPlay=${s.settings.autoplay&&!s.settings.dataSaver}></video>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
+            ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
             ${p.media.gif&&html`<span className="gif-tag">GIF</span>`}
             ${burst>0&&Date.now()-burst<950&&html`<div className="burst" key=${burst}><svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P.flame}}></svg></div>`}
           </div>`}

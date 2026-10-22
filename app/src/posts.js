@@ -37,7 +37,41 @@ export function RichText({ text, style, onTag }) {
     ? <T key={i} b style={[style, { color: C.orange, fontFamily: F.bold }]} onPress={() => onTag && onTag(t)}>{t}</T> : t)}</T>;
 }
 
-export function PostCard({ p }) {
+// Feed video, Twitter-style: plays muted on its own while on screen, loops, no system controls.
+// Small time-left pill bottom-left, play/pause and sound buttons bottom-right.
+function fmt(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+export function FeedVideo({ uri, active = true }) {
+  const { C } = useApp();
+  const [muted, setMuted] = useState(true); const [paused, setPaused] = useState(false); const [left, setLeft] = useState(null); const [ar, setAr] = useState(1);
+  const player = useVideoPlayer(uri, (p) => { p.loop = true; p.muted = true; });
+  React.useEffect(() => {
+    try { player.timeUpdateEventInterval = 0.5; } catch (e) {}
+    const a = player.addListener('timeUpdate', ({ currentTime }) => { const d = player.duration; if (d) setLeft(d - currentTime); });
+    const b = player.addListener('sourceLoad', (ev) => { const t = ev && ev.availableVideoTracks && ev.availableVideoTracks[0]; const sz = t && t.size;
+      if (sz && sz.width && sz.height) setAr(Math.max(0.8, Math.min(16 / 9, sz.width / sz.height))); });
+    return () => { a.remove(); b.remove(); };
+  }, [player]);
+  React.useEffect(() => { try { if (active && !paused) player.play(); else player.pause(); } catch (e) {} }, [active, paused, player]);
+  React.useEffect(() => { try { player.muted = muted; } catch (e) {} }, [muted, player]);
+  const chip = { backgroundColor: 'rgba(0,0,0,.6)', borderRadius: 999, alignItems: 'center', justifyContent: 'center' };
+  return (
+    <View style={{ width: '100%', aspectRatio: ar, backgroundColor: '#000' }}>
+      <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} pointerEvents="none" />
+      {left != null ? <View pointerEvents="none" style={[chip, { position: 'absolute', left: 10, bottom: 10, paddingHorizontal: 8, paddingVertical: 3 }]}>
+        <T h style={{ color: '#fff', fontSize: 11.5, fontVariant: ['tabular-nums'] }}>{fmt(left)}</T></View> : null}
+      <View style={{ position: 'absolute', right: 10, bottom: 10, flexDirection: 'row', gap: 6 }}>
+        <Pressable onPress={() => setPaused(!paused)} hitSlop={8} accessibilityLabel={paused ? 'Play' : 'Pause'} style={[chip, { width: 30, height: 30 }]}>
+          <Ionicons name={paused ? 'play' : 'pause'} size={14} color="#fff" /></Pressable>
+        <Pressable onPress={() => setMuted(!muted)} hitSlop={8} accessibilityLabel={muted ? 'Turn sound on' : 'Mute'} style={[chip, { width: 30, height: 30 }]}>
+          <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={15} color="#fff" /></Pressable>
+      </View>
+      {paused ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={[chip, { width: 58, height: 58 }]}><Ionicons name="play" size={26} color="#fff" /></View></View> : null}
+    </View>
+  );
+}
+
+export function PostCard({ p, active }) {
   const { s, C, run, nav, ashing, finishAsh } = useApp();
   const u = s.users[p.userId]; const frozen = p.status === 'frozen';
   const [burst] = useState(() => new Animated.Value(0)); const lastTap = useRef(0);
@@ -66,7 +100,7 @@ export function PostCard({ p }) {
           style={!p.mediaUrl && p.text.length < 90 ? { fontFamily: F.displayB, fontSize: 18, lineHeight: 24, marginTop: 12, letterSpacing: -0.5 } : { fontSize: 16.5, lineHeight: 23, marginTop: 12 }} /> : null}
         {p.mediaUrl ? (
           <Pressable onPress={dbl} style={{ marginTop: 12, borderRadius: 20, overflow: 'hidden', backgroundColor: C.soft }}>
-            {p.mediaType === 'video' ? <Video uri={p.mediaUrl} style={{ width: '100%', aspectRatio: 1 }} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
+            {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} active={active} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
             <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: burst, transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }}>
               <Ionicons name="flame" size={120} color={C.orange} /></Animated.View>
           </Pressable>) : null}

@@ -36,7 +36,8 @@ export function HomeScreen() {
   const posts = s.posts.filter((p) => !p.reel && !s.blocked[p.userId]);
   const unreadN = s.notifs.filter((n) => !n.read).length, unreadDM = Object.keys(s.unread).filter((k) => !s.blocked[k]).length;
   const viewed = useRef(new Set());
-  const onViewable = useRef(({ viewableItems }) => viewableItems.forEach((v) => { const id = v.item && v.item.id; if (id && !viewed.current.has(id)) { viewed.current.add(id); act.view(id); } })).current;
+  const [onScreen, setOnScreen] = useState({});
+  const onViewable = useRef(({ viewableItems }) => { setOnScreen(Object.fromEntries(viewableItems.map((v) => [v.item && v.item.id, 1]))); viewableItems.forEach((v) => { const id = v.item && v.item.id; if (id && !viewed.current.has(id)) { viewed.current.add(id); act.view(id); } }); }).current;
   const mine = s.stories.find((x) => x.userId === s.me);
   const others = s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]);
   const unseen = (st) => st.items.some((i) => !s.seen[i.id]);
@@ -78,7 +79,7 @@ export function HomeScreen() {
                 <T b muted numberOfLines={1} style={{ fontSize: 12, maxWidth: 76 }}>{u.handle}</T></View>); })}
           </ScrollView>}
         ListEmptyComponent={<Empty text={s.loaded ? 'Nothing here yet. Tap + to post the first take.' : 'Loading…'} />}
-        renderItem={({ item }) => <PostCard p={item} />} />
+        extraData={onScreen} renderItem={({ item }) => <PostCard p={item} active={!!onScreen[item.id]} />} />
     </View>
   );
 }

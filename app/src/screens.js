@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { View, FlatList, Pressable, TextInput, Image, ScrollView, RefreshControl, ActivityIndicator, Dimensions, Modal, Animated, Easing, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, Pressable, TextInput, Image, ScrollView, RefreshControl, PanResponder, ActivityIndicator, Dimensions, Modal, Animated, Easing, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
@@ -86,7 +86,12 @@ export function HomeScreen() {
 /* ---------------- replay ---------------- */
 export function ReplayScreen({ startId }) {
   const { s, C, nav } = useApp(); const ins = useSafeAreaInsets();
-  const H = Dimensions.get('window').height - 64 - ins.bottom;
+  const [H, setH] = useState(0); // exact page height, measured, so the next Replay never peeks in
+  const swipe = useRef(PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (e, d) => d.dx < -14 && Math.abs(d.dx) > Math.abs(d.dy) * 2,
+    onPanResponderRelease: (e, d) => { if (d.dx < -70 || d.vx < -0.5) nav.leaveReplay(); },
+    onPanResponderTerminationRequest: () => false,
+  })).current;
   const reels = s.posts.filter((p) => p.reel && !s.blocked[p.userId]);
   const startIndex = Math.max(0, reels.findIndex((p) => p.id === startId));
   const [active, setActive] = useState(startId || (reels[0] && reels[0].id));
@@ -94,12 +99,12 @@ export function ReplayScreen({ startId }) {
   useEffect(() => { if (startId) setActive(startId); }, [startId]);
   const onViewable = useRef(({ viewableItems }) => { const v = viewableItems[0]; if (v) { setActive(v.item.id); act.view(v.item.id); } }).current;
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <FlatList key={'reels-' + (startId || 'top')} data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" snapToInterval={H} decelerationRate="fast"
+    <View {...swipe.panHandlers} onLayout={(e) => { const h = Math.round(e.nativeEvent.layout.height); if (h && h !== H) setH(h); }} style={{ flex: 1, backgroundColor: '#000' }}>
+      {H ? <FlatList key={'reels-' + (startId || 'top') + H} data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" snapToInterval={H} decelerationRate="fast"
         initialScrollIndex={reels.length ? startIndex : undefined} windowSize={3} maxToRenderPerBatch={2} initialNumToRender={2}
         getItemLayout={(_, i) => ({ length: H, offset: H * i, index: i })} onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
         ListEmptyComponent={<View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}><T b style={{ color: '#fff' }}>No Replays yet. Tap + to post one.</T></View>}
-        renderItem={({ item }) => <Reel p={item} h={H} active={item.id === active} />} />
+        renderItem={({ item }) => <Reel p={item} h={H} active={item.id === active} />} /> : null}
       <View pointerEvents="box-none" style={{ position: 'absolute', top: ins.top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
         <T d style={{ color: '#fff', fontSize: 22, letterSpacing: -1, flex: 1 }}>Replay</T>
         <IconBtn name="videocam-outline" color="#fff" label="New Replay" style={{ backgroundColor: 'rgba(255,255,255,.14)' }} onPress={() => nav.sheet('compose', { reel: true })} />

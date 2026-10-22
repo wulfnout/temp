@@ -74,8 +74,10 @@ function Root() {
     catch (e) { say(friendly(e)); await reload(); return false; }
   }
 
+  const lastTab = useRef(null);
   const nav = {
-    tab: (name, params = {}) => { setStack([]); setTab({ name, params }); },
+    tab: (name, params = {}) => { if (tab.name !== 'replay' && tab.name !== name) lastTab.current = tab; setStack([]); setTab({ name, params }); },
+    leaveReplay: () => { const t = lastTab.current; setStack([]); setTab(t && t.name !== 'replay' ? t : { name: 'home', params: {} }); },
     push: (name, params = {}) => setStack((st) => [...st, { name, params }]),
     back: () => setStack((st) => st.slice(0, -1)),
     sheet: (name, params = {}) => setSheet({ name, params }),

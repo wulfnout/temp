@@ -1067,7 +1067,8 @@ function reducer(s,a){
     if(n.freeze>n.heat)return {...n,status:'frozen',burnEnds:null};
     if(n.heat>n.freeze&&n.status!=='burning')return {...n,status:'burning',burnEnds:s.now+DAY};
     return n};
-  const ignite=p=>settle({...p,heat:p.heat+1});
+  // each heat on an already-burning post adds an hour, up to a full 24 hours left
+  const ignite=p=>{const n=settle({...p,heat:p.heat+1});return p.status==='burning'&&n.status==='burning'&&n.burnEnds?{...n,burnEnds:Math.min(n.burnEnds+36e5,s.now+DAY)}:n};
   switch(a.type){
     case 'tick':{
       if(a.paused) return s;

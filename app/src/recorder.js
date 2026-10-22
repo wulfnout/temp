@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, T, Btn } from './ui';
+import { useApp, tapAway, T, Btn } from './ui';
 import { Video } from './posts';
 import { act } from './data';
 import * as ImagePicker from 'expo-image-picker';
@@ -129,7 +129,7 @@ export function Recorder({ onClose, startMode = 'replay' }) {
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
+      <KeyboardAvoidingView {...tapAway} behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
         {phase !== 'edit' ? (
           <View style={{ flex: 1 }}>
             <CameraView ref={cam} style={{ flex: 1 }} mode={camMode} facing={facing} enableTorch={torch} onCameraReady={() => setReady(true)} />

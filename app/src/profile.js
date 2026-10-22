@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, An
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
+import { useApp, tapAway, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video } from './posts';
 import { Header, pickMedia, ReplayGrid } from './screens';
 import { GifPicker } from './gif';
@@ -256,7 +256,7 @@ export function StoryDraft({ asset, onClose }) {
   const { C, postStory } = useApp(); const ins = useSafeAreaInsets(); const [cap, setCap] = useState('');
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
+      <KeyboardAvoidingView {...tapAway} behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
         {asset.type === 'video' ? <Video uri={asset.uri} style={{ flex: 1 }} controls={false} autoPlay loop /> : <Image source={{ uri: asset.uri }} style={{ flex: 1 }} resizeMode="cover" />}
         <View style={{ position: 'absolute', top: ins.top + 12, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
           <T h style={{ color: '#fff', flex: 1, fontSize: 17 }}>New story</T>
@@ -301,6 +301,7 @@ export function StoryViewer({ userId, onClose }) {
     onPanResponderMove: (e, d) => { if (d.dy > 8 && Math.abs(d.dy) > Math.abs(d.dx)) { g.current.moved = true; clearTimeout(g.current.timer); drag.setValue(d.dy); } },
     onPanResponderRelease: (e, d) => {
       clearTimeout(g.current.timer); const x = e.nativeEvent.pageX;
+      if (Keyboard.isVisible() && !g.current.moved) { Keyboard.dismiss(); g.current.setHold(0); return; }
       if (g.current.moved) {
         if (d.dy > 120 || d.vy > 1) Animated.timing(drag, { toValue: Dimensions.get('window').height, duration: 180, useNativeDriver: true }).start(() => g.current.onClose());
         else { Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); g.current.setHold(0); }
@@ -334,7 +335,7 @@ export function StoryViewer({ userId, onClose }) {
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <Animated.View style={{ flex: 1, backgroundColor: '#000', opacity: drag.interpolate({ inputRange: [0, 600], outputRange: [1, 0.3], extrapolate: 'clamp' }) }}>
       <Animated.View style={{ flex: 1, transform: [{ translateY: drag.interpolate({ inputRange: [-1, 0, 2000], outputRange: [0, 0, 2000] }) }] }}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
+      <KeyboardAvoidingView {...tapAway} behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
         {item.type === 'video' ? <Video key={item.id} uri={item.url} style={{ flex: 1 }} controls={false} autoPlay playerRef={player} /> : <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />}
         <View style={{ position: 'absolute', top: ins.top + 8, left: 12, right: 12, flexDirection: 'row', gap: 4 }}>
           {st.items.map((it, i) => <View key={it.id} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,.3)', overflow: 'hidden' }}>

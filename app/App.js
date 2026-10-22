@@ -7,7 +7,7 @@ import { useFonts, Unbounded_700Bold, Unbounded_800ExtraBold } from '@expo-googl
 import { Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold } from '@expo-google-fonts/figtree';
 import { sb, useColors, friendly, isNetErr, F } from './src/lib';
 import { loadAll, EMPTY, act } from './src/data';
-import { Ctx, Avatar } from './src/ui';
+import { Ctx, Avatar, tapAway } from './src/ui';
 import { AuthScreen } from './src/auth';
 import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen } from './src/screens';
 import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft } from './src/profile';
@@ -138,7 +138,7 @@ function Root() {
   return (
     <Ctx.Provider value={ctx}>
       <StatusBar style={dark || C.dark ? 'light' : 'dark'} />
-      <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <View {...tapAway} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={{ flex: 1 }}>{screen(current)}</View>
         {current.name !== 'thread' ? <Animated.View onLayout={(e) => setTabH(e.nativeEvent.layout.height)}
           style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : null}>

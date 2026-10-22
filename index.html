@@ -1951,6 +1951,9 @@ function PlusView({s,dispatch}){
 }
 
 // home feed: header and tab bar slide away while scrolling down, come back on scroll up
+// tap any empty spot (not a field or button) to put the keyboard away
+document.addEventListener('pointerup',e=>{const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
+  if(e.target.closest('input,textarea,button,a,label,select,[role="button"]'))return;a.blur()},true);
 function BarsOnScroll({on}){
   useEffect(()=>{const b=document.body;if(!on){b.classList.remove('bars-off');return}
     let last=scrollY;const f=()=>{const y=scrollY,dy=y-last;last=y;if(y<40)b.classList.remove('bars-off');else if(dy>6)b.classList.add('bars-off');else if(dy<-6)b.classList.remove('bars-off')};

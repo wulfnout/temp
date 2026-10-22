@@ -170,13 +170,16 @@ export function Thermo({ w, isMe, stickers, onAddSticker, onRemoveSticker }) {
   );
 }
 
+// tap on any empty spot (not a button or field) to put the keyboard away
+export const tapAway = { onStartShouldSetResponder: () => true, onResponderRelease: () => Keyboard.dismiss() };
+
 export function Sheet({ visible, onClose, title, right, children, full }) {
   const { C } = useApp(); const ins = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: C.scrim }} onPress={onClose} accessibilityLabel="Close" />
+      <Pressable style={{ flex: 1, backgroundColor: C.scrim }} onPress={() => (Keyboard.isVisible() ? Keyboard.dismiss() : onClose())} accessibilityLabel="Close" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: full ? '94%' : '88%' }}>
-        <View style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: ins.bottom + 16, maxHeight: '100%' }}>
+        <View {...tapAway} style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: ins.bottom + 16, maxHeight: '100%' }}>
           <View style={{ width: 38, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 }} />
           {title ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
             <T d style={{ fontSize: 19, letterSpacing: -0.6 }}>{title}</T>{right}</View> : null}

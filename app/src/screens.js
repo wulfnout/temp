@@ -107,7 +107,7 @@ export function ReplayGrid({ posts }) {
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, borderRadius: 20, overflow: 'hidden' }}>
       {posts.map((p) => (
         <Pressable key={p.id} onPress={() => nav.tab('replay', { startId: p.id })} accessibilityLabel={'Play Replay' + (p.text ? ': ' + p.text : '')}
-          style={{ width: '32.6%', aspectRatio: 9 / 14, backgroundColor: '#0a0a0a', overflow: 'hidden' }}>
+          style={{ width: '32.6%', aspectRatio: 9 / 16, backgroundColor: '#0a0a0a', overflow: 'hidden' }}>
           {p.mediaUrl ? <><Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} muted trim={p.overlay && p.overlay.trimStart ? { trimStart: p.overlay.trimStart } : null} /><ReplayOverlay overlay={p.overlay} small /></> : (
             <LinearGradient colors={REEL_SETS[(p.seed || 1) % REEL_SETS.length]} style={{ flex: 1, padding: 8, justifyContent: 'center' }}>
               <T d numberOfLines={5} style={{ color: REEL_SETS[(p.seed || 1) % REEL_SETS.length][0] === '#f3ece6' ? '#0a0a0a' : '#fff', fontSize: 11, lineHeight: 14 }}>{p.text}</T>
@@ -151,7 +151,7 @@ function Reel({ p, h, active }) {
   return (
     <View style={{ height: h, backgroundColor: '#0a0a0a' }}>
       <Pressable onPress={tap} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
-        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} playerRef={playerRef} onEnd={() => setEnded(true)} trim={p.overlay} />
+        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} loop playerRef={playerRef} trim={p.overlay} />
           : <TextReel p={p} active={active} />}
         <ReplayOverlay overlay={p.overlay} />
       </Pressable>

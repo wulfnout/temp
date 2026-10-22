@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Pressable, Image, TextInput, Animated, Alert, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { AshBurn } from './ash';
 import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
@@ -37,7 +38,7 @@ export function RichText({ text, style, onTag }) {
 }
 
 export function PostCard({ p }) {
-  const { s, C, run, nav } = useApp();
+  const { s, C, run, nav, ashing, finishAsh } = useApp();
   const u = s.users[p.userId]; const frozen = p.status === 'frozen';
   const [burst] = useState(() => new Animated.Value(0)); const lastTap = useRef(0);
   const cs = p.comments.filter((c) => !s.blocked[c.userId]);
@@ -51,6 +52,7 @@ export function PostCard({ p }) {
   if (!u) return null;
   return (
     <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: 10, overflow: 'hidden' }}>
+      {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ flex: 1, minWidth: 0, opacity: frozen ? 0.45 : 1 }}>
@@ -166,7 +168,7 @@ export function ShareSheet({ post, onClose }) {
 }
 
 export function PostMenu({ post, onClose }) {
-  const { s, C, run, nav } = useApp(); const u = s.users[post.userId] || {}; const mine = post.userId === s.me;
+  const { s, C, run, nav, ash, ASH_COST } = useApp(); const u = s.users[post.userId] || {}; const mine = post.userId === s.me;
   const Item = ({ icon, label, onPress, warn }) => (
     <Pressable onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, opacity: pressed ? 0.6 : 1 })}>
       <Ionicons name={icon} size={20} color={warn ? C.orange : C.ink} /><T h style={{ color: warn ? C.orange : C.ink }}>{label}</T></Pressable>);
@@ -178,6 +180,10 @@ export function PostMenu({ post, onClose }) {
         <Item icon="person-outline" label="View profile" onPress={() => { onClose(); nav.push('profile', { id: u.id }); }} />
         {!mine ? <Item icon="chatbubbles-outline" label="Message" onPress={() => { onClose(); nav.push('thread', { id: u.id }); }} /> : null}
         <Item icon="paper-plane-outline" label="Send" onPress={() => { onClose(); setTimeout(() => nav.sheet('share', { post }), 300); }} />
+        {mine ? <Item icon="flame-outline" label={'Ash this post · ' + ASH_COST + ' pts'} warn onPress={() => {
+          Alert.alert('Ash this post?', 'It burns to ash and is gone for good. Costs ' + ASH_COST + ' pts (you have ' + (s.priv.points || 0) + ').', [
+            { text: 'Cancel', style: 'cancel' }, { text: 'Ash it', style: 'destructive', onPress: () => { onClose(); setTimeout(() => ash(post), 350); } }]);
+        }} /> : null}
         {!mine ? <Item icon="flag-outline" label="Report" onPress={() => { onClose(); nav.toast('Reported. Thanks.'); }} /> : null}
         {!mine ? <Item icon="ban-outline" label={'Block @' + u.handle} warn onPress={() => {
           Alert.alert('Block @' + u.handle + '?', 'Their posts, stories, comments and messages will be hidden from you.', [

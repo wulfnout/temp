@@ -176,7 +176,7 @@ export function Sheet({ visible, onClose, title, right, children, full }) {
   const { C } = useApp(); const ins = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: C.scrim }} onPress={() => (Keyboard.isVisible() ? Keyboard.dismiss() : onClose())} accessibilityLabel="Close" />
+      <Pressable style={{ flex: 1, backgroundColor: C.scrim }} onPress={() => { Keyboard.dismiss(); onClose(); }} accessibilityLabel="Close" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: full ? '94%' : '88%' }}>
         <View {...tapAway} style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: ins.bottom + 16, maxHeight: '100%' }}>
           <View style={{ width: 38, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 }} />

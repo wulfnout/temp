@@ -13,14 +13,15 @@ import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, T
 import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft } from './src/profile';
 import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
 import { Recorder } from './src/recorder';
+import { Intro } from './src/ash';
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(false); const [intro, setIntro] = useState(true);
   useEffect(() => { const t = setTimeout(() => setReady(true), 2500); return () => clearTimeout(t); }, []);
   return (
     <SafeAreaProvider>
-      {fontsLoaded || ready ? <Root /> : <View style={{ flex: 1, backgroundColor: '#000' }} />}
+      {fontsLoaded || ready ? <View style={{ flex: 1 }}><Root />{intro ? <Intro onDone={() => setIntro(false)} /> : null}</View> : <View style={{ flex: 1, backgroundColor: '#000' }} />}
     </SafeAreaProvider>
   );
 }
@@ -110,7 +111,19 @@ function Root() {
   const setBars = useCallback((hide) => { if (barsHidden.current === hide) return; barsHidden.current = hide;
     Animated.timing(bars, { toValue: hide ? 1 : 0, duration: 200, useNativeDriver: true }).start(); }, []);
   const [tabH, setTabH] = useState(90);
-  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars };
+  // Ash: burn your own post away for points. The animation plays first, then the server takes the points and removes it.
+  const ASH_COST = 100; const [ashing, setAshing] = useState(null); const ashDone = useRef(null);
+  const finishAsh = async (id) => {
+    if (ashDone.current === id) return; ashDone.current = id; setAshing(null);
+    setS((x) => ({ ...x, posts: x.posts.filter((q) => q.id !== id) }));
+    try { await act.ash(id); say('Burned to ash'); } catch (e) { say(friendly(e)); }
+    reload();
+  };
+  const ash = (p) => {
+    if ((s.priv.points || 0) < ASH_COST) return say('Ashing a post costs ' + ASH_COST + ' pts.');
+    ashDone.current = null; setAshing(p.id); setTimeout(() => finishAsh(p.id), 4000);
+  };
+  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars, ashing, ash, finishAsh, ASH_COST };
 
   if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;

@@ -44,6 +44,9 @@ function Root() {
   }, []);
 
   const loading = useRef(false), again = useRef(false);
+  const [typing, setTyping] = useState({}); const typingT = useRef({}); const liveRef = useRef(null); const lastTyped = useRef(0);
+  const sendTyping = (to) => { const n = Date.now(); if (n - lastTyped.current < 1500 || !liveRef.current) return; lastTyped.current = n;
+    try { liveRef.current.send({ type: 'broadcast', event: 'typing', payload: { from: myId, to } }); } catch (e) {} };
   const reload = useCallback(async () => {
     if (!myId) return;
     if (loading.current) { again.current = true; return; }
@@ -70,8 +73,15 @@ function Root() {
     reload();
     let t = null; const soon = () => { clearTimeout(t); t = setTimeout(reload, 400); };
     const ch = sb.channel('app-' + myId).on('postgres_changes', { event: '*', schema: 'public' }, soon).subscribe();
+    // "is typing…" — shares the website's live channel so it works between app and web
+    const live = sb.channel('live', { config: { presence: { key: myId } } });
+    live.on('broadcast', { event: 'typing' }, ({ payload }) => {
+      if (!payload || payload.to !== myId) return; const from = payload.from;
+      setTyping((x) => ({ ...x, [from]: true })); clearTimeout(typingT.current[from]);
+      typingT.current[from] = setTimeout(() => setTyping((x) => ({ ...x, [from]: false })), 3500);
+    }).subscribe(); liveRef.current = live;
     const tick = setInterval(reload, 60000); // catches posts that expired on the server
-    return () => { clearTimeout(t); clearInterval(tick); sb.removeChannel(ch); };
+    return () => { clearTimeout(t); clearInterval(tick); sb.removeChannel(ch); sb.removeChannel(live); liveRef.current = null; };
   }, [myId]);
 
   const toastT = useRef(null);
@@ -141,7 +151,7 @@ function Root() {
     if ((s.priv.points || 0) < ASH_COST) return say('Ashing a post costs ' + ASH_COST + ' pts.');
     ashDone.current = null; setAshing(p.id); setTimeout(() => finishAsh(p.id), 4000);
   };
-  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars, ashing, ash, finishAsh, ASH_COST };
+  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars, ashing, ash, finishAsh, ASH_COST, typing, sendTyping };
 
   if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;

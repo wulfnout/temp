@@ -298,10 +298,11 @@ export function CommentsSheet({ id, onClose }) {
   const { s, C, run, nav } = useApp();
   const p = s.posts.find((x) => x.id === id);
   const [t, setT] = useState(''); const [pick, setPick] = useState(false); const [gif, setGif] = useState(false); const inp = useRef(null);
+  const [pending, setPending] = useState(null); // a picked GIF waiting for an optional caption
   if (!p) return null;
   const list = [...p.comments.filter((c) => !s.blocked[c.userId])].sort((a, b) => b.likes - a.likes || a.at - b.at);
   const frozen = p.status === 'frozen';
-  const send = () => { if (!t.trim()) return; const v = t.trim(); setT(''); run(() => act.comment(p.id, v)); };
+  const send = () => { const v = t.trim(); if (!v && !pending) return; const g = pending; setT(''); setPending(null); run(() => act.comment(p.id, v, g ? 'G|' + g : null)); };
   return (
     <Sheet visible onClose={onClose} title="Comments" full>
       <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={list} keyExtractor={(c) => String(c.id)} style={{ maxHeight: 420 }} ListEmptyComponent={<Empty text="No comments yet" />}
@@ -310,7 +311,8 @@ export function CommentsSheet({ id, onClose }) {
             <Pressable onPress={() => { onClose(); nav.push('profile', { id: c.userId }); }}><Avatar u={u} size={34} /></Pressable>
             <View style={{ flex: 1 }}>
               <T><T h>{u.handle}</T><T muted style={{ fontSize: 13 }}>  {ago(Date.now() - c.at)}</T></T>
-              {c.sticker ? <View style={{ paddingVertical: 6 }}><Sticker v={c.sticker} size={46} /></View> : <RichText text={c.text} style={{ marginTop: 2 }} />}
+              {c.text ? <RichText text={c.text} style={{ marginTop: 2 }} /> : null}
+              {c.sticker ? <View style={{ paddingVertical: 6 }}><Sticker v={c.sticker} size={46} /></View> : null}
               <View style={{ flexDirection: 'row', gap: 14, marginTop: 4 }}>
                 {c.likes > 0 ? <T b muted style={{ fontSize: 12.5 }}>{kfmt(c.likes)} {c.likes === 1 ? 'like' : 'likes'}</T> : null}
                 {!frozen ? <T b muted style={{ fontSize: 12.5 }} onPress={() => { setT('@' + u.handle + ' '); inp.current && inp.current.focus(); }}>Reply</T> : null}
@@ -321,13 +323,17 @@ export function CommentsSheet({ id, onClose }) {
           </View>); }} />
       {frozen ? <T b muted style={{ textAlign: 'center', paddingVertical: 14 }}>Comments are off while this post is frozen</T> : <>
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.comment(p.id, '', e)); }} /> : null}
-        {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.comment(p.id, '', 'G|' + g.url)); }} /> : null}
+        {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); setPending(g.url); setTimeout(() => inp.current && inp.current.focus(), 50); }} /> : null}
+        {pending ? <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 10 }}>
+          <Image source={{ uri: pending }} style={{ width: 120, height: 90, borderRadius: 14, backgroundColor: C.soft }} />
+          <Pressable onPress={() => setPending(null)} accessibilityLabel="Remove GIF" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="close" size={16} color={C.ink} /></Pressable>
+        </View> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: C.soft, borderRadius: 999, paddingLeft: 16, padding: 4 }}>
-          <TextInput ref={inp} value={t} onChangeText={setT} placeholder="Add a comment…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send"
+          <TextInput ref={inp} value={t} onChangeText={setT} placeholder={pending ? 'Say something with your GIF…' : 'Add a comment…'} placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send"
             style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
-          <Pressable onPress={send} disabled={!t.trim()} accessibilityLabel="Send comment" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() ? 1 : 0.3 }}>
+          <Pressable onPress={send} disabled={!t.trim() && !pending} accessibilityLabel="Send comment" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() || pending ? 1 : 0.3 }}>
             <Ionicons name="paper-plane" size={17} color="#fff" /></Pressable>
         </View></>}
     </Sheet>

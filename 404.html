@@ -580,6 +580,8 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.c-pending{display:flex;align-items:flex-end;gap:8px;margin-top:10px}.c-pending img{width:120px;height:90px;object-fit:cover;border-radius:14px;background:var(--soft)}
+.c-pending button{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center}
 .fire-licks{position:absolute;inset:0;z-index:-1;pointer-events:none}
 .fire-licks i{position:absolute;display:block;transform:rotate(var(--a))}
 .fire-licks svg{width:100%;height:100%;display:block;transform-origin:50% 85%;animation:lick var(--t) ease-in-out infinite alternate;animation-delay:var(--d);filter:drop-shadow(0 0 2px rgba(255,90,0,.8))}
@@ -1768,30 +1770,32 @@ function Composer({s,dispatch,onClose,startReel,open}){
 }
 
 function Comments({p,s,dispatch,onClose,open}){
-  const [t,setT]=useState('');const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);const [shown,setShown]=useState({});const inp=useRef();
+  const [t,setT]=useState('');const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);const [shown,setShown]=useState({});const inp=useRef();const [pending,setPending]=useState(null);
   const list=[...p.comments.filter(c=>cvis(s,c)!=='hide')].sort((a,b)=>b.likes-a.likes||a.at-b.at);
-  const send=()=>{if(!t.trim())return;const why=MOD.rules(MOD.classify(t),s.users.me.plus,isAdult(s));if(why)return setErr(why);dispatch({type:'comment',id:p.id,text:t.trim()});setT('')};
+  const send=()=>{if(!t.trim()&&!pending)return;if(t.trim()){const why=MOD.rules(MOD.classify(t),s.users.me.plus,isAdult(s));if(why)return setErr(why)}
+    dispatch({type:'comment',id:p.id,text:t.trim(),sticker:pending?'G|'+pending:undefined});setT('');setPending(null)};
   const counts=!s.settings.hideCounts;
   return html`<${Sheet} onClose=${onClose} label="Comments">
     <h3>Comments</h3>
     ${list.length?list.map(c=>{const u=s.users[c.userId];const cov=cvis(s,c)==='cover'&&!shown[c.id];return html`<div className="comment" key=${c.id}>
       <button onClick=${()=>{onClose();open.profile(u.id)}}><${Avatar} u=${u} size=${34}/></button>
       <div style=${{minWidth:0}}><b>${u.handle}</b><${Check} u=${u}/> <span className="sub">${ago(s.now-c.at)}</span>
-        ${c.sticker?html`<div style=${{padding:'8px 0 4px'}}><${Sticker} v=${c.sticker} size=${46}/></div>`
-          :cov?html`<p><button className="sub" style=${{textDecoration:'underline'}} onClick=${()=>setShown({...shown,[c.id]:1})}>Strong language · Show</button></p>`
-          :html`<p><${Rich} text=${c.text} onTag=${x=>{onClose();open.search(x)}}/></p>`}
+        ${c.text&&(cov?html`<p><button className="sub" style=${{textDecoration:'underline'}} onClick=${()=>setShown({...shown,[c.id]:1})}>Strong language · Show</button></p>`
+          :html`<p><${Rich} text=${c.text} onTag=${x=>{onClose();open.search(x)}}/></p>`)}
+        ${c.sticker&&html`<div style=${{padding:'8px 0 4px'}}><${Sticker} v=${c.sticker} size=${46}/></div>`}
         <div className="c-meta">${c.likes>0&&counts&&html`<span>${kfmt(c.likes)} ${c.likes===1?'like':'likes'}</span>`}<button onClick=${()=>{setT(`@${u.handle} `);inp.current&&inp.current.focus()}}>Reply</button></div></div>
       <button className=${'c-like'+(c.myLike?' on':'')} aria-pressed=${c.myLike} aria-label="Like comment" onClick=${()=>dispatch({type:'likeComment',id:p.id,cid:c.id})}>
         <${Icon} n="heart" s=${17} w=${2} fill=${c.myLike?'currentColor':null}/></button></div>`})
       :html`<div className="empty" style=${{padding:'28px 0'}}>No comments yet</div>`}
     ${pick&&html`<${StickerPicker} s=${s} onPick=${e=>{dispatch({type:'comment',id:p.id,sticker:e});setPick(false)}}/>`}
-    ${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{dispatch({type:'comment',id:p.id,sticker:'G|'+g.url});setGif(false)}}/>`}
+    ${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{setPending(g.url);setGif(false);setTimeout(()=>inp.current&&inp.current.focus(),50)}}/>`}
+    ${pending&&html`<div className="c-pending"><img src=${pending} alt="GIF to send"/><button onClick=${()=>setPending(null)} aria-label="Remove GIF"><${Icon} n="x" s=${15}/></button></div>`}
     <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
     ${p.status==='frozen'?html`<div className="empty" style=${{padding:'16px 0'}}>Comments are off while this post is frozen</div>`:html`<div className="inputbar"><label htmlFor="comment-in" className="vh">Comment</label>
-      <input ref=${inp} id="comment-in" placeholder="Add a comment…" value=${t} onChange=${e=>{setT(e.target.value);setErr(null)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
+      <input ref=${inp} id="comment-in" placeholder=${pending?'Say something with your GIF…':'Add a comment…'} value=${t} onChange=${e=>{setT(e.target.value);setErr(null)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
       <button className="stk-btn gif-btn" aria-label="GIFs" aria-pressed=${gif} onClick=${()=>{setGif(!gif);setPick(false)}}>GIF</button>
       <button className="stk-btn" aria-label="Stickers" aria-pressed=${pick} onClick=${()=>setPick(!pick)}><${Icon} n="smile" s=${22}/></button>
-      <button className="send" disabled=${!t.trim()} onClick=${send} aria-label="Send comment"><${Icon} n="share" s=${18}/></button></div>`}
+      <button className="send" disabled=${!t.trim()&&!pending} onClick=${send} aria-label="Send comment"><${Icon} n="share" s=${18}/></button></div>`}
   <//>`;
 }
 

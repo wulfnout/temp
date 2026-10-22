@@ -18,12 +18,12 @@ export async function pickMedia(kind = 'all') {
   return r.assets[0];
 }
 
-export function Header({ title, back, right }) {
+export function Header({ title, back, right, sub }) {
   const { C, nav } = useApp(); const ins = useSafeAreaInsets();
   return (
     <View style={{ paddingTop: ins.top + 8, paddingBottom: 10, paddingHorizontal: 16, backgroundColor: C.bg, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       {back ? <IconBtn name="chevron-back" label="Back" onPress={nav.back} /> : null}
-      {title ? <T d numberOfLines={1} style={{ fontSize: 19, letterSpacing: -0.6, flex: 1 }}>{title}</T> : <View style={{ flex: 1 }} />}
+      {title ? <View style={{ flex: 1 }}><T d numberOfLines={1} style={{ fontSize: 19, letterSpacing: -0.6 }}>{title}</T>{sub ? <T b style={{ fontSize: 12.5, color: C.orange }}>{sub}</T> : null}</View> : <View style={{ flex: 1 }} />}
       {right}
     </View>
   );
@@ -318,8 +318,18 @@ export function DMListScreen() {
     </View>
   );
 }
+// three bouncing dots while the other person types
+function TypingDots() {
+  const { C } = useApp(); const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => { const l = Animated.loop(Animated.timing(a, { toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: true })); l.start(); return () => l.stop(); }, []);
+  return <View accessibilityLabel="typing" style={{ alignSelf: 'flex-start', flexDirection: 'row', gap: 4, backgroundColor: C.card, borderRadius: 22, paddingVertical: 14, paddingHorizontal: 16, marginTop: 4 }}>
+    {[0, 1, 2].map((i) => { const o = i * 0.15; return <Animated.View key={i} style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.muted,
+      transform: [{ translateY: a.interpolate({ inputRange: [0, o, o + 0.15, o + 0.3, 1], outputRange: [0, 0, -5, 0, 0] }) }] }} />; })}</View>;
+}
+
 export function ThreadScreen({ id }) {
-  const { s, C, nav, run, reload } = useApp(); const u = s.users[id] || {}; const ins = useSafeAreaInsets();
+  const { s, C, nav, run, reload, typing, sendTyping } = useApp(); const u = s.users[id] || {}; const ins = useSafeAreaInsets();
+  const isTyping = !!(typing && typing[id]);
   const [t, setT] = useState(''); const [pick, setPick] = useState(false); const [gif, setGif] = useState(false); const list = useRef(null);
   const msgs = s.threads[id] || [];
   useEffect(() => { act.read(id, s.me); }, [id, msgs.length]);
@@ -329,11 +339,11 @@ export function ThreadScreen({ id }) {
   const lastTap = useRef({});
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
-      <Header back title={u.name} right={<Pressable onPress={() => nav.push('profile', { id })}><Avatar u={u} size={36} /></Pressable>} />
+      <Header back title={u.name} sub={isTyping ? 'typing…' : null} right={<Pressable onPress={() => nav.push('profile', { id })}><Avatar u={u} size={36} /></Pressable>} />
       <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" ref={list} data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: 16, gap: 4 }}
         onContentSizeChange={() => list.current && list.current.scrollToEnd({ animated: false })}
         ListEmptyComponent={<Empty text={'Say hi to @' + u.handle} />}
-        ListFooterComponent={seen ? <T b muted style={{ alignSelf: 'flex-end', fontSize: 12, marginTop: 2 }}>Seen</T> : null}
+        ListFooterComponent={<>{seen && !isTyping ? <T b muted style={{ alignSelf: 'flex-end', fontSize: 12, marginTop: 2 }}>Seen</T> : null}{isTyping ? <TypingDots /> : null}</>}
         renderItem={({ item: m }) => {
           const mine = m.from === s.me;
           const dbl = () => { const n = Date.now(); if (n - (lastTap.current[m.id] || 0) < 280) run(() => act.reactMsg(m)); lastTap.current[m.id] = n; };
@@ -357,7 +367,7 @@ export function ThreadScreen({ id }) {
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.dm(id, { sticker: e })); }} /> : null}
         {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.dm(id, { sticker: 'G|' + g.url })); }} /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, borderRadius: 999, paddingLeft: 16, padding: 4 }}>
-          <TextInput value={t} onChangeText={setT} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
+          <TextInput value={t} onChangeText={(v) => { setT(v); if (v) sendTyping(id); }} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
           <Pressable onPress={send} disabled={!t.trim()} accessibilityLabel="Send" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() ? 1 : 0.3 }}>

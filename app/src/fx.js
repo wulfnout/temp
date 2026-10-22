@@ -157,18 +157,91 @@ function Waves() {
     backgroundColor: 'rgba(255,255,255,.16)', transform: [{ translateY: cycle(c, i / 7, 280, -40) }, { translateX: cycle(clock(1600), (i * 0.37) % 1, -20, 20) }, { skewY: '-4deg' }] }} />);
 }
 
+/* ---- drawn headers (match the website's art) ---- */
+const spin = (c) => c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+// wedges fanning out from a point (sunburst rays, disco beams)
+function Rays({ cx = '50%', cy = '50%', list, len = 700, c }) {
+  return <Animated.View pointerEvents="none" style={{ position: 'absolute', left: cx, top: cy, width: 0, height: 0, transform: c ? [{ rotate: spin(c) }] : [] }}>
+    {list.map(([ang, deg, color], i) => { const half = Math.tan((deg / 2) * Math.PI / 180) * len;
+      return <View key={i} style={{ position: 'absolute', left: 0, top: 0, width: 0, height: 0, transform: [{ rotate: ang + 'deg' }] }}>
+        <View style={{ position: 'absolute', left: -half, top: 0, width: 0, height: 0, borderLeftWidth: half, borderRightWidth: half, borderBottomWidth: len,
+          borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: color }} /></View>; })}
+  </Animated.View>;
+}
+function Hazard() {
+  const c = clock(1100);
+  return <View style={[fill, { backgroundColor: '#0a0a0a', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }]}>
+    <Animated.View style={{ width: 1100, height: 1100, flexDirection: 'row', transform: [{ rotate: '-45deg' }, { translateX: c.interpolate({ inputRange: [0, 1], outputRange: [0, -44] }) }] }}>
+      {Array.from({ length: 26 }).map((_, i) => <View key={i} style={{ width: 22, marginRight: 22, backgroundColor: '#ff5500' }} />)}
+    </Animated.View></View>;
+}
+function Checker() {
+  const c = clock(1600); const q = 20;
+  return <View style={[fill, { backgroundColor: '#ff5500', overflow: 'hidden' }]}>
+    <Animated.View style={{ position: 'absolute', left: -2 * q, top: -2 * q, transform: [{ translateX: c.interpolate({ inputRange: [0, 1], outputRange: [0, 2 * q] }) }, { translateY: c.interpolate({ inputRange: [0, 1], outputRange: [0, 2 * q] }) }] }}>
+      {Array.from({ length: 18 }).map((_, r) => <View key={r} style={{ flexDirection: 'row', marginLeft: r % 2 ? q : 0 }}>
+        {Array.from({ length: 16 }).map((_, k) => <View key={k} style={{ width: q, height: q, marginRight: q, backgroundColor: '#0a0a0a' }} />)}</View>)}
+    </Animated.View></View>;
+}
+function Sunburst() {
+  const rays = Array.from({ length: 20 }, (_, i) => [i * 18, 9, '#ffd27a']);
+  return <View style={[fill, { backgroundColor: '#ff5500', overflow: 'hidden' }]}><Rays list={rays} c={clock(14000)} /></View>;
+}
+function Disco() {
+  const beams = [[22, 8, 'rgba(255,85,0,.7)'], [82, 8, 'rgba(255,210,122,.6)'], [154, 8, 'rgba(255,43,214,.55)'], [226, 8, 'rgba(0,229,255,.5)'], [296, 8, 'rgba(255,255,255,.55)']];
+  return <View style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#2a1206', '#0a0a0a']} start={{ x: 0.5, y: 0.2 }} end={{ x: 0.5, y: 1 }} style={fill} />
+    <Rays cy="30%" list={beams} c={clock(5000)} />
+    <View style={{ position: 'absolute', left: '50%', top: '30%', width: 14, height: 14, marginLeft: -7, marginTop: -7, borderRadius: 7, backgroundColor: '#fff', shadowColor: '#fff', shadowOpacity: 1, shadowRadius: 8 }} />
+    <Twinkle n={22} seed={8} color="#ffd27a" /></View>;
+}
+function Synth() {
+  const c = clock(800); const [h, setH] = React.useState(180); const sz = Math.round(Math.min(96, h * 0.42)); const bars = [[0.58, 0.05], [0.72, 0.06], [0.86, 0.06]];
+  const lines = [-7, -5, -3.5, -2, -1, 0, 1, 2, 3.5, 5, 7];
+  return <View onLayout={(e) => setH(e.nativeEvent.layout.height)} style={[fill, { backgroundColor: '#14002e', overflow: 'hidden' }]}>
+    <LinearGradient colors={['#14002e', '#4a0060']} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '52%' }} />
+    <View style={{ position: 'absolute', top: h * 0.52 - sz * 0.92, left: '50%', marginLeft: -sz / 2, width: sz, height: sz, borderRadius: sz / 2, overflow: 'hidden' }}>
+      <LinearGradient colors={['#ffd27a', '#ff5500', '#ff2bd6']} locations={[0, 0.55, 1]} style={{ flex: 1 }} />
+      {bars.map(([y, bh], i) => <View key={i} style={{ position: 'absolute', left: 0, right: 0, top: y * sz, height: bh * sz, backgroundColor: '#3a0050' }} />)}
+    </View>
+    <View style={{ position: 'absolute', left: 0, right: 0, top: '52%', bottom: 0, overflow: 'hidden', backgroundColor: '#14002e' }}>
+      <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: -18, bottom: 0, transform: [{ translateY: c.interpolate({ inputRange: [0, 1], outputRange: [0, 18] }) }] }}>
+        {Array.from({ length: 12 }).map((_, i) => <View key={i} style={{ height: 1.5, marginBottom: 16.5, backgroundColor: '#ff2bd6', opacity: 0.35 + i * 0.06 }} />)}
+      </Animated.View>
+      {lines.map((k, i) => <View key={'v' + i} style={{ position: 'absolute', left: '50%', top: 0, width: 1.5, height: 260, marginLeft: k * 26, backgroundColor: '#ff2bd6', opacity: 0.8,
+        transform: [{ translateX: 0 }, { rotate: (-k * 8) + 'deg' }], transformOrigin: 'top' }} />)}
+    </View>
+    <View style={{ position: 'absolute', left: 0, right: 0, top: '52%', height: 2, backgroundColor: '#ff2bd6' }} />
+    <Twinkle n={16} seed={5} color="#ff9cf2" /></View>;
+}
+function Thermal() {
+  const c = clock(4500);
+  const rings = ['#000000', '#14004a', '#2b00a8', '#6a0096', '#c4007a', '#e8204a', '#ff5500', '#ff9a2a', '#ffe14d', '#fff6c2', '#ffffff'];
+  return <View style={[fill, { backgroundColor: '#000', overflow: 'hidden' }]}>
+    <Animated.View style={{ position: 'absolute', left: '30%', top: '55%', width: 0, height: 0,
+      transform: [{ translateX: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: [-30, 40, -30] }) }, { translateY: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: [10, -20, 10] }) },
+        { scale: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 1.15, 1] }) }] }}>
+      {rings.map((col, i) => { const r = 520 * Math.pow(1 - i / rings.length, 1.6) + 6; return <View key={i} style={{ position: 'absolute', left: -r, top: -r, width: r * 2, height: r * 2, borderRadius: r, backgroundColor: col, opacity: i ? 0.9 : 1 }} />; })}
+    </Animated.View></View>;
+}
+
 export function HeaderFx({ id, fallback }) {
   useClockKick();
   const cols = HEADER_FX[id] || fallback;
   const base = <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={fill} />;
   let fx = null;
   switch (id) {
-    case 'lava': case 'aurora': case 'thermal': case 'sunburst': case 'synth': return <View style={[fill, { overflow: 'hidden' }]}><Pan cols={cols} />{id === 'synth' ? <Twinkle n={20} seed={5} color="#ff9cf2" /> : null}</View>;
+    case 'lava': case 'aurora': return <View style={[fill, { overflow: 'hidden' }]}><Pan cols={cols} />{id === 'lava' ? <Blobs seed={21} /> : null}</View>;
+    case 'hazard': return <Hazard />;
+    case 'checker': return <Checker />;
+    case 'sunburst': return <Sunburst />;
+    case 'disco': return <Disco />;
+    case 'synth': return <Synth />;
+    case 'thermal': return <Thermal />;
     case 'embers': fx = <Particles n={26} seed={3} ms={7000} color={['#ff8a2b', '#ffd27a', '#ff3d00']} w={4} rise drift={30} glow="#ff5500" />; break;
     case 'rain': fx = <Particles n={34} seed={9} ms={1800} color="#ff7a33" w={2} len={9} round={false} />; break;
     case 'snow': fx = <Particles n={36} seed={4} ms={8000} color="#ffffff" w={4} drift={40} />; break;
     case 'static': fx = <GlitchBars seed={2} />; break;
-    case 'disco': fx = <Twinkle n={40} seed={8} color="#ffd27a" />; break;
     case 'wildfire': fx = <><Flames seed={1} /><Particles n={22} seed={6} ms={4200} color={['#ffd27a', '#ff8a2b']} w={3} rise drift={40} glow="#ff5500" /></>; break;
     case 'heatwave': fx = <Waves />; break;
     case 'blizzard': fx = <Particles n={60} seed={12} ms={2600} color="#ffffff" w={4} drift={120} />; break;

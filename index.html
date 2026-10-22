@@ -632,9 +632,10 @@ img,video{max-width:100%;display:block}
 @keyframes dcrumble{0%{background:#2e2e2e;opacity:1;transform:none;filter:none}100%{background:#1c1c1c;opacity:0;transform:translateY(-16px) scale(.86) rotate(-12deg);filter:blur(3px)}}
 @keyframes ichar{from{color:#ff7a1a;text-shadow:0 0 8px #ff5500,0 0 26px #ff2d00}to{color:#2e2e2e;text-shadow:0 0 6px rgba(255,85,0,.35)}}
 @keyframes icrumble{0%{color:#2e2e2e;opacity:1;transform:none;filter:none}100%{color:#1c1c1c;opacity:0;transform:translateY(-16px) scale(.86) skewX(-6deg);filter:blur(3px)}}
-.il-fl{position:absolute;left:0;right:0;bottom:55%;height:60%;pointer-events:none}
-.il-fl svg{position:absolute;bottom:0;width:42%;opacity:0;transform-origin:50% 100%;filter:drop-shadow(0 0 4px #ff5500);animation:ifl .6s ease-out forwards,lick .18s ease-in-out infinite alternate}
-@keyframes ifl{0%{opacity:0;transform:scale(.3)}25%{opacity:1;transform:scale(1.1)}70%{opacity:.9}100%{opacity:0;transform:translateY(-40%) scale(.5)}}
+.il-fl{position:absolute;left:50%;bottom:-6%;width:120%;transform:translateX(-50%);aspect-ratio:1;pointer-events:none;z-index:-1}
+.il{isolation:isolate}
+.il-fl svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform-origin:50% 100%;filter:drop-shadow(0 0 10px #ff2d00);animation:ifl .75s ease-out forwards,lick .2s ease-in-out infinite alternate}
+@keyframes ifl{0%{opacity:0}22%{opacity:.95}70%{opacity:.9}100%{opacity:0}}
 .il-ash{position:absolute;inset:0;pointer-events:none}
 .il-ash i{position:absolute;opacity:0;animation:flake 1.3s cubic-bezier(.2,.6,.4,1) forwards}
 .intro-logo{position:relative;display:flex;align-items:flex-end;font-family:var(--display);font-weight:800;font-size:64px;letter-spacing:-.05em;line-height:1}
@@ -1273,7 +1274,7 @@ function Intro(){
   const piece=(ch,i)=>{const burn=1.0+i*.16;
     const flakes=Array.from({length:16}).map((_,k)=>{const e=r()<.3;return html`<i key=${k} style=${{left:(10+r()*80)+'%',top:(15+r()*75)+'%','--dx':((r()-.35)*70)+'px','--dy':(-(50+r()*110))+'px','--rot':(r()*600-300)+'deg',
       animationDelay:(burn+.5+r()*.35)+'s',width:(2+r()*4.5)+'px',height:(1.5+r()*3.5)+'px',background:e?(k%2?'#ff8a2b':'#ffd27a'):['#5c5c5c','#3a3a3a','#8a8a8a'][k%3],borderRadius:e?'50%':'1px',boxShadow:e?'0 0 6px #ff5500':'none'}}></i>`});
-    const fl=[0,1,2].map(k=>html`<svg key=${k} viewBox="0 0 24 24" style=${{left:(15+k*30)+'%',animationDelay:(burn+.05+k*.06)+'s, '+(burn+.05+k*.06)+'s'}}><path d=${FLAME_D} fill=${['#ff5500','#ffd27a','#ff2d00'][k]}/></svg>`);
+    const fl=html`<svg viewBox="0 0 24 24" style=${{animationDelay:(burn+.02)+'s, '+(burn+.02)+'s'}}><path d=${FLAME_D} fill="#ff5500"/><path d=${FLAME_D} fill="#ffd27a" transform="translate(4.8 7.5) scale(.6)"/></svg>`;
     return html`<span className="il" key=${i} style=${{'--in':(i*.08)+'s','--b':burn+'s'}}>${ch?html`<span className="ch">${ch}</span>`:html`<b className="ch dot"></b>`}<span className="il-fl">${fl}</span><span className="il-ash">${flakes}</span></span>`};
   return html`<div className="intro" aria-hidden="true"><div className="intro-glow"></div><div className="intro-logo">${['t','e','m','p',null].map(piece)}</div></div>`;
 }

@@ -111,12 +111,12 @@ export function FeedVideo({ uri, active = false, onHeat, postId }) {
   );
 }
 
-// Full-screen player: sound on, starts sideways (landscape); the button turns it upright or back.
+// Full-screen player: sound on, starts upright; the button turns it sideways (landscape) or back.
 // Drag up: caption + comment box. Drag up again: comments while it keeps playing. Drag down: back / close.
 function FullVideo({ postId, uri, start, onClose }) {
   const { s, C, run } = useApp(); const p = s.posts.find((x) => x.id === postId) || {};
   const ins = useSafeAreaInsets(); const { width: W, height: H } = Dimensions.get('window');
-  const [landPick, setLand] = useState(true); const [ui, setUi] = useState(true); const [paused, setPaused] = useState(false); const [muted, setMuted] = useState(false);
+  const [landPick, setLand] = useState(false); const [ui, setUi] = useState(true); const [paused, setPaused] = useState(false); const [muted, setMuted] = useState(false);
   const [t, setT] = useState(start || 0); const [dur, setDur] = useState(0); const [barW, setBarW] = useState(1);
   const [panel, setPanel] = useState(0); const [text, setText] = useState(''); const [kb, setKb] = useState(0);
   const drag = useRef(new Animated.Value(0)).current;

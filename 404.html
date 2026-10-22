@@ -1268,7 +1268,7 @@ function useVidTaps(getV,{onSingle,onCenterDouble}={}){
   return {handlers:{onPointerDown:down,onPointerUp:up,onPointerCancel:cancel,onPointerLeave:cancel,onContextMenu:e=>e.preventDefault()},overlay};
 }
 function FullVideo({url,at,onClose,p,s,dispatch}){
-  const v=useRef();const [landPick,setLand]=useState(innerHeight>innerWidth);const [panel,setPanel]=useState(0);const [txt,setTxt]=useState('');const [dy,setDy]=useState(0);const sw=useRef(null);
+  const v=useRef();const [landPick,setLand]=useState(false);const [panel,setPanel]=useState(0);const [txt,setTxt]=useState('');const [dy,setDy]=useState(0);const sw=useRef(null);
   const land=landPick&&!panel;const [ui,setUi]=useState(true);const [paused,setPaused]=useState(false);const [muted,setMuted]=useState(false);const [t,setT]=useState(at||0);const [dur,setDur]=useState(0);
   useEffect(()=>{const el=v.current;if(!el)return;el.currentTime=at||0;el.muted=false;el.play().catch(()=>{el.muted=true;setMuted(true);el.play().catch(()=>{})})},[]);
   useEffect(()=>{const el=v.current;if(el){paused?el.pause():el.play().catch(()=>{})}},[paused]);

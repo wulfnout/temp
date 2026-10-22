@@ -8,11 +8,9 @@ import { PostCard, Video } from './posts';
 import { Header, pickMedia, ReplayGrid } from './screens';
 import { GifPicker } from './gif';
 import { act } from './data';
-import { sb, kfmt, F, THEMES, STICKER_PACKS, ago, friendly } from './lib';
+import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
 
-const HEADER_FX = { lava: ['#ffd27a', '#ff2d00', '#0a0a0a'], aurora: ['#0a0a0a', '#ff5500', '#ffd27a'], static: ['#151515', '#ff5500'], embers: ['#0a0a0a', '#3a1204'],
-  hazard: ['#ff5500', '#0a0a0a'], sunburst: ['#ffd27a', '#ff5500'], snow: ['#1b2430', '#6c8194'], thermal: ['#2b00a8', '#c4007a', '#ff5500', '#ffe14d'], disco: ['#2a1206', '#ff2bd6', '#0a0a0a'],
-  checker: ['#ff5500', '#0a0a0a'], synth: ['#14002e', '#4a0060', '#ff2bd6'], rain: ['#0a0a0a', '#ff5500'] };
+import { HEADER_FX, HeaderFx } from './fx';
 
 export function ProfileScreen({ id, isTab }) {
   const { s, C, nav, run } = useApp(); const ins = useSafeAreaInsets();
@@ -31,7 +29,7 @@ export function ProfileScreen({ id, isTab }) {
         <View style={{ backgroundColor: C.card, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, paddingHorizontal: 16, paddingBottom: 18 }}>
           <View style={{ height: 180 + ins.top, marginHorizontal: -16, overflow: 'hidden' }}>
             {u.header && !fx ? <Image source={{ uri: u.header }} style={{ width: '100%', height: '100%' }} /> :
-              <LinearGradient colors={fx || [C.orange, C.orange2, '#0a0a0a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />}
+              <HeaderFx id={fx ? u.headerFx : null} fallback={[C.orange, C.orange2, '#0a0a0a']} />}
             {!isTab ? <IconBtn name="chevron-back" label="Back" onPress={nav.back} color="#fff" style={{ position: 'absolute', top: ins.top + 8, left: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
             {isMe ? <IconBtn name="settings-outline" label="Settings" onPress={() => nav.push('settings')} color="#fff" style={{ position: 'absolute', top: ins.top + 8, right: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
           </View>
@@ -163,10 +161,16 @@ export function ShopScreen() {
     return <Btn small kind={on ? 'ghost' : 'ink'} title={on ? (k === 'themes' ? 'Using' : 'Remove') : 'Use'} onPress={() => run(() => act.equip(s.me, k, on ? (k === 'themes' ? 'ember' : null) : it.id))} />;
   };
   const Preview = ({ k, it }) => {
-    if (k === 'stickers') { const pk = STICKER_PACKS[it.id]; return <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>{pk ? pk.slice(0, 2).map((e, i) => <Sticker key={i} v={e} size={e.startsWith('T|') ? 36 : 28} />) : <Sticker v="T|YOUR TEXT|y" size={36} />}</View>; }
-    if (k === 'themes') { const c = THEMES[it.id] || THEMES.ember; return <LinearGradient colors={c} style={{ width: 54, height: 54, borderRadius: 18 }} />; }
+    if (k === 'stickers') { const pk = STICKER_PACKS[it.id];
+      if (!pk) return <Sticker v="T|YOUR TEXT|y" size={34} fit />;
+      const txt = pk.filter((e) => e.startsWith('T|')), emo = pk.filter((e) => !e.startsWith('T|'));
+      // text packs: two stickers stacked, shrunk to fit; emoji packs: a row of three
+      return txt.length ? <View style={{ alignItems: 'center', gap: 6, width: '100%', paddingHorizontal: 8 }}>{txt.slice(0, 2).map((e, i) => <Sticker key={i} v={e} size={30} fit />)}</View>
+        : <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>{emo.slice(0, 3).map((e, i) => <Sticker key={i} v={e} size={30} />)}</View>; }
+    if (k === 'themes') { const c = THEMES[it.id] || THEMES.ember; const g = GLOW[it.id];
+      return <View style={g ? { borderRadius: 18, shadowColor: c[0], shadowOpacity: 1, shadowRadius: 16, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null}><LinearGradient colors={c} style={{ width: 54, height: 54, borderRadius: 18, borderWidth: g ? 2 : 0, borderColor: c[1] }} /></View>; }
     if (k === 'rings') return <Avatar u={{ ...me, ring: it.id }} size={60} />;
-    return <LinearGradient colors={HEADER_FX[it.id] || [C.orange, '#0a0a0a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />;
+    return <HeaderFx id={it.id} fallback={[C.orange, '#0a0a0a']} />;
   };
   const Card = ({ k, it, price, off }) => (
     <View style={{ backgroundColor: C.card, borderRadius: 22, padding: 10, gap: 10, width: '48.5%' }}>

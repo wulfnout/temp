@@ -26,7 +26,7 @@ export function Video({ uri, style, autoPlay, controls = true, loop = false, mut
     const sub = player.addListener('playToEnd', onEnd);
     return () => sub.remove();
   }, [player, onEnd]);
-  return <VideoView player={player} style={style} contentFit="cover" nativeControls={controls} />;
+  return <VideoView player={player} style={style} contentFit="cover" nativeControls={controls} pointerEvents={controls ? 'auto' : 'none'} />;
 }
 
 export function RichText({ text, style, onTag }) {

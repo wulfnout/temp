@@ -170,7 +170,7 @@ function TabBar({ tab, stacked, dark, onTab }) {
     <View style={{ backgroundColor: bg, borderTopWidth: 1, borderTopColor: dark ? '#1c1c1c' : C.line, paddingTop: 8, paddingBottom: ins.bottom + 8, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
       <Item name="home" icon="home" label="Home" />
       <Item name="search" icon="search" label="Search" />
-      <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
+      <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 0.9, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null), width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name="add" size={28} color="#fff" /></Pressable>
       <Item name="replay" icon="play-circle" label="Replay" />
       <Item name="me" label="Profile"><Avatar u={s.users[s.me]} size={28} /></Item>

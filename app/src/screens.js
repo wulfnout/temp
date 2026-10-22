@@ -53,7 +53,7 @@ export function HomeScreen() {
       <Animated.View onLayout={(e) => setHh(e.nativeEvent.layout.height)} style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5, backgroundColor: C.bg, paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center',
         transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, -hh] }) }] }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, flex: 1 }}>
-          <T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6 }} /></View>
+          <T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6, ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } } : null) }} /></View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <IconBtn name="heart-outline" label="Activity" badge={unreadN || null} onPress={() => nav.push('activity')} />
           <IconBtn name="chatbubble-ellipses-outline" label="Messages" badge={unreadDM || null} onPress={() => nav.push('dms')} />
@@ -165,7 +165,7 @@ function Reel({ p, h, active }) {
   return (
     <View style={{ height: h, backgroundColor: '#0a0a0a' }}>
       <Pressable onPress={tap} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
-        {p.mediaUrl ? <Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} loop playerRef={playerRef} trim={p.overlay} />
+        {p.mediaUrl ? <View pointerEvents="none" style={{ flex: 1 }}><Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} loop playerRef={playerRef} trim={p.overlay} /></View>
           : <TextReel p={p} active={active} />}
         <ReplayOverlay overlay={p.overlay} />
       </Pressable>

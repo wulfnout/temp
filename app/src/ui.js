@@ -23,10 +23,11 @@ export function T({ style, b, h, d, muted, children, ...rest }) {
 export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon }) {
   const { C } = useApp();
   const bg = kind === 'orange' ? C.orange : kind === 'ghost' ? C.soft : C.ink;
+  const glow = kind === 'orange' && C.glow && !disabled ? { shadowColor: C.orange, shadowOpacity: 0.85, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 8 } : null;
   const fg = kind === 'orange' ? C.onOrange : kind === 'ghost' ? C.ink : C.bg;
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={title}
-      style={({ pressed }) => [{ backgroundColor: bg, borderRadius: 999, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
+      style={({ pressed }) => [glow, { backgroundColor: bg, borderRadius: 999, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
       {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
       <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14 }}>{title}</Text>
     </Pressable>
@@ -45,6 +46,7 @@ export function IconBtn({ name, onPress, size = 22, color, label, badge, style }
 }
 
 const RING_COLORS = { fire: ['#ff2d00', '#ffd27a'], ice: ['#ffffff', '#7f95a6'], gold: ['#ffd700', '#b98900'], morph: null, glitch: ['#ff2d55', '#00e5ff'], plus: ['#0a0a0a', '#ff5500'] };
+import { FireRing, GlitchRing } from './fx';
 export function Avatar({ u, size = 40 }) {
   const { C } = useApp();
   if (!u) return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.soft }} />;
@@ -53,6 +55,8 @@ export function Avatar({ u, size = 40 }) {
     ? <Image source={{ uri: u.avatar }} style={{ width: s, height: s, borderRadius: s / 2 }} />
     : <View style={{ width: s, height: s, borderRadius: s / 2, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>;
   if (!u.ring) return inner(size);
+  if (u.ring === 'fire') return <FireRing size={size} bg={C.card}>{inner(size - 8)}</FireRing>;
+  if (u.ring === 'glitch') return <GlitchRing size={size} bg={C.card}>{inner(size - 8)}</GlitchRing>;
   const cols = RING_COLORS[u.ring] || [C.orange, C.orange2];
   return (
     <LinearGradient colors={cols || [C.orange, C.orange2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center' }}>
@@ -61,12 +65,12 @@ export function Avatar({ u, size = 40 }) {
   );
 }
 
-export function Sticker({ v, size = 58 }) {
+export function Sticker({ v, size = 58, fit }) {
   if (!v) return null;
   if (v.startsWith('T|')) {
     const [, t, c] = v.split('|'); const [bg, fg] = STICKER_COLORS[c] || STICKER_COLORS.o; const rot = (Math.abs(hashStr(t)) % 9) - 4;
-    return <View style={{ transform: [{ rotate: rot + 'deg' }], backgroundColor: bg, borderColor: '#fff', borderWidth: 3, borderRadius: 12, paddingVertical: size * 0.1, paddingHorizontal: size * 0.2, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3, alignSelf: 'flex-start' }}>
-      <Text style={{ color: fg, fontFamily: F.display, fontSize: Math.max(10, size * 0.26) }}>{t}</Text></View>;
+    return <View style={{ maxWidth: fit ? '100%' : undefined, transform: [{ rotate: rot + 'deg' }], backgroundColor: bg, borderColor: '#fff', borderWidth: 3, borderRadius: 12, paddingVertical: size * 0.1, paddingHorizontal: size * 0.2, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3, alignSelf: 'flex-start' }}>
+      <Text numberOfLines={fit ? 1 : undefined} adjustsFontSizeToFit={!!fit} minimumFontScale={0.5} style={{ color: fg, fontFamily: F.display, fontSize: Math.max(10, size * 0.26) }}>{t}</Text></View>;
   }
   if (v.startsWith('G|')) return <Image source={{ uri: v.slice(2) }} style={{ width: 200, height: 160, borderRadius: 14 }} resizeMode="cover" accessibilityLabel="GIF" />;
   if (v.startsWith('I|')) return <Image source={{ uri: v.slice(2) }} style={{ width: size * 1.2, height: size * 1.2, borderRadius: size * 0.3, borderWidth: 3, borderColor: '#fff', transform: [{ rotate: '-4deg' }] }} />;
@@ -119,6 +123,7 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
         <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size * 0.48, borderWidth: 3.5,
           borderColor: seen ? C.line : C.orange, borderTopColor: seen ? C.line : '#ffd27a', borderRightColor: seen ? C.line : C.orange2,
+          ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null),
           transform: [{ rotate }, { scaleX: sx }, { scaleY: sy }] }} />
         <Avatar u={{ ...u, ring: null }} size={size - 12} />
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>

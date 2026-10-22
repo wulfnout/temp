@@ -22,14 +22,17 @@ export const THEMES = {
   ember: ['#ff5500', '#ff8a2b'], inferno: ['#ff1f1f', '#ff7a00'], solar: ['#ff9500', '#ffc400'], blush: ['#ff4d6d', '#ff9f7a'], neon: ['#ff2bd6', '#ff8a2b'],
   volcano: ['#c1121f', '#ff4d00'], toxic: ['#5fd400', '#d4ff3a'], ocean: ['#0077ff', '#00d4c8'], grape: ['#7c3aed', '#d946ef'], sunset: ['#ff5e62', '#ffb347'],
   cyber: ['#00d9ff', '#ff00d4'], rust: ['#a63c06', '#e07a2f'], bubblegum: ['#ff5fa2', '#ffb3d9'],
+  // glowing themes: accents light up
+  glowember: ['#ff5500', '#ffb37a'], glowneon: ['#ff2bd6', '#8a5cff'], radioactive: ['#39ff14', '#d4ff3a'], glowice: ['#00e5ff', '#a5f3ff'], plasma: ['#8b5cff', '#00d9ff'], molten: ['#ff2d00', '#ffd27a'],
 };
+export const GLOW = { glowember: 1, glowneon: 1, radioactive: 1, glowice: 1, plasma: 1, molten: 1 };
 // mode: 'system' follows the phone's setting; 'light' or 'dark' overrides it (same setting as the website)
 export function useColors(theme, mode) {
   const sys = useColorScheme();
   const dark = mode === 'dark' ? true : mode === 'light' ? false : sys === 'dark';
   const base = dark ? DARK : LIGHT;
   const t = THEMES[theme] || THEMES.ember;
-  return { ...base, orange: t[0], orange2: t[1], dark };
+  return { ...base, orange: t[0], orange2: t[1], dark, glow: !!GLOW[theme] };
 }
 export const F = { display: 'Unbounded_800ExtraBold', displayB: 'Unbounded_700Bold', body: 'Figtree_500Medium', bold: 'Figtree_700Bold', heavy: 'Figtree_800ExtraBold' };
 

@@ -170,7 +170,8 @@ export function Thermo({ w, isMe, stickers, onAddSticker, onRemoveSticker }) {
 }
 
 // tap on any empty spot (not a button or field) to put the keyboard away
-export const tapAway = { onStartShouldSetResponder: () => true, onResponderRelease: () => Keyboard.dismiss() };
+// only steps in while the keyboard is up, so it never competes with scrolling
+export const tapAway = { onStartShouldSetResponder: () => Keyboard.isVisible(), onResponderRelease: () => Keyboard.dismiss() };
 
 export function Sheet({ visible, onClose, title, right, children, full }) {
   const { C } = useApp(); const ins = useSafeAreaInsets();

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Pressable, Image, TextInput, Animated, Alert, FlatList, Modal, Dimensions } from 'react-native';
+import { View, Pressable, Image, TextInput, Animated, Alert, FlatList, Modal, Dimensions, PanResponder, LayoutAnimation, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -72,7 +72,7 @@ export function useVideoTaps(getPlayer, { onSingle, onCenterDouble } = {}) {
 // Feed video, Twitter-style: landscape 16:9 frame, plays muted on its own while on screen, loops, no system controls.
 // Tap opens it full screen; double tap still heats the post.
 function fmt(t) { t = Math.max(0, Math.round(t || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
-export function FeedVideo({ uri, active = true, onHeat }) {
+export function FeedVideo({ uri, active = false, onHeat, postId }) {
   const [muted, setMuted] = useState(true); const [paused, setPaused] = useState(false); const [left, setLeft] = useState(null); const [ar, setAr] = useState(16 / 9);
   const [full, setFull] = useState(null); const taps = useRef({ t: 0, timer: null });
   const player = useVideoPlayer(uri, (p) => { p.loop = true; p.muted = true; });
@@ -106,17 +106,21 @@ export function FeedVideo({ uri, active = true, onHeat }) {
       </View>
       {paused ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
         <View style={[chip, { width: 58, height: 58 }]}><Ionicons name="play" size={26} color="#fff" /></View></View> : null}
-      {full ? <FullVideo uri={uri} start={full.at} ar={ar} onClose={(at) => { setFull(null); try { if (at != null) player.currentTime = at; } catch (e) {} }} /> : null}
+      {full ? <FullVideo postId={postId} uri={uri} start={full.at} onClose={(at) => { setFull(null); try { if (at != null) player.currentTime = at; } catch (e) {} }} /> : null}
     </View>
   );
 }
 
-// Full-screen player: sound on, sideways (landscape) by default, tap to show/hide controls.
-function FullVideo({ uri, start, ar, onClose }) {
+// Full-screen player: sound on, starts sideways (landscape); the button turns it upright or back.
+// Drag up: caption + comment box. Drag up again: comments while it keeps playing. Drag down: back / close.
+function FullVideo({ postId, uri, start, onClose }) {
+  const { s, C, run } = useApp(); const p = s.posts.find((x) => x.id === postId) || {};
   const ins = useSafeAreaInsets(); const { width: W, height: H } = Dimensions.get('window');
-  const [land, setLand] = useState(true); const [ui, setUi] = useState(true); const [paused, setPaused] = useState(false); const [muted, setMuted] = useState(false);
+  const [landPick, setLand] = useState(true); const [ui, setUi] = useState(true); const [paused, setPaused] = useState(false); const [muted, setMuted] = useState(false);
   const [t, setT] = useState(start || 0); const [dur, setDur] = useState(0); const [barW, setBarW] = useState(1);
-  const player = useVideoPlayer(uri, (p) => { p.loop = true; p.muted = false; if (start) p.currentTime = start; p.play(); });
+  const [panel, setPanel] = useState(0); const [text, setText] = useState(''); const [kb, setKb] = useState(0);
+  const drag = useRef(new Animated.Value(0)).current;
+  const player = useVideoPlayer(uri, (pl) => { pl.loop = true; pl.muted = false; if (start) pl.currentTime = start; pl.play(); });
   React.useEffect(() => {
     try { player.timeUpdateEventInterval = 0.25; } catch (e) {}
     const a = player.addListener('timeUpdate', ({ currentTime }) => { setT(currentTime); if (player.duration) setDur(player.duration); });
@@ -124,30 +128,58 @@ function FullVideo({ uri, start, ar, onClose }) {
   }, [player]);
   React.useEffect(() => { try { paused ? player.pause() : player.play(); } catch (e) {} }, [paused, player]);
   React.useEffect(() => { try { player.muted = muted; } catch (e) {} }, [muted, player]);
-  React.useEffect(() => { if (!ui || paused) return; const k = setTimeout(() => setUi(false), 2800); return () => clearTimeout(k); }, [ui, paused, t > 0]);
+  React.useEffect(() => { if (!ui || paused || panel) return; const k = setTimeout(() => setUi(false), 2800); return () => clearTimeout(k); }, [ui, paused, panel, t > 0]);
+  React.useEffect(() => { const a = Keyboard.addListener('keyboardWillShow', (e) => setKb(e.endCoordinates.height)), b = Keyboard.addListener('keyboardWillHide', () => setKb(0));
+    return () => { a.remove(); b.remove(); }; }, []);
   const close = () => { let at = null; try { at = player.currentTime; } catch (e) {} onClose(at); };
-  const bw = land ? H : W, bh = land ? W : H; // the player box, turned sideways in landscape
-  const pad = land ? { top: 14, side: Math.max(ins.top, 20), bottom: 14 } : { top: ins.top + 6, side: 14, bottom: ins.bottom + 10 };
+  const land = landPick && !panel; // the panel always shows the video upright above it
+  const panelH = panel === 2 ? Math.round(H * 0.62) : panel === 1 ? 170 + ins.bottom : 0;
+  const vidH = H - panelH;
+  const setP = (n) => { LayoutAnimation.configureNext(LayoutAnimation.create(240, 'easeInEaseOut', 'opacity')); if (n === 0) Keyboard.dismiss(); setPanel(n); };
+  const st = useRef({}); st.current = { panel, panelH, setP, close, kb };
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (e, d) => {
+      const k = st.current; const inPanel = d.y0 > H - k.panelH - k.kb; const onHandle = inPanel && d.y0 < H - k.panelH - k.kb + 44;
+      return (!inPanel || onHandle) && Math.abs(d.dy) > 12 && Math.abs(d.dy) > Math.abs(d.dx) * 1.5;
+    },
+    onPanResponderMove: (e, d) => { if (st.current.panel === 0 && d.dy > 0) drag.setValue(d.dy); },
+    onPanResponderRelease: (e, d) => {
+      const k = st.current;
+      if (d.dy < -50) { k.setP(d.dy < -260 ? 2 : Math.min(2, k.panel + 1)); return; }
+      if (d.dy > 60) {
+        if (k.panel > 0) { k.setP(d.dy > 260 ? 0 : k.panel - 1); return; }
+        Animated.timing(drag, { toValue: H, duration: 180, useNativeDriver: true }).start(() => k.close()); return;
+      }
+      Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start();
+    },
+    onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(),
+  })).current;
+  const g = useVideoTaps(() => player, { onSingle: () => (panel ? setP(0) : setUi((v) => !v)), onCenterDouble: () => setPaused((v) => !v) });
+  const bw = land ? vidH : W, bh = land ? W : vidH;
+  const pad = land ? { top: 14, side: Math.max(ins.top, 20), bottom: 14 } : { top: ins.top + 6, side: 14, bottom: panel ? 10 : ins.bottom + 10 };
   const btn = { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' };
-  const g = useVideoTaps(() => player, { onSingle: () => setUi((v) => !v), onCenterDouble: () => setPaused((v) => !v) });
   const seek = (x) => { if (!dur) return; const to = Math.max(0, Math.min(dur, (x / barW) * dur)); try { player.currentTime = to; } catch (e) {} setT(to); };
+  const u = s.users[p.userId] || {}; const frozen = p.status === 'frozen';
+  const comments = (p.comments || []).filter((c) => !s.blocked[c.userId]);
+  const send = () => { const v = text.trim(); if (!v || !p.id) return; setText(''); if (panel < 2) setP(2); run(() => act.comment(p.id, v)); };
   return (
     <Modal visible animationType="fade" onRequestClose={close} supportedOrientations={['portrait']}>
-      <View style={{ flex: 1, backgroundColor: '#000' }}>
-        <View style={{ position: 'absolute', width: bw, height: bh, left: (W - bw) / 2, top: (H - bh) / 2, transform: [{ rotate: land ? '90deg' : '0deg' }] }}>
+      <Animated.View {...pan.panHandlers} style={{ flex: 1, backgroundColor: '#000', opacity: drag.interpolate({ inputRange: [0, 500], outputRange: [1, 0.4], extrapolate: 'clamp' }) }}>
+        <Animated.View style={{ position: 'absolute', width: bw, height: bh, left: (W - bw) / 2, top: (vidH - bh) / 2, transform: [{ translateY: drag }, { rotate: land ? '90deg' : '0deg' }] }}>
           <Pressable {...g.press} style={{ flex: 1 }} accessibilityLabel={ui ? 'Hide controls' : 'Show controls'}>
             <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
           </Pressable>
           <g.Overlay top={pad.top + 6} />
-          {ui ? <>
+          {ui || panel ? <>
             <View style={{ position: 'absolute', top: pad.top, left: pad.side, right: pad.side, flexDirection: 'row', justifyContent: 'space-between' }}>
               <Pressable onPress={close} style={btn} accessibilityLabel="Close"><Ionicons name="close" size={24} color="#fff" /></Pressable>
-              <Pressable onPress={() => setLand(!land)} style={btn} accessibilityLabel={land ? 'Turn upright' : 'Turn sideways'}>
-                <Ionicons name="phone-landscape-outline" size={20} color="#fff" style={{ transform: [{ rotate: land ? '90deg' : '0deg' }] }} /></Pressable>
+              {!panel ? <Pressable onPress={() => setLand(!landPick)} style={btn} accessibilityLabel={land ? 'Turn upright' : 'Turn sideways'}>
+                <Ionicons name="phone-landscape-outline" size={20} color="#fff" style={{ transform: [{ rotate: land ? '90deg' : '0deg' }] }} /></Pressable> : null}
             </View>
-            <Pressable onPress={() => setPaused(!paused)} style={{ position: 'absolute', alignSelf: 'center', top: bh / 2 - 34, width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={paused ? 'Play' : 'Pause'}>
-              <Ionicons name={paused ? 'play' : 'pause'} size={32} color="#fff" /></Pressable>
+            {!panel ? <Pressable onPress={() => setPaused(!paused)} style={{ position: 'absolute', alignSelf: 'center', top: bh / 2 - 34, width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={paused ? 'Play' : 'Pause'}>
+              <Ionicons name={paused ? 'play' : 'pause'} size={32} color="#fff" /></Pressable> : null}
             <View style={{ position: 'absolute', left: pad.side, right: pad.side, bottom: pad.bottom, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {panel ? <Pressable onPress={() => setPaused(!paused)} hitSlop={8} accessibilityLabel={paused ? 'Play' : 'Pause'}><Ionicons name={paused ? 'play' : 'pause'} size={20} color="#fff" /></Pressable> : null}
               <T h style={{ color: '#fff', fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{fmt(t)}</T>
               <Pressable onLayout={(e) => setBarW(e.nativeEvent.layout.width || 1)} onPress={(e) => seek(e.nativeEvent.locationX)} hitSlop={14} style={{ flex: 1, height: 18, justifyContent: 'center' }} accessibilityLabel="Seek">
                 <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,.3)' }}>
@@ -158,13 +190,36 @@ function FullVideo({ uri, start, ar, onClose }) {
               <Pressable onPress={() => setMuted(!muted)} hitSlop={8} accessibilityLabel={muted ? 'Turn sound on' : 'Mute'}><Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={20} color="#fff" /></Pressable>
             </View>
           </> : null}
-        </View>
-      </View>
+        </Animated.View>
+        {!panel && ui ? <View pointerEvents="none" style={{ position: 'absolute', bottom: ins.bottom + 2, alignSelf: 'center', alignItems: 'center' }}>
+          <Ionicons name="chevron-up" size={18} color="rgba(255,255,255,.6)" /></View> : null}
+        {panel ? <View style={{ position: 'absolute', left: 0, right: 0, bottom: kb, height: panelH, backgroundColor: '#111', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingBottom: kb ? 8 : ins.bottom + 8 }}>
+          <Pressable onPress={() => setP(panel === 2 ? 1 : 2)} style={{ alignItems: 'center', paddingVertical: 10 }} accessibilityLabel={panel === 2 ? 'Show less' : 'Show comments'}>
+            <View style={{ width: 38, height: 5, borderRadius: 3, backgroundColor: '#333' }} /></Pressable>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Avatar u={u} size={32} />
+            <View style={{ flex: 1 }}><T h numberOfLines={1} style={{ color: '#fff' }}>{u.name || u.handle}</T>
+              {p.text ? <T numberOfLines={panel === 2 ? 4 : 2} style={{ color: 'rgba(255,255,255,.85)', fontSize: 14 }}>{p.text}</T> : null}</View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flame" size={16} color="#ff5500" /><T h style={{ color: '#fff', fontSize: 13 }}>{kfmt(p.heat)}</T></View>
+            <Pressable onPress={() => setP(2)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} accessibilityLabel="Comments"><Ionicons name="chatbubble-outline" size={16} color="#fff" /><T h style={{ color: '#fff', fontSize: 13 }}>{comments.length}</T></Pressable>
+          </View>
+          {panel === 2 ? <FlatList data={comments} keyExtractor={(c) => String(c.id)} style={{ flex: 1, marginTop: 10 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={<T b style={{ color: '#8d8883', textAlign: 'center', marginTop: 20 }}>{frozen ? 'Comments are off while frozen' : 'No comments yet'}</T>}
+            renderItem={({ item: c }) => { const cu = s.users[c.userId] || {}; return <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 6 }}><Avatar u={cu} size={26} />
+              <View style={{ flex: 1 }}><T h style={{ color: '#fff', fontSize: 13 }}>{cu.handle} <T style={{ color: '#8d8883', fontSize: 12 }}>{ago(Date.now() - c.at)}</T></T>
+                {c.sticker ? <Sticker v={c.sticker} size={40} /> : <T style={{ color: '#fff', fontSize: 14 }}>{c.text}</T>}</View></View>; }} /> : <View style={{ flex: 1 }} />}
+          {!frozen ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderRadius: 999, paddingLeft: 14, padding: 4, marginTop: 8 }}>
+            <TextInput value={text} onChangeText={setText} placeholder="Add a comment…" placeholderTextColor="#8d8883" maxLength={280} onSubmitEditing={send} returnKeyType="send"
+              style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, paddingVertical: 8 }} />
+            {text.trim() ? <Pressable onPress={send} accessibilityLabel="Post comment" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#ff5500', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color="#fff" /></Pressable> : null}
+          </View> : null}
+        </View> : null}
+      </Animated.View>
     </Modal>
   );
 }
 
-export function PostCard({ p, active }) {
+export function PostCard({ p, active = false }) {
   const { s, C, run, nav, ashing, finishAsh } = useApp();
   const u = s.users[p.userId]; const frozen = p.status === 'frozen';
   const [burst] = useState(() => new Animated.Value(0)); const lastTap = useRef(0);
@@ -194,7 +249,7 @@ export function PostCard({ p, active }) {
           style={!p.mediaUrl && p.text.length < 90 ? { fontFamily: F.displayB, fontSize: 18, lineHeight: 24, marginTop: 12, letterSpacing: -0.5 } : { fontSize: 16.5, lineHeight: 23, marginTop: 12 }} /> : null}
         {p.mediaUrl ? (
           <Pressable onPress={dbl} style={{ marginTop: 12, borderRadius: 20, overflow: 'hidden', backgroundColor: C.soft }}>
-            {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} active={active} onHeat={heatBurst} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
+            {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} postId={p.id} active={active} onHeat={heatBurst} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
             <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: burst, transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }}>
               <Ionicons name="flame" size={120} color={C.orange} /></Animated.View>
           </Pressable>) : null}

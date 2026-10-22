@@ -585,7 +585,18 @@ img,video{max-width:100%;display:block}
 .vt-seek.L{left:0;border-radius:0 999px 999px 0}.vt-seek.R{right:0;border-radius:999px 0 0 999px}
 .vt-seek b{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:6px 12px;font-size:13px}
 .fv{position:relative;background:#000;aspect-ratio:16/9;cursor:pointer}.fv video{width:100%;height:100%;max-height:none!important;object-fit:contain!important;display:block}
-.fullv{position:fixed;inset:0;z-index:150;background:#000;cursor:default}
+.fullv{position:fixed;inset:0;z-index:150;background:#000;cursor:default;--ph:0px;transition:opacity .2s}
+.fullv.p1{--ph:calc(170px + env(safe-area-inset-bottom,0px))}.fullv.p2{--ph:62dvh}
+.fullv-box{transition:height .24s ease,top .24s ease}
+.fullv.p1 .fullv-box,.fullv.p2 .fullv-box{top:calc((100dvh - var(--ph)) / 2);height:calc(100dvh - var(--ph))}
+.fullv-panel{position:absolute;left:0;right:0;bottom:0;height:var(--ph);z-index:5;background:#111;color:#fff;border-radius:24px 24px 0 0;padding:0 16px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;animation:sheetUp .24s cubic-bezier(.16,1,.3,1)}
+.fp-grab{align-self:stretch;padding:10px;display:grid;place-items:center}.fp-grab i{width:38px;height:5px;border-radius:3px;background:#333}
+.fp-head{display:flex;gap:10px;align-items:center}.fp-head>div{flex:1;min-width:0}.fp-head p{margin:2px 0 0;font-size:14px;opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fp-stat{display:inline-flex;gap:4px;align-items:center;font-weight:800;font-size:13px;color:#fff}
+.fp-list{flex:1;overflow:auto;margin-top:10px}.fp-c{display:flex;gap:8px;padding:6px 0}.fp-c p{margin:2px 0 0;font-size:14px}.fp-c span{color:#8d8883;font-size:12px}.fp-empty{color:#8d8883;text-align:center;margin-top:20px}
+.fp-input{margin-top:auto;display:flex;align-items:center;background:#1c1c1c;border-radius:999px;padding:4px 4px 4px 14px}.fp-input input{flex:1;background:none;border:0;color:#fff;font-size:16px;padding:8px 0;outline:none}
+.fp-input button{width:34px;height:34px;border-radius:50%;background:#ff5500;color:#fff;display:grid;place-items:center}
+.fp-hint{position:absolute;bottom:calc(4px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:22px;z-index:3;pointer-events:none}
 .fullv-box{position:absolute;left:50%;top:50%;width:100vw;height:100dvh;transform:translate(-50%,-50%)}
 .fullv-box.land{width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
 .fullv-box video{width:100%;height:100%;object-fit:contain}
@@ -1256,16 +1267,31 @@ function useVidTaps(getV,{onSingle,onCenterDouble}={}){
     ${flash&&html`<span className=${'vt-seek '+flash.side}><b>${flash.side==='L'?'−':'+'}${flash.n}s</b></span>`}`;
   return {handlers:{onPointerDown:down,onPointerUp:up,onPointerCancel:cancel,onPointerLeave:cancel,onContextMenu:e=>e.preventDefault()},overlay};
 }
-function FullVideo({url,at,onClose}){
-  const v=useRef();const [land,setLand]=useState(innerHeight>innerWidth);const [ui,setUi]=useState(true);const [paused,setPaused]=useState(false);const [muted,setMuted]=useState(false);const [t,setT]=useState(at||0);const [dur,setDur]=useState(0);
+function FullVideo({url,at,onClose,p,s,dispatch}){
+  const v=useRef();const [landPick,setLand]=useState(innerHeight>innerWidth);const [panel,setPanel]=useState(0);const [txt,setTxt]=useState('');const [dy,setDy]=useState(0);const sw=useRef(null);
+  const land=landPick&&!panel;const [ui,setUi]=useState(true);const [paused,setPaused]=useState(false);const [muted,setMuted]=useState(false);const [t,setT]=useState(at||0);const [dur,setDur]=useState(0);
   useEffect(()=>{const el=v.current;if(!el)return;el.currentTime=at||0;el.muted=false;el.play().catch(()=>{el.muted=true;setMuted(true);el.play().catch(()=>{})})},[]);
   useEffect(()=>{const el=v.current;if(el){paused?el.pause():el.play().catch(()=>{})}},[paused]);
   useEffect(()=>{if(v.current)v.current.muted=muted},[muted]);
-  useEffect(()=>{if(!ui||paused)return;const k=setTimeout(()=>setUi(false),2800);return()=>clearTimeout(k)},[ui,paused]);
+  useEffect(()=>{if(!ui||paused||panel)return;const k=setTimeout(()=>setUi(false),2800);return()=>clearTimeout(k)},[ui,paused,panel]);
   useEffect(()=>{const k=e=>{if(e.key==='Escape')close()};addEventListener('keydown',k);return()=>removeEventListener('keydown',k)});
   const close=()=>onClose(v.current?v.current.currentTime:null);const fmt=x=>{x=Math.max(0,Math.round(x||0));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};
   const stop=e=>e.stopPropagation();const g=useVidTaps(()=>v.current,{onSingle:()=>setUi(x=>!x),onCenterDouble:()=>setPaused(x=>!x)});
-  return html`<div className="fullv" onClick=${stop} role="dialog" aria-label="Video"><div className=${'fullv-box'+(land?' land':'')}>
+  // drag up: caption + comment box, again: comments; drag down: back / close
+  const ts=e=>{if(e.target.closest('.fullv-panel .fp-list,input,button'))return;const t=e.touches[0];sw.current={y:t.clientY,x:t.clientX}};
+  const tm=e=>{const a=sw.current;if(!a)return;const d=e.touches[0].clientY-a.y;if(!panel&&d>0&&Math.abs(d)>Math.abs(e.touches[0].clientX-a.x))setDy(d)};
+  const te=e=>{const a=sw.current;sw.current=null;if(!a)return;const t=e.changedTouches[0];const d=t.clientY-a.y;if(Math.abs(t.clientX-a.x)>Math.abs(d)){setDy(0);return}
+    if(d<-50)setPanel(d<-260?2:Math.min(2,panel+1));else if(d>60){if(panel)setPanel(d>260?0:panel-1);else{close();return}}setDy(0)};
+  const cs=(p&&p.comments||[]).filter(c=>!s.blocked[c.userId]);const u=p&&s.users[p.userId]||{};const frozen=p&&p.status==='frozen';
+  const send=()=>{const t=txt.trim();if(!t||!p)return;setTxt('');setPanel(2);dispatch({type:'comment',id:p.id,text:t})};
+  return html`<div className=${'fullv'+(panel?' p'+panel:'')} onClick=${stop} role="dialog" aria-label="Video" onTouchStart=${ts} onTouchMove=${tm} onTouchEnd=${te} style=${dy?{transform:'translateY('+dy+'px)',opacity:Math.max(.4,1-dy/500)}:null}>
+    ${panel?html`<div className="fullv-panel"><button className="fp-grab" onClick=${()=>setPanel(panel===2?1:2)} aria-label=${panel===2?'Show less':'Show comments'}><i></i></button>
+      <div className="fp-head"><${Avatar} u=${u} size=${32}/><div><b>${u.name||u.handle}</b>${p&&p.text&&html`<p>${p.text}</p>`}</div>
+        <span className="fp-stat"><${Icon} n="flame" s=${15} fill="#ff5500"/>${p?p.heat:0}</span><button className="fp-stat" onClick=${()=>setPanel(2)}><${Icon} n="comment" s=${15}/>${cs.length}</button></div>
+      ${panel===2&&html`<div className="fp-list">${cs.length?cs.map(c=>{const cu=s.users[c.userId]||{};return html`<div className="fp-c" key=${c.id}><${Avatar} u=${cu} size=${26}/><div><b>${cu.handle}</b> <span>${ago(s.now-c.at)}</span>${c.sticker?html`<${Sticker} v=${c.sticker} size=${40}/>`:html`<p>${c.text}</p>`}</div></div>`}):html`<p className="fp-empty">${frozen?'Comments are off while frozen':'No comments yet'}</p>`}</div>`}
+      ${!frozen&&html`<div className="fp-input"><input placeholder="Add a comment…" maxLength=${280} value=${txt} onInput=${e=>setTxt(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Add a comment"/>${txt.trim()&&html`<button onClick=${send} aria-label="Post comment"><${Icon} n="share" s=${16}/></button>`}</div>`}
+    </div>`:ui&&html`<span className="fp-hint" aria-hidden="true">⌃</span>`}
+    <div className=${'fullv-box'+(land?' land':'')}>
     <div className="vt-area" data-rot=${land?'1':'0'} ...${g.handlers}></div>${g.overlay}
     <video ref=${v} src=${url} playsInline loop onTimeUpdate=${e=>{setT(e.target.currentTime);setDur(e.target.duration||0)}}></video>
     ${ui&&html`<div className="fullv-ui" onClick=${stop}>
@@ -1275,7 +1301,7 @@ function FullVideo({url,at,onClose}){
         <button onClick=${()=>setMuted(!muted)} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${20}/></button></div></div>`}
   </div></div>`;
 }
-function FeedVideo({url,auto}){
+function FeedVideo({url,auto,p,s,dispatch}){
   const v=useRef();const [muted,setMuted]=useState(true);const [paused,setPaused]=useState(!auto);const [left,setLeft]=useState(null);const [seen,setSeen]=useState(false);
   useEffect(()=>{const el=v.current;if(!el)return;const io=new IntersectionObserver(([e])=>setSeen(e.isIntersecting&&e.intersectionRatio>=.5),{threshold:[0,.5,1]});io.observe(el);return()=>io.disconnect()},[]);
   useEffect(()=>{const el=v.current;if(!el)return;if(seen&&!paused)el.play().catch(()=>{});else el.pause()},[seen,paused]);
@@ -1284,7 +1310,7 @@ function FeedVideo({url,auto}){
   const stop=e=>e.stopPropagation();const [full,setFull]=useState(null);const tp=useRef({t:0,k:null});
   useEffect(()=>{if(full&&v.current)v.current.pause();else if(!full&&seen&&!paused&&v.current)v.current.play().catch(()=>{})},[full]);
   const tap=e=>{const now=Date.now();clearTimeout(tp.current.k);if(now-tp.current.t<300){tp.current.t=0;return}tp.current.t=now;tp.current.k=setTimeout(()=>setFull({at:v.current?v.current.currentTime:0}),300)};
-  return html`<div className="fv" onClick=${tap}>${full&&ReactDOM.createPortal(html`<${FullVideo} url=${url} at=${full.at} onClose=${at=>{setFull(null);if(v.current&&at!=null)v.current.currentTime=at}}/>`,document.body)}<video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
+  return html`<div className="fv" onClick=${tap}>${full&&ReactDOM.createPortal(html`<${FullVideo} url=${url} at=${full.at} p=${p} s=${s} dispatch=${dispatch} onClose=${at=>{setFull(null);if(v.current&&at!=null)v.current.currentTime=at}}/>`,document.body)}<video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
     ${left!=null&&isFinite(left)&&html`<span className="fv-time">${fmt(left)}</span>`}
     <div className="fv-btns" onDoubleClick=${stop} onClick=${stop}><button onClick=${e=>{stop(e);setPaused(!paused)}} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${14} fill=${paused?'#fff':null}/></button>
       <button onClick=${e=>{stop(e);setMuted(!muted)}} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${15}/></button></div>
@@ -1317,7 +1343,7 @@ function Post({p,s,dispatch,open}){
       <div className=${covered?'covered':''}>
         ${p.text&&html`<p className=${'p-text'+(!p.media&&p.text.length<90?' big':'')}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
         ${p.media&&html`<div className="media" onDoubleClick=${dbl}>
-            ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
+            ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver} p=${p} s=${s} dispatch=${dispatch}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
             ${p.media.gif&&html`<span className="gif-tag">GIF</span>`}
             ${burst>0&&Date.now()-burst<950&&html`<div className="burst" key=${burst}><svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P.flame}}></svg></div>`}
           </div>`}

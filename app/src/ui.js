@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Image, Animated, Easing, Modal, StyleSheet, KeyboardAvoidingView, Keyboard, Platform, ScrollView } from 'react-native';
+import { View, Text, Pressable, Image, Animated, Easing, Modal, StyleSheet, KeyboardAvoidingView, Keyboard, Platform, ScrollView, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -178,17 +178,32 @@ export function Sheet({ visible, onClose, title, right, children, full }) {
   useEffect(() => { const a = Keyboard.addListener('keyboardWillShow', () => setKb(true)), b = Keyboard.addListener('keyboardWillHide', () => setKb(false));
     const c = Keyboard.addListener('keyboardDidShow', () => setKb(true)), d = Keyboard.addListener('keyboardDidHide', () => setKb(false));
     return () => { a.remove(); b.remove(); c.remove(); d.remove(); }; }, []);
+  // light, quick dim that fades in while the sheet springs up; drag the top of the sheet down to close
+  const a = useRef(new Animated.Value(0)).current; const drag = useRef(new Animated.Value(0)).current; const closing = useRef(false);
+  useEffect(() => { Animated.spring(a, { toValue: 1, damping: 22, stiffness: 240, mass: 0.9, useNativeDriver: true }).start(); }, []);
+  const close = () => { if (closing.current) return; closing.current = true; Keyboard.dismiss();
+    Animated.timing(a, { toValue: 0, duration: 180, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => onClose()); };
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (e, d) => d.dy > 6 && Math.abs(d.dy) > Math.abs(d.dx),
+    onPanResponderMove: (e, d) => drag.setValue(Math.max(0, d.dy)),
+    onPanResponderRelease: (e, d) => { if (d.dy > 90 || d.vy > 0.8) close(); else Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); },
+  })).current;
+  const slide = Animated.add(a.interpolate({ inputRange: [0, 1], outputRange: [700, 0] }), drag);
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      {/* the dimmed area above the sheet always fills whatever space is left, so a tap there closes it (and the keyboard) */}
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.scrim }}>
-        <Pressable style={{ flex: 1, minHeight: full ? '6%' : '12%' }} onPress={() => { Keyboard.dismiss(); onClose(); }} accessibilityLabel="Close" />
-        <View {...tapAway} style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: kb ? 10 : ins.bottom + 16, flexShrink: 1 }}>
-          <View style={{ width: 38, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 }} />
-          {title ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
-            <T d style={{ fontSize: 19, letterSpacing: -0.6 }}>{title}</T>{right}</View> : null}
+    <Modal visible={visible} transparent animationType="none" onRequestClose={close}>
+      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: C.dark ? 'rgba(0,0,0,.28)' : 'rgba(10,10,10,.14)', opacity: a }} />
+      {/* the space above the sheet always closes it (and the keyboard) */}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <Pressable style={{ flex: 1, minHeight: full ? '6%' : '12%' }} onPress={close} accessibilityLabel="Close" />
+        <Animated.View {...tapAway} style={{ backgroundColor: C.card, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 18, paddingTop: 8, paddingBottom: kb ? 10 : ins.bottom + 16, flexShrink: 1,
+          shadowColor: '#000', shadowOpacity: C.dark ? 0.5 : 0.12, shadowRadius: 18, shadowOffset: { width: 0, height: -4 }, elevation: 16, transform: [{ translateY: slide }] }}>
+          <View {...pan.panHandlers}>
+            <View style={{ width: 38, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 }} />
+            {title ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
+              <T d style={{ fontSize: 19, letterSpacing: -0.6 }}>{title}</T>{right}</View> : null}
+          </View>
           {children}
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );

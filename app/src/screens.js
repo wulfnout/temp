@@ -40,21 +40,30 @@ export function HomeScreen() {
   const mine = s.stories.find((x) => x.userId === s.me);
   const others = s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]);
   const unseen = (st) => st.items.some((i) => !s.seen[i.id]);
-  const { uploading } = useApp();
+  const { uploading, bars, setBars } = useApp();
   const addStory = () => nav.sheet('recorder', { mode: 'story' });
+  const [hh, setHh] = useState(ins.top + 60); const lastY = useRef(0);
+  useEffect(() => () => setBars(false), []);
+  const onScroll = (e) => {
+    const y = e.nativeEvent.contentOffset.y + (Platform.OS === 'ios' ? hh : 0); const dy = y - lastY.current; lastY.current = y;
+    if (y < 40) setBars(false); else if (dy > 6) setBars(true); else if (dy < -6) setBars(false);
+  };
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
+      <Animated.View onLayout={(e) => setHh(e.nativeEvent.layout.height)} style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5, backgroundColor: C.bg, paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center',
+        transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, -hh] }) }] }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, flex: 1 }}>
           <T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6 }} /></View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <IconBtn name="heart-outline" label="Activity" badge={unreadN || null} onPress={() => nav.push('activity')} />
           <IconBtn name="chatbubble-ellipses-outline" label="Messages" badge={unreadDM || null} onPress={() => nav.push('dms')} />
         </View>
-      </View>
-      <FlatList showsVerticalScrollIndicator={false} data={posts} keyExtractor={(p) => String(p.id)} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}
+      </Animated.View>
+      <FlatList showsVerticalScrollIndicator={false} data={posts} keyExtractor={(p) => String(p.id)} onScroll={onScroll} scrollEventThrottle={16}
+        contentInset={Platform.OS === 'ios' ? { top: hh } : undefined} contentOffset={Platform.OS === 'ios' ? { x: 0, y: -hh } : undefined} scrollIndicatorInsets={{ top: hh }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130, paddingTop: Platform.OS === 'ios' ? 0 : hh }}
         onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-        refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.orange} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} />}
+        refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.orange} progressViewOffset={hh} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} />}
         ListHeaderComponent={
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 10 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 12 }}>
             <View style={{ alignItems: 'center', gap: 6 }}>
@@ -86,7 +95,7 @@ export function ReplayScreen({ startId }) {
   const onViewable = useRef(({ viewableItems }) => { const v = viewableItems[0]; if (v) { setActive(v.item.id); act.view(v.item.id); } }).current;
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <FlatList key={'reels-' + (startId || 'top')} data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} snapToInterval={H} decelerationRate="fast"
+      <FlatList key={'reels-' + (startId || 'top')} data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" snapToInterval={H} decelerationRate="fast"
         initialScrollIndex={reels.length ? startIndex : undefined} windowSize={3} maxToRenderPerBatch={2} initialNumToRender={2}
         getItemLayout={(_, i) => ({ length: H, offset: H * i, index: i })} onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
         ListEmptyComponent={<View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}><T b style={{ color: '#fff' }}>No Replays yet. Tap + to post one.</T></View>}
@@ -212,7 +221,7 @@ export function SearchScreen({ q: q0 }) {
           {q ? <Pressable onPress={() => setQ('')} accessibilityLabel="Clear"><Ionicons name="close" size={18} color={C.muted} /></Pressable> : null}
         </View>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }} keyboardShouldPersistTaps="handled">
         {!k ? <>
           <T d style={{ fontSize: 13, marginTop: 10, marginBottom: 6 }}>Hottest this week</T>
           <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14, paddingVertical: 4 }}>
@@ -268,7 +277,7 @@ export function ActivityScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Activity" back />
       <View style={{ paddingHorizontal: 16 }}><View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></View></View>
-      <FlatList showsVerticalScrollIndicator={false} data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
+      <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
         renderItem={({ item: n }) => { const u = s.users[n.userId] || {}; return (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, borderRadius: 20, marginBottom: 6 }}>
             <Pressable onPress={() => nav.push('profile', { id: u.id })}><Avatar u={u} size={44} />
@@ -295,7 +304,7 @@ export function DMListScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Messages" back />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
         {ids.length ? <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14 }}>
           {ids.map((id) => { const m = s.threads[id].slice(-1)[0]; return <Row key={id} u={s.users[id]} sub={last(m) + ' · ' + ago(Date.now() - m.at)} unread={s.unread[id]} />; })}</View> : null}
         {others.length ? <><T d style={{ fontSize: 13, marginTop: 20, marginBottom: 6 }}>Suggested</T>
@@ -317,7 +326,7 @@ export function ThreadScreen({ id }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
       <Header back title={u.name} right={<Pressable onPress={() => nav.push('profile', { id })}><Avatar u={u} size={36} /></Pressable>} />
-      <FlatList showsVerticalScrollIndicator={false} ref={list} data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: 16, gap: 4 }}
+      <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" ref={list} data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: 16, gap: 4 }}
         onContentSizeChange={() => list.current && list.current.scrollToEnd({ animated: false })}
         ListEmptyComponent={<Empty text={'Say hi to @' + u.handle} />}
         ListFooterComponent={seen ? <T b muted style={{ alignSelf: 'flex-end', fontSize: 12, marginTop: 2 }}>Seen</T> : null}

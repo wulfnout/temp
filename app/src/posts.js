@@ -109,7 +109,7 @@ export function CommentsSheet({ id, onClose }) {
   const send = () => { if (!t.trim()) return; const v = t.trim(); setT(''); run(() => act.comment(p.id, v)); };
   return (
     <Sheet visible onClose={onClose} title="Comments" full>
-      <FlatList showsVerticalScrollIndicator={false} data={list} keyExtractor={(c) => String(c.id)} style={{ maxHeight: 420 }} ListEmptyComponent={<Empty text="No comments yet" />}
+      <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={list} keyExtractor={(c) => String(c.id)} style={{ maxHeight: 420 }} ListEmptyComponent={<Empty text="No comments yet" />}
         renderItem={({ item: c }) => { const u = s.users[c.userId] || {}; return (
           <View style={{ flexDirection: 'row', gap: 10, paddingVertical: 9 }}>
             <Pressable onPress={() => { onClose(); nav.push('profile', { id: c.userId }); }}><Avatar u={u} size={34} /></Pressable>
@@ -144,7 +144,7 @@ export function ShareSheet({ post, onClose }) {
   const people = Object.values(s.users).filter((u) => u.id !== s.me && !s.blocked[u.id]).sort((a, b) => b.following - a.following);
   return (
     <Sheet visible onClose={onClose} title="Send to">
-      <FlatList showsVerticalScrollIndicator={false} data={people} keyExtractor={(u) => u.id} style={{ maxHeight: 460 }} ListEmptyComponent={<Empty text="Nobody to send to yet" />}
+      <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={people} keyExtractor={(u) => u.id} style={{ maxHeight: 460 }} ListEmptyComponent={<Empty text="Nobody to send to yet" />}
         renderItem={({ item: u }) => (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 }}>
             <Avatar u={u} size={44} /><View style={{ flex: 1 }}><T h>{u.name}</T><T muted style={{ fontSize: 13 }}>@{u.handle}</T></View>

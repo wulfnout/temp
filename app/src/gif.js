@@ -44,7 +44,7 @@ export function GifPicker({ onPick, onClose }) {
         </View>
         {onClose ? <Pressable onPress={onClose} accessibilityLabel="Close GIFs" hitSlop={8} style={{ padding: 4 }}><Ionicons name="close" size={20} color={C.muted} /></Pressable> : null}
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {cols.map((col, i) => (
             <View key={i} style={{ flex: 1, gap: 6 }}>

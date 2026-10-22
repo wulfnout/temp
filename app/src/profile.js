@@ -27,7 +27,7 @@ export function ProfileScreen({ id, isTab }) {
   const setStickers = (next) => run(() => act.profileStickers(s.me, next));
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingBottom: 110 }}>
         <View style={{ backgroundColor: C.card, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, paddingHorizontal: 16, paddingBottom: 18 }}>
           <View style={{ height: 180 + ins.top, marginHorizontal: -16, overflow: 'hidden' }}>
             {u.header && !fx ? <Image source={{ uri: u.header }} style={{ width: '100%', height: '100%' }} /> :
@@ -91,7 +91,7 @@ function EditProfile({ onClose }) {
   const save = async () => { setBusy(true); const ok = await run(() => act.profile(s.me, { name: name.trim(), bio: bio.trim(), handle: handle.trim().replace(/^@/, '') !== me.handle ? handle.trim().replace(/^@/, '') : undefined, avatar, header }), { toast: 'Saved' }); setBusy(false); if (ok) onClose(); };
   return (
     <Sheet visible onClose={onClose} title="Edit profile" full right={<Btn small kind="orange" title={busy ? 'Saving…' : 'Save'} disabled={busy || !name.trim() || !handle.trim()} onPress={save} />}>
-      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" keyboardShouldPersistTaps="handled">
         <Pressable onPress={async () => { const a = await pickMedia('image'); if (a) setHeader(a); }} style={{ height: 120, borderRadius: 22, overflow: 'hidden' }} accessibilityLabel="Change header">
           {header || me.header ? <Image source={{ uri: (header && header.uri) || me.header }} style={{ width: '100%', height: '100%' }} /> : <LinearGradient colors={[C.orange, C.orange2, '#0a0a0a']} style={{ flex: 1 }} />}
           <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,.3)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="camera" size={24} color="#fff" /></View>
@@ -123,7 +123,7 @@ export function SettingsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Settings" back />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
         <Group>
           <Item icon="star-outline" label="Temp+" val="Coming soon" />
           <Item icon="flame-outline" label="Fire Sale" val={kfmt(s.priv.points) + ' pts'} onPress={() => nav.push('shop')} />
@@ -178,7 +178,7 @@ export function ShopScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Fire Sale" back />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
         <LinearGradient colors={['#0a0a0a', '#3a1204']} style={{ borderRadius: 28, padding: 20 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Ionicons name="flame" size={30} color="#ff5500" /><T d style={{ color: '#fff', fontSize: 30, letterSpacing: -1.5 }}>Fire Sale</T></View>
           <T b style={{ color: 'rgba(255,255,255,.7)', marginTop: 12, fontSize: 13 }}>Your points</T>
@@ -349,7 +349,7 @@ export function StoryViewer({ userId, onClose }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
               <T h style={{ color: '#fff', flex: 1 }}>{comments.length ? comments.length + (comments.length === 1 ? ' comment' : ' comments') : 'No comments yet'}</T>
               <Pressable onPress={() => setPanel(false)} hitSlop={10} accessibilityLabel="Hide comments"><Ionicons name="close" size={18} color="#fff" /></Pressable></View>
-            <ScrollView showsVerticalScrollIndicator={false}>{comments.map((c) => { const cu = s.users[c.userId] || {}; return (
+            <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never">{comments.map((c) => { const cu = s.users[c.userId] || {}; return (
               <View key={c.id} style={{ flexDirection: 'row', gap: 8, paddingVertical: 5 }}><Avatar u={cu} size={28} />
                 <View style={{ flex: 1 }}><T style={{ color: '#fff', fontSize: 14 }}><T h style={{ color: '#fff', fontSize: 14 }}>{cu.handle} </T>{c.text}</T></View></View>); })}</ScrollView>
           </View> : null}

@@ -79,7 +79,7 @@ export function StickerPicker({ onPick }) {
   const owned = (s.priv.owned && s.priv.owned.stickers) || { basic: 1 };
   const packs = [...(s.priv.custom && s.priv.custom.length ? [['Yours', s.priv.custom]] : []), ...Object.keys(STICKER_PACKS).filter((k) => owned[k]).map((k) => [k, STICKER_PACKS[k]])];
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 220, backgroundColor: C.soft, borderRadius: 18, marginTop: 8 }} contentContainerStyle={{ padding: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+    <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" style={{ maxHeight: 220, backgroundColor: C.soft, borderRadius: 18, marginTop: 8 }} contentContainerStyle={{ padding: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
       {packs.map(([name, items]) => (
         <React.Fragment key={name}>
           <T b muted style={{ width: '100%', fontSize: 12, textTransform: 'capitalize' }}>{name}</T>

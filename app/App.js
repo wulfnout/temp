@@ -96,7 +96,12 @@ function Root() {
     await run(() => act.story(s.me, asset, caption), { toast: 'Your story is up' });
     setUploading(false);
   }
-  const ctx = { s, C, run, nav, reload, uploading, postStory };
+  // home feed hides the header and tab bar while scrolling down
+  const bars = useRef(new Animated.Value(0)).current; const barsHidden = useRef(false);
+  const setBars = useCallback((hide) => { if (barsHidden.current === hide) return; barsHidden.current = hide;
+    Animated.timing(bars, { toValue: hide ? 1 : 0, duration: 200, useNativeDriver: true }).start(); }, []);
+  const [tabH, setTabH] = useState(90);
+  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars };
 
   if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;
@@ -119,13 +124,16 @@ function Root() {
   };
   const current = top || tab;
   const dark = current.name === 'replay';
+  const onHome = current.name === 'home';
 
   return (
     <Ctx.Provider value={ctx}>
       <StatusBar style={dark || C.dark ? 'light' : 'dark'} />
       <View style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={{ flex: 1 }}>{screen(current)}</View>
-        {current.name !== 'thread' ? <TabBar tab={tab.name} stacked={!!top} dark={dark} onTab={(n) => (n === 'compose' ? nav.sheet('compose', { reel: tab.name === 'replay' }) : nav.tab(n))} /> : null}
+        {current.name !== 'thread' ? <Animated.View onLayout={(e) => setTabH(e.nativeEvent.layout.height)}
+          style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : null}>
+          <TabBar tab={tab.name} stacked={!!top} dark={dark} onTab={(n) => { setBars(false); return n === 'compose' ? nav.sheet('compose', { reel: tab.name === 'replay' }) : nav.tab(n); }} /></Animated.View> : null}
       </View>
       {sheet && sheet.name === 'compose' ? <Composer reel={sheet.params.reel} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'comments' ? <CommentsSheet id={sheet.params.id} onClose={() => setSheet(null)} /> : null}

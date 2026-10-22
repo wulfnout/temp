@@ -11,6 +11,7 @@ import { act } from './data';
 import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
 
 import { HEADER_FX, HeaderFx } from './fx';
+import { AshBurn } from './ash';
 
 export function ProfileScreen({ id, isTab }) {
   const { s, C, nav, run } = useApp(); const ins = useSafeAreaInsets();
@@ -268,7 +269,8 @@ export function StoryDraft({ asset, onClose }) {
 }
 
 export function StoryViewer({ userId, onClose }) {
-  const { s, C, run, nav } = useApp(); const ins = useSafeAreaInsets();
+  const { s, C, run, nav, reload } = useApp(); const ins = useSafeAreaInsets();
+  const [burning, setBurning] = useState(null);
   const order = [...(s.stories.find((x) => x.userId === s.me) ? [s.me] : []), ...s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]).map((x) => x.userId)];
   const [ui, setUi] = useState(Math.max(0, order.indexOf(userId))); const [ii, setIi] = useState(0);
   const [text, setText] = useState(''); const [picker, setPicker] = useState(false); const [panel, setPanel] = useState(false);
@@ -279,7 +281,7 @@ export function StoryViewer({ userId, onClose }) {
   const prev = () => { if (ii > 0) setIi(ii - 1); else if (ui > 0) { setUi(ui - 1); setIi(0); } };
   const [hold, setHold] = useState(0); // seconds left while holding to pause
   const player = useRef(null); const drag = useRef(new Animated.Value(0)).current;
-  const paused = picker || panel || text.length > 0 || hold > 0;
+  const paused = picker || panel || text.length > 0 || hold > 0 || !!burning;
   const restart = () => { anim.current && anim.current.stop(); prog.setValue(0); if (!paused) startAnim(0);
     try { if (player.current) { player.current.currentTime = 0; player.current.play(); } } catch (e) {} };
   // hold to pause, up to 15 seconds with a countdown in the middle
@@ -329,12 +331,24 @@ export function StoryViewer({ userId, onClose }) {
       <Animated.View style={{ flex: 1, transform: [{ translateY: drag.interpolate({ inputRange: [-1, 0, 2000], outputRange: [0, 0, 2000] }) }] }}>
       <KeyboardAvoidingView {...tapAway} behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
         {item.type === 'video' ? <Video key={item.id} uri={item.url} style={{ flex: 1 }} controls={false} autoPlay playerRef={player} /> : <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />}
+        {burning === item.id ? <AshBurn onDone={async () => {
+          const id = burning; setBurning(null); onClose();
+          try { const left = await act.burnStory(id); nav.toast('Story burned · ' + left + ' burn' + (left === 1 ? '' : 's') + ' left this week'); } catch (e) { nav.toast(friendly(e)); }
+          reload();
+        }} /> : null}
         <View style={{ position: 'absolute', top: ins.top + 8, left: 12, right: 12, flexDirection: 'row', gap: 4 }}>
           {st.items.map((it, i) => <View key={it.id} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,.3)', overflow: 'hidden' }}>
             <Animated.View style={{ height: 3, backgroundColor: '#fff', width: i < ii ? '100%' : i === ii ? prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) : '0%' }} /></View>)}
         </View>
         <View style={{ position: 'absolute', top: ins.top + 22, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Avatar u={u} size={32} /><T h style={{ color: '#fff', flex: 1 }}>{u.handle}  <T style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>{ago(Date.now() - item.at)}</T></T>
+          {mine ? <Pressable onPress={() => {
+            const n = s.storyBurns == null ? 3 : s.storyBurns;
+            if (n <= 0) { nav.toast('You’ve used your 3 story burns this week'); return; }
+            Alert.alert('Burn this story?', 'It burns to ash right now instead of waiting out its 24 hours. Free — ' + n + ' of 3 burns left this week.', [
+              { text: 'Cancel', style: 'cancel' }, { text: 'Burn it', style: 'destructive', onPress: () => setBurning(item.id) }]);
+          }} accessibilityLabel="Burn this story" hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(0,0,0,.35)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }}>
+            <Ionicons name="flame" size={15} color="#ff5500" /><T h style={{ color: '#fff', fontSize: 12 }}>{s.storyBurns == null ? 3 : s.storyBurns}</T></Pressable> : null}
           <Pressable onPress={onClose} accessibilityLabel="Close" hitSlop={12}><Ionicons name="close" size={26} color="#fff" /></Pressable>
         </View>
         <View {...pan.panHandlers} style={{ position: 'absolute', left: 0, right: 0, top: 100, bottom: 160 }} accessible accessibilityLabel="Story. Tap left to replay, tap right for next, hold to pause, swipe down to close" />

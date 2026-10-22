@@ -57,6 +57,11 @@ function Root() {
     if (again.current) { again.current = false; reload(); }
   }, [myId]);
 
+  // stories disappear 24 hours after they're posted, even while the app stays open
+  useEffect(() => { const t = setInterval(() => setS((x) => {
+    const fresh = x.stories.map((g) => ({ ...g, items: g.items.filter((i) => Date.now() - i.at < 864e5) })).filter((g) => g.items.length);
+    return fresh.reduce((n, g) => n + g.items.length, 0) === x.stories.reduce((n, g) => n + g.items.length, 0) ? x : { ...x, stories: fresh };
+  }), 30000); return () => clearInterval(t); }, []);
   // refresh when coming back to the app
   useEffect(() => { const sub = AppState.addEventListener('change', (st) => { if (st === 'active') reload(); }); return () => sub.remove(); }, [reload]);
 

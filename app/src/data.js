@@ -8,7 +8,7 @@ export const EMPTY = {
 };
 
 export async function loadAll(myId) {
-  const [profiles, follows, blocks, posts, reacts, saves, stories, sviews, msgs, notifs, privRows, week, shop, deals, reposts] = await Promise.all([
+  const [profiles, follows, blocks, posts, reacts, saves, stories, sviews, msgs, notifs, privRows, week, shop, deals, reposts, storyBurns] = await Promise.all([
     q(sb.from('profiles').select('*').limit(5000)),
     q(sb.from('follows').select('follower,followee').limit(20000)),
     q(sb.from('blocks').select('blocked')),
@@ -24,6 +24,7 @@ export async function loadAll(myId) {
     q(sb.from('shop_items').select('*')),
     q(sb.rpc('deals_today')).catch(() => []),
     q(sb.from('reposts').select('user_id,post_id,created_at').order('created_at', { ascending: false }).limit(20000)),
+    q(sb.rpc('story_burns_left')).catch(() => 3),
   ]);
   const ids = posts.map((p) => p.id);
   const comments = ids.length ? await q(sb.from('comments').select('*').in('post_id', ids).order('created_at').limit(5000)) : [];
@@ -80,7 +81,7 @@ export async function loadAll(myId) {
   const N = notifs.filter((n) => users[n.actor_id || n.user_id]).map((n) => ({ id: n.id, type: n.type, userId: n.actor_id || n.user_id, text: n.text || '', at: +new Date(n.created_at), read: n.read, postId: n.post_id }));
   const weekMap = {}; week.forEach((w) => (weekMap[w.user_id] = w));
   const priv = privRows[0] || EMPTY.priv;
-  return { me: myId, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
+  return { me: myId, storyBurns: typeof storyBurns === 'number' ? storyBurns : 3, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
     priv: { ...EMPTY.priv, ...priv, settings: priv.settings || {}, custom: priv.custom || [], owned: priv.owned || EMPTY.priv.owned }, week: weekMap, shop, deals, loaded: true };
 }
 
@@ -101,6 +102,7 @@ export const act = {
   comment: (postId, text, sticker) => ok(sb.from('comments').insert({ post_id: postId, text: text || '', sticker: sticker || null })),
   likeComment: (cid, liked, me) => (liked ? ok(sb.from('comment_likes').delete().eq('comment_id', cid).eq('user_id', me)) : ok(sb.from('comment_likes').insert({ comment_id: cid }))),
   follow: (uid, following, me) => (following ? ok(sb.from('follows').delete().eq('follower', me).eq('followee', uid)) : ok(sb.from('follows').insert({ followee: uid }))),
+  burnStory: async (id) => { const { data, error } = await sb.rpc('burn_story', { sid: id }); if (error) throw new Error(error.message); return data; },
   async story(me, asset, caption) { const url = await upload(me, asset); return ok(sb.from('stories').insert({ media_url: url, media_type: asset.type === 'video' ? 'video' : 'image', caption: caption || '' })); },
   storyComment: (id, text) => ok(sb.from('story_comments').insert({ story_id: id, text })),
   storyReact: (id, emoji, current, me) => (current === emoji

@@ -2108,6 +2108,11 @@ document.addEventListener('pointerup',e=>{const a=document.activeElement;if(!a||
     const r=seg.getBoundingClientRect();const y=r.top+r.height/2;const x=Math.max(r.left+6,Math.min(r.right-6,e.clientX));
     const b=document.elementFromPoint(x,y);const btn=b&&b.closest&&b.closest('.seg button');if(btn&&btn!==last&&seg.contains(btn)){last=btn;btn.click()}},true);
   const end=()=>{seg=null};document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);})();
+// swipe in from the left edge to go back (presses the page's Back button)
+(()=>{let st=null;
+  document.addEventListener('touchstart',e=>{const t=e.touches[0];st=t.clientX<32&&!document.querySelector('.scrim,.sv,.fullv')?{x:t.clientX,y:t.clientY}:null},{passive:true});
+  document.addEventListener('touchend',e=>{if(!st)return;const t=e.changedTouches[0];const dx=t.clientX-st.x,dy=t.clientY-st.y;st=null;
+    if(dx>80&&Math.abs(dx)>Math.abs(dy)*1.5){const b=document.querySelector('.top button[aria-label="Back"], .header-img button[aria-label="Back"], button[aria-label="Back"]');if(b)b.click()}},{passive:true});})();
 function BarsOnScroll({on}){
   useEffect(()=>{const b=document.body;if(!on){b.classList.remove('bars-off');return}
     let last=scrollY;const f=()=>{const y=scrollY,dy=y-last;last=y;if(y<40)b.classList.remove('bars-off');else if(dy>6)b.classList.add('bars-off');else if(dy<-6)b.classList.remove('bars-off')};

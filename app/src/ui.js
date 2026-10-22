@@ -215,7 +215,7 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
   const { C } = useApp();
   const n = items.length; const idx = Math.max(0, items.findIndex(([k]) => k === value));
   const [w, setW] = useState(0); const seg = w ? (w - 8) / n : 0;
-  const x = useRef(new Animated.Value(0)).current; const [hover, setHover] = useState(null);
+  const x = useRef(new Animated.Value(0)).current; const [hover, setHover] = useState(null); const bar = useRef(null);
   const st = useRef({}); st.current = { seg, idx, n, items, onChange, w };
   useEffect(() => { if (seg) Animated.spring(x, { toValue: idx * seg, damping: 20, stiffness: 260, useNativeDriver: true }).start(); }, [idx, seg]);
   const at = (px) => { const k = st.current; return Math.max(0, Math.min(k.n - 1, Math.floor((px - 4) / (k.seg || 1)))); };
@@ -223,7 +223,8 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponderCapture: (e, d) => Math.abs(d.dx) > 6 && Math.abs(d.dx) > Math.abs(d.dy),
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: (e) => { st.current.start = e.nativeEvent.locationX; st.current.moved = false; },
+    onPanResponderGrant: (e) => { const k = st.current; k.startPage = e.nativeEvent.pageX; k.moved = false; k.barX = null;
+      try { bar.current.measureInWindow((bx) => { k.barX = bx; }); } catch (err) {} },
     onPanResponderMove: (e, d) => {
       const k = st.current; if (Math.abs(d.dx) > 4) k.moved = true; if (!k.moved) return;
       const pos = Math.max(0, Math.min((k.n - 1) * k.seg, k.idx * k.seg + d.dx)); x.setValue(pos);
@@ -231,7 +232,7 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
     },
     onPanResponderRelease: (e, d) => {
       const k = st.current; let to;
-      if (!k.moved) to = at(k.start); else to = Math.max(0, Math.min(k.n - 1, Math.round((k.idx * k.seg + d.dx) / (k.seg || 1))));
+      if (!k.moved) { if (k.barX == null) return; to = at(k.startPage - k.barX); } else to = Math.max(0, Math.min(k.n - 1, Math.round((k.idx * k.seg + d.dx) / (k.seg || 1))));
       k.hover = null; setHover(null);
       Animated.spring(x, { toValue: to * k.seg, damping: 20, stiffness: 260, useNativeDriver: true }).start();
       if (to !== k.idx) k.onChange(k.items[to][0]);
@@ -239,7 +240,7 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
   })).current;
   const on = hover != null ? hover : idx;
   return (
-    <View {...pan.panHandlers} onLayout={(e) => setW(e.nativeEvent.layout.width)} accessibilityRole="tablist"
+    <View ref={bar} {...pan.panHandlers} onLayout={(e) => setW(e.nativeEvent.layout.width)} accessibilityRole="tablist"
       style={[{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4 }, style]}>
       {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 999, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
       {items.map(([k, l], i) => (

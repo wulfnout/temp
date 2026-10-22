@@ -5,15 +5,22 @@ import { View, Animated, Easing, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
+// Shared clocks. React Native stops a value's animation when the last view using it goes away
+// (e.g. leaving the shop), so each clock notes when it stopped and gets restarted as soon as
+// anything uses it again — on render, after mount, and by a light safety check every second.
 const clocks = {};
-export function clock(ms) {
-  if (!clocks[ms]) {
-    const v = new Animated.Value(0);
-    Animated.loop(Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: true })).start();
-    clocks[ms] = v;
-  }
-  return clocks[ms];
+function run(c) {
+  const id = (c.gen = (c.gen || 0) + 1); c.running = true;
+  Animated.loop(Animated.timing(c.v, { toValue: 1, duration: c.ms, easing: Easing.linear, useNativeDriver: true })).start(() => { if (c.gen === id) c.running = false; });
 }
+export function kickClocks() { Object.values(clocks).forEach((c) => { if (!c.running) { c.v.setValue(0); run(c); } }); }
+setInterval(kickClocks, 1000);
+export function clock(ms) {
+  if (!clocks[ms]) { clocks[ms] = { v: new Animated.Value(0), ms, running: false }; run(clocks[ms]); }
+  else if (!clocks[ms].running) run(clocks[ms]);
+  return clocks[ms].v;
+}
+export function useClockKick() { React.useEffect(() => { const t = setTimeout(kickClocks, 50); return () => clearTimeout(t); }, []); }
 // deterministic pseudo-random so effects look the same every render
 function rng(seed) { let x = seed * 9301 + 49297; return () => { x = (x * 9301 + 49297) % 233280; return x / 233280; }; }
 
@@ -37,6 +44,7 @@ const clamp01 = (v) => v.interpolate({ inputRange: [0, 1], outputRange: [0, 1], 
 
 /* ---------------- rings ---------------- */
 export function FireRing({ size, children, bg }) {
+  useClockKick();
   const c = clock(900), slow = clock(2400);
   const n = size < 40 ? 7 : size < 70 ? 10 : 14;
   const fs = Math.max(8, size * 0.26), r = size / 2 - fs * 0.32;
@@ -67,6 +75,7 @@ export function FireRing({ size, children, bg }) {
 }
 
 export function GlitchRing({ size, children, bg }) {
+  useClockKick();
   const c = clock(1100), c2 = clock(1700);
   const bw = Math.max(2, size * 0.06);
   const ring = (color, dx, dy, op) => <Animated.View pointerEvents="none" style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: bw, borderColor: color, opacity: op,
@@ -149,6 +158,7 @@ function Waves() {
 }
 
 export function HeaderFx({ id, fallback }) {
+  useClockKick();
   const cols = HEADER_FX[id] || fallback;
   const base = <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={fill} />;
   let fx = null;

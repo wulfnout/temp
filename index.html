@@ -270,7 +270,9 @@ img,video{max-width:100%;display:block}
 .shared img,.shared video{max-height:200px;object-fit:cover;width:100%}
 .shared .sh-body{padding:10px 14px;display:grid;gap:4px;font-weight:500}
 .shared .sh-by{font-size:12px;color:var(--muted);font-weight:800}
-.dm-input{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom,0px));background:var(--bg);padding-block:8px}
+.dm-input{position:fixed;left:0;right:0;bottom:calc(63px + env(safe-area-inset-bottom,0px));z-index:30;max-width:560px;margin:0 auto;background:var(--bg);padding:8px max(16px,env(safe-area-inset-left,0px));max-height:70dvh;overflow:auto}
+.bars-off .dm-input{bottom:env(safe-area-inset-bottom,0px)}
+.msgs{padding-bottom:84px}
 .dm-input .inputbar{background:var(--card)}
 
 /* story viewer */

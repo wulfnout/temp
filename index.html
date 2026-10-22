@@ -578,7 +578,17 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
-.fv{position:relative;background:#000}.fv video{width:100%;max-height:600px;object-fit:cover;display:block}
+.fv{position:relative;background:#000;aspect-ratio:16/9;cursor:pointer}.fv video{width:100%;height:100%;max-height:none!important;object-fit:contain!important;display:block}
+.fullv{position:fixed;inset:0;z-index:150;background:#000;cursor:default}
+.fullv-box{position:absolute;left:50%;top:50%;width:100vw;height:100dvh;transform:translate(-50%,-50%)}
+.fullv-box.land{width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
+.fullv-box video{width:100%;height:100%;object-fit:contain}
+.fullv-ui{position:absolute;inset:0;pointer-events:none}.fullv-ui>*{pointer-events:auto}
+.fullv-top{position:absolute;top:max(14px,env(safe-area-inset-top,0px));left:16px;right:16px;display:flex;justify-content:space-between}
+.fullv-top button,.fullv-bar button{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center}
+.fullv-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center}
+.fullv-bar{position:absolute;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:12px;color:#fff;font-size:12.5px;font-variant-numeric:tabular-nums}
+.fullv-bar input{flex:1;accent-color:#ff5500}
 .fv-time{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:3px 8px;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
 .fv-btns{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}.fv-btns button{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}
 .fv-big{position:absolute;inset:0;margin:auto;width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;pointer-events:none}
@@ -1222,16 +1232,36 @@ function AshBurn({onDone}){
     <div className="ash-char"></div><div className="ash-flakes"><${Flakes} n=${90} seed=${3} from=${.1} embers=${.25}/></div></div>`;
 }
 // feed video, Twitter-style: muted autoplay while on screen, loops, own little controls (no browser HUD)
+function FullVideo({url,at,onClose}){
+  const v=useRef();const [land,setLand]=useState(innerHeight>innerWidth);const [ui,setUi]=useState(true);const [paused,setPaused]=useState(false);const [muted,setMuted]=useState(false);const [t,setT]=useState(at||0);const [dur,setDur]=useState(0);
+  useEffect(()=>{const el=v.current;if(!el)return;el.currentTime=at||0;el.muted=false;el.play().catch(()=>{el.muted=true;setMuted(true);el.play().catch(()=>{})})},[]);
+  useEffect(()=>{const el=v.current;if(el){paused?el.pause():el.play().catch(()=>{})}},[paused]);
+  useEffect(()=>{if(v.current)v.current.muted=muted},[muted]);
+  useEffect(()=>{if(!ui||paused)return;const k=setTimeout(()=>setUi(false),2800);return()=>clearTimeout(k)},[ui,paused]);
+  useEffect(()=>{const k=e=>{if(e.key==='Escape')close()};addEventListener('keydown',k);return()=>removeEventListener('keydown',k)});
+  const close=()=>onClose(v.current?v.current.currentTime:null);const fmt=x=>{x=Math.max(0,Math.round(x||0));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};
+  const stop=e=>e.stopPropagation();
+  return html`<div className="fullv" onClick=${stop} role="dialog" aria-label="Video"><div className=${'fullv-box'+(land?' land':'')} onClick=${()=>setUi(!ui)}>
+    <video ref=${v} src=${url} playsInline loop onTimeUpdate=${e=>{setT(e.target.currentTime);setDur(e.target.duration||0)}}></video>
+    ${ui&&html`<div className="fullv-ui" onClick=${stop}>
+      <div className="fullv-top"><button onClick=${close} aria-label="Close"><${Icon} n="x" s=${22}/></button><button onClick=${()=>setLand(!land)} aria-label=${land?'Turn upright':'Turn sideways'}><${Icon} n="replay" s=${20}/></button></div>
+      <button className="fullv-play" onClick=${()=>setPaused(!paused)} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${30} fill=${paused?'#fff':null}/></button>
+      <div className="fullv-bar"><b>${fmt(t)}</b><input type="range" min="0" max=${dur||1} step="0.1" value=${t} aria-label="Seek" onInput=${e=>{const x=+e.target.value;if(v.current)v.current.currentTime=x;setT(x)}}/><b>${fmt(dur)}</b>
+        <button onClick=${()=>setMuted(!muted)} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${20}/></button></div></div>`}
+  </div></div>`;
+}
 function FeedVideo({url,auto}){
   const v=useRef();const [muted,setMuted]=useState(true);const [paused,setPaused]=useState(!auto);const [left,setLeft]=useState(null);const [seen,setSeen]=useState(false);
   useEffect(()=>{const el=v.current;if(!el)return;const io=new IntersectionObserver(([e])=>setSeen(e.isIntersecting&&e.intersectionRatio>=.5),{threshold:[0,.5,1]});io.observe(el);return()=>io.disconnect()},[]);
   useEffect(()=>{const el=v.current;if(!el)return;if(seen&&!paused)el.play().catch(()=>{});else el.pause()},[seen,paused]);
   useEffect(()=>{if(v.current)v.current.muted=muted},[muted]);
   const fmt=t=>{t=Math.max(0,Math.round(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
-  const stop=e=>e.stopPropagation();
-  return html`<div className="fv"><video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
+  const stop=e=>e.stopPropagation();const [full,setFull]=useState(null);const tp=useRef({t:0,k:null});
+  useEffect(()=>{if(full&&v.current)v.current.pause();else if(!full&&seen&&!paused&&v.current)v.current.play().catch(()=>{})},[full]);
+  const tap=e=>{const now=Date.now();clearTimeout(tp.current.k);if(now-tp.current.t<300){tp.current.t=0;return}tp.current.t=now;tp.current.k=setTimeout(()=>setFull({at:v.current?v.current.currentTime:0}),300)};
+  return html`<div className="fv" onClick=${tap}>${full&&ReactDOM.createPortal(html`<${FullVideo} url=${url} at=${full.at} onClose=${at=>{setFull(null);if(v.current&&at!=null)v.current.currentTime=at}}/>`,document.body)}<video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
     ${left!=null&&isFinite(left)&&html`<span className="fv-time">${fmt(left)}</span>`}
-    <div className="fv-btns" onDoubleClick=${stop}><button onClick=${e=>{stop(e);setPaused(!paused)}} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${14} fill=${paused?'#fff':null}/></button>
+    <div className="fv-btns" onDoubleClick=${stop} onClick=${stop}><button onClick=${e=>{stop(e);setPaused(!paused)}} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${14} fill=${paused?'#fff':null}/></button>
       <button onClick=${e=>{stop(e);setMuted(!muted)}} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${15}/></button></div>
     ${paused&&html`<span className="fv-big" aria-hidden="true"><${Icon} n="play" s=${26} fill="#fff"/></span>`}</div>`;
 }

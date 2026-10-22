@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { View, Pressable, Image, TextInput, Animated, Alert, FlatList } from 'react-native';
+import { View, Pressable, Image, TextInput, Animated, Alert, FlatList, Modal, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AshBurn } from './ash';
 import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
 import { ago, kfmt, F } from './lib';
@@ -37,26 +38,33 @@ export function RichText({ text, style, onTag }) {
     ? <T key={i} b style={[style, { color: C.orange, fontFamily: F.bold }]} onPress={() => onTag && onTag(t)}>{t}</T> : t)}</T>;
 }
 
-// Feed video, Twitter-style: plays muted on its own while on screen, loops, no system controls.
-// Small time-left pill bottom-left, play/pause and sound buttons bottom-right.
-function fmt(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
-export function FeedVideo({ uri, active = true }) {
-  const { C } = useApp();
-  const [muted, setMuted] = useState(true); const [paused, setPaused] = useState(false); const [left, setLeft] = useState(null); const [ar, setAr] = useState(1);
+// Feed video, Twitter-style: landscape 16:9 frame, plays muted on its own while on screen, loops, no system controls.
+// Tap opens it full screen; double tap still heats the post.
+function fmt(t) { t = Math.max(0, Math.round(t || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+export function FeedVideo({ uri, active = true, onHeat }) {
+  const [muted, setMuted] = useState(true); const [paused, setPaused] = useState(false); const [left, setLeft] = useState(null); const [ar, setAr] = useState(16 / 9);
+  const [full, setFull] = useState(null); const taps = useRef({ t: 0, timer: null });
   const player = useVideoPlayer(uri, (p) => { p.loop = true; p.muted = true; });
   React.useEffect(() => {
     try { player.timeUpdateEventInterval = 0.5; } catch (e) {}
     const a = player.addListener('timeUpdate', ({ currentTime }) => { const d = player.duration; if (d) setLeft(d - currentTime); });
-    const b = player.addListener('sourceLoad', (ev) => { const t = ev && ev.availableVideoTracks && ev.availableVideoTracks[0]; const sz = t && t.size;
-      if (sz && sz.width && sz.height) setAr(Math.max(0.8, Math.min(16 / 9, sz.width / sz.height))); });
+    const b = player.addListener('sourceLoad', (ev) => { const t = ev && ev.availableVideoTracks && ev.availableVideoTracks[0]; const sz = t && t.size; if (sz && sz.width && sz.height) setAr(sz.width / sz.height); });
     return () => { a.remove(); b.remove(); };
   }, [player]);
-  React.useEffect(() => { try { if (active && !paused) player.play(); else player.pause(); } catch (e) {} }, [active, paused, player]);
+  React.useEffect(() => { try { if (active && !paused && !full) player.play(); else player.pause(); } catch (e) {} }, [active, paused, full, player]);
   React.useEffect(() => { try { player.muted = muted; } catch (e) {} }, [muted, player]);
+  const tap = () => {
+    const now = Date.now(); clearTimeout(taps.current.timer);
+    if (now - taps.current.t < 280) { taps.current.t = 0; onHeat && onHeat(); return; }
+    taps.current.t = now;
+    taps.current.timer = setTimeout(() => { let at = 0; try { at = player.currentTime || 0; } catch (e) {} setFull({ at }); }, 280);
+  };
   const chip = { backgroundColor: 'rgba(0,0,0,.6)', borderRadius: 999, alignItems: 'center', justifyContent: 'center' };
   return (
-    <View style={{ width: '100%', aspectRatio: ar, backgroundColor: '#000' }}>
-      <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} pointerEvents="none" />
+    <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}>
+      <Pressable onPress={tap} style={{ flex: 1 }} accessibilityLabel="Open video full screen">
+        <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
+      </Pressable>
       {left != null ? <View pointerEvents="none" style={[chip, { position: 'absolute', left: 10, bottom: 10, paddingHorizontal: 8, paddingVertical: 3 }]}>
         <T h style={{ color: '#fff', fontSize: 11.5, fontVariant: ['tabular-nums'] }}>{fmt(left)}</T></View> : null}
       <View style={{ position: 'absolute', right: 10, bottom: 10, flexDirection: 'row', gap: 6 }}>
@@ -67,7 +75,59 @@ export function FeedVideo({ uri, active = true }) {
       </View>
       {paused ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
         <View style={[chip, { width: 58, height: 58 }]}><Ionicons name="play" size={26} color="#fff" /></View></View> : null}
+      {full ? <FullVideo uri={uri} start={full.at} ar={ar} onClose={(at) => { setFull(null); try { if (at != null) player.currentTime = at; } catch (e) {} }} /> : null}
     </View>
+  );
+}
+
+// Full-screen player: sound on, sideways (landscape) by default, tap to show/hide controls.
+function FullVideo({ uri, start, ar, onClose }) {
+  const ins = useSafeAreaInsets(); const { width: W, height: H } = Dimensions.get('window');
+  const [land, setLand] = useState(true); const [ui, setUi] = useState(true); const [paused, setPaused] = useState(false); const [muted, setMuted] = useState(false);
+  const [t, setT] = useState(start || 0); const [dur, setDur] = useState(0); const [barW, setBarW] = useState(1);
+  const player = useVideoPlayer(uri, (p) => { p.loop = true; p.muted = false; if (start) p.currentTime = start; p.play(); });
+  React.useEffect(() => {
+    try { player.timeUpdateEventInterval = 0.25; } catch (e) {}
+    const a = player.addListener('timeUpdate', ({ currentTime }) => { setT(currentTime); if (player.duration) setDur(player.duration); });
+    return () => a.remove();
+  }, [player]);
+  React.useEffect(() => { try { paused ? player.pause() : player.play(); } catch (e) {} }, [paused, player]);
+  React.useEffect(() => { try { player.muted = muted; } catch (e) {} }, [muted, player]);
+  React.useEffect(() => { if (!ui || paused) return; const k = setTimeout(() => setUi(false), 2800); return () => clearTimeout(k); }, [ui, paused, t > 0]);
+  const close = () => { let at = null; try { at = player.currentTime; } catch (e) {} onClose(at); };
+  const bw = land ? H : W, bh = land ? W : H; // the player box, turned sideways in landscape
+  const pad = land ? { top: 14, side: Math.max(ins.top, 20), bottom: 14 } : { top: ins.top + 6, side: 14, bottom: ins.bottom + 10 };
+  const btn = { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' };
+  const seek = (x) => { if (!dur) return; const to = Math.max(0, Math.min(dur, (x / barW) * dur)); try { player.currentTime = to; } catch (e) {} setT(to); };
+  return (
+    <Modal visible animationType="fade" onRequestClose={close} supportedOrientations={['portrait']}>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <View style={{ position: 'absolute', width: bw, height: bh, left: (W - bw) / 2, top: (H - bh) / 2, transform: [{ rotate: land ? '90deg' : '0deg' }] }}>
+          <Pressable onPress={() => setUi(!ui)} style={{ flex: 1 }} accessibilityLabel={ui ? 'Hide controls' : 'Show controls'}>
+            <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
+          </Pressable>
+          {ui ? <>
+            <View style={{ position: 'absolute', top: pad.top, left: pad.side, right: pad.side, flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Pressable onPress={close} style={btn} accessibilityLabel="Close"><Ionicons name="close" size={24} color="#fff" /></Pressable>
+              <Pressable onPress={() => setLand(!land)} style={btn} accessibilityLabel={land ? 'Turn upright' : 'Turn sideways'}>
+                <Ionicons name="phone-landscape-outline" size={20} color="#fff" style={{ transform: [{ rotate: land ? '90deg' : '0deg' }] }} /></Pressable>
+            </View>
+            <Pressable onPress={() => setPaused(!paused)} style={{ position: 'absolute', alignSelf: 'center', top: bh / 2 - 34, width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={paused ? 'Play' : 'Pause'}>
+              <Ionicons name={paused ? 'play' : 'pause'} size={32} color="#fff" /></Pressable>
+            <View style={{ position: 'absolute', left: pad.side, right: pad.side, bottom: pad.bottom, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <T h style={{ color: '#fff', fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{fmt(t)}</T>
+              <Pressable onLayout={(e) => setBarW(e.nativeEvent.layout.width || 1)} onPress={(e) => seek(e.nativeEvent.locationX)} hitSlop={14} style={{ flex: 1, height: 18, justifyContent: 'center' }} accessibilityLabel="Seek">
+                <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,.3)' }}>
+                  <View style={{ height: 4, borderRadius: 2, backgroundColor: '#ff5500', width: (dur ? Math.min(1, t / dur) : 0) * 100 + '%' }} /></View>
+                <View style={{ position: 'absolute', left: (dur ? Math.min(1, t / dur) : 0) * barW - 7, width: 14, height: 14, borderRadius: 7, backgroundColor: '#fff' }} />
+              </Pressable>
+              <T h style={{ color: 'rgba(255,255,255,.75)', fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{fmt(dur)}</T>
+              <Pressable onPress={() => setMuted(!muted)} hitSlop={8} accessibilityLabel={muted ? 'Turn sound on' : 'Mute'}><Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={20} color="#fff" /></Pressable>
+            </View>
+          </> : null}
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -78,9 +138,10 @@ export function PostCard({ p, active }) {
   const cs = p.comments.filter((c) => !s.blocked[c.userId]);
   const top = cs.length ? [...cs].sort((a, b) => b.likes - a.likes)[0] : null;
   const heat = () => { if (!p.myHeat) run(() => act.react(p.id, 'heat'), { optimistic: { post: p.id, patch: { myHeat: true, heat: p.heat + 1 } } }); };
+  const heatBurst = () => { heat(); burst.setValue(0); Animated.sequence([Animated.spring(burst, { toValue: 1, useNativeDriver: true }), Animated.timing(burst, { toValue: 0, duration: 350, delay: 250, useNativeDriver: true })]).start(); };
   const dbl = () => {
     const now = Date.now();
-    if (now - lastTap.current < 280) { heat(); burst.setValue(0); Animated.sequence([Animated.spring(burst, { toValue: 1, useNativeDriver: true }), Animated.timing(burst, { toValue: 0, duration: 350, delay: 250, useNativeDriver: true })]).start(); }
+    if (now - lastTap.current < 280) heatBurst();
     lastTap.current = now;
   };
   if (!u) return null;
@@ -100,7 +161,7 @@ export function PostCard({ p, active }) {
           style={!p.mediaUrl && p.text.length < 90 ? { fontFamily: F.displayB, fontSize: 18, lineHeight: 24, marginTop: 12, letterSpacing: -0.5 } : { fontSize: 16.5, lineHeight: 23, marginTop: 12 }} /> : null}
         {p.mediaUrl ? (
           <Pressable onPress={dbl} style={{ marginTop: 12, borderRadius: 20, overflow: 'hidden', backgroundColor: C.soft }}>
-            {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} active={active} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
+            {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} active={active} onHeat={heatBurst} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
             <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: burst, transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }}>
               <Ionicons name="flame" size={120} color={C.orange} /></Animated.View>
           </Pressable>) : null}

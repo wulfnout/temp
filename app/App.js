@@ -131,9 +131,9 @@ function Root() {
     return () => sub.remove();
   }, [sheet, stack, tab]);
 
-  async function postStory(asset, caption) {
+  async function postStory(asset, caption, layout) {
     setSheet(null); setUploading(true); say('Uploading your story…');
-    await run(() => act.story(s.me, asset, caption), { toast: 'Your story is up' });
+    await run(() => act.story(s.me, asset, caption, layout), { toast: 'Your story is up' });
     setUploading(false);
   }
   // home feed hides the header and tab bar while scrolling down

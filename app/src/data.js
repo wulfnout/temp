@@ -67,7 +67,7 @@ export async function loadAll(myId) {
   const sc = {}, sr = {}, smy = {};
   scom.forEach((c) => { if (!users[c.user_id]) return; (sc[c.story_id] = sc[c.story_id] || []).push({ id: c.id, userId: c.user_id, text: c.text, at: +new Date(c.created_at) }); });
   sreact.forEach((r) => { const m = (sr[r.story_id] = sr[r.story_id] || {}); m[r.emoji] = (m[r.emoji] || 0) + 1; if (r.user_id === myId) smy[r.story_id] = r.emoji; });
-  stories.forEach((x) => { if (!users[x.user_id]) return; (st[x.user_id] = st[x.user_id] || { userId: x.user_id, items: [] }).items.push({ id: x.id, type: x.media_type, url: x.media_url, caption: x.caption || '', at: +new Date(x.created_at),
+  stories.forEach((x) => { if (!users[x.user_id]) return; (st[x.user_id] = st[x.user_id] || { userId: x.user_id, items: [] }).items.push({ id: x.id, type: x.media_type, url: x.media_url, caption: x.caption || '', layout: x.layout || null, at: +new Date(x.created_at),
     comments: sc[x.id] || [], reacts: sr[x.id] || {}, myReact: smy[x.id] || null }); });
   const seen = {}; sviews.forEach((v) => (seen[v.story_id] = true));
   const threads = {}, unread = {}, seenBy = {};
@@ -103,7 +103,7 @@ export const act = {
   likeComment: (cid, liked, me) => (liked ? ok(sb.from('comment_likes').delete().eq('comment_id', cid).eq('user_id', me)) : ok(sb.from('comment_likes').insert({ comment_id: cid }))),
   follow: (uid, following, me) => (following ? ok(sb.from('follows').delete().eq('follower', me).eq('followee', uid)) : ok(sb.from('follows').insert({ followee: uid }))),
   burnStory: async (id) => { const { data, error } = await sb.rpc('burn_story', { sid: id }); if (error) throw new Error(error.message); return data; },
-  async story(me, asset, caption) { const url = await upload(me, asset); return ok(sb.from('stories').insert({ media_url: url, media_type: asset.type === 'video' ? 'video' : 'image', caption: caption || '' })); },
+  async story(me, asset, caption, layout) { const url = await upload(me, asset); return ok(sb.from('stories').insert({ media_url: url, media_type: asset.type === 'video' ? 'video' : 'image', caption: caption || '', layout: layout || null })); },
   storyComment: (id, text) => ok(sb.from('story_comments').insert({ story_id: id, text })),
   storyReact: (id, emoji, current, me) => (current === emoji
     ? ok(sb.from('story_reactions').delete().eq('story_id', id).eq('user_id', me))

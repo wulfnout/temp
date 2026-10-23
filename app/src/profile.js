@@ -12,6 +12,7 @@ import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
 
 import { HEADER_FX, HeaderFx } from './fx';
 import { AshBurn } from './ash';
+import { StoryPhoto, StoryPhotoEditor } from './storyframe';
 
 export function ProfileScreen({ id, isTab }) {
   const { s, C, nav, run } = useApp(); const ins = useSafeAreaInsets();
@@ -250,13 +251,13 @@ const STORY_REACTS = ['🔥', '😂', '😮', '🧊'];
 const glass = { backgroundColor: 'rgba(20,20,20,.72)' };
 
 export function StoryDraft({ asset, onClose }) {
-  const { C, postStory } = useApp(); const ins = useSafeAreaInsets(); const [cap, setCap] = useState('');
+  const { C, postStory } = useApp(); const ins = useSafeAreaInsets(); const [cap, setCap] = useState(''); const layout = useRef({ s: 1, x: 0, y: 0, fill: false });
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView {...tapAway} behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
-        {asset.type === 'video' ? <Video uri={asset.uri} style={{ flex: 1 }} controls={false} autoPlay loop /> : <Image source={{ uri: asset.uri }} style={{ flex: 1 }} resizeMode="cover" />}
-        <View style={{ position: 'absolute', top: ins.top + 12, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
-          <T h style={{ color: '#fff', flex: 1, fontSize: 17 }}>New story</T>
+        {asset.type === 'video' ? <Video uri={asset.uri} style={{ flex: 1 }} controls={false} autoPlay loop /> : <StoryPhotoEditor uri={asset.uri} onChange={(l) => { layout.current = l; }} />}
+        <View pointerEvents="box-none" style={{ position: 'absolute', top: ins.top + 12, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
+          <T h style={{ color: '#fff', flex: 1, fontSize: 17 }}>New story{asset.type !== 'video' ? <T b style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>{'  '}pinch to zoom · drag to move</T> : null}</T>
           <Pressable onPress={onClose} accessibilityLabel="Cancel" hitSlop={12}><Ionicons name="close" size={28} color="#fff" /></Pressable>
         </View>
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: ins.bottom + 12, gap: 10 }}>
@@ -264,7 +265,7 @@ export function StoryDraft({ asset, onClose }) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <TextInput value={cap} onChangeText={setCap} placeholder="Add a caption…" placeholderTextColor="rgba(255,255,255,.7)" maxLength={150}
               style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 11 }} />
-            <Btn kind="orange" title="Share" onPress={() => postStory(asset, cap.trim())} />
+            <Btn kind="orange" title="Share" onPress={() => postStory(asset, cap.trim(), asset.type === 'video' ? null : layout.current)} />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -334,7 +335,7 @@ export function StoryViewer({ userId, onClose }) {
       <Animated.View style={{ flex: 1, backgroundColor: '#000', opacity: drag.interpolate({ inputRange: [0, 600], outputRange: [1, 0.3], extrapolate: 'clamp' }) }}>
       <Animated.View style={{ flex: 1, transform: [{ translateY: drag.interpolate({ inputRange: [-1, 0, 2000], outputRange: [0, 0, 2000] }) }] }}>
       <KeyboardAvoidingView {...tapAway} behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#000' }}>
-        {item.type === 'video' ? <Video key={item.id} uri={item.url} style={{ flex: 1 }} controls={false} autoPlay playerRef={player} /> : <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />}
+        {item.type === 'video' ? <Video key={item.id} uri={item.url} style={{ flex: 1 }} controls={false} autoPlay playerRef={player} /> : item.layout ? <StoryPhoto key={item.id} uri={item.url} layout={item.layout} /> : <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />}
         {burning === item.id ? <AshBurn onDone={async () => {
           const id = burning; setBurning(null); onClose();
           try { const left = await act.burnStory(id); nav.toast('Story burned · ' + left + ' burn' + (left === 1 ? '' : 's') + ' left this week'); } catch (e) { nav.toast(friendly(e)); }

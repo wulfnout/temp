@@ -573,6 +573,9 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.sp-wrap{position:absolute;inset:0;overflow:hidden;background:#000}.sp-bg{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(30px);opacity:.55}
+.sp-fg{position:absolute;inset:0;width:100%;height:100%;transform-origin:50% 50%;pointer-events:none;user-select:none}
+.sp-toggle{position:absolute;right:16px;top:16%;z-index:4;background:rgba(0,0,0,.5);color:#fff;border-radius:999px;padding:7px 14px;font-weight:800;font-size:13px}
 .fullv-cap{position:absolute;left:16px;right:60px;bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 48px);color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none}.fullv-cap b{font-size:13.5px}.fullv-cap p{margin:2px 0 0;font-size:14.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .fp-label{color:#8d8883;font-size:12px;letter-spacing:.06em;margin-top:14px}
 .live-mini{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff2d2d;margin-right:5px;vertical-align:middle}
@@ -1087,7 +1090,7 @@ async function loadAll(){
   const sc={},sr={},smy={};
   scom.forEach(c=>{if(!users[L(c.user_id)])return;(sc[c.story_id]=sc[c.story_id]||[]).push({id:c.id,userId:L(c.user_id),text:c.text,at:+new Date(c.created_at)})});
   sreact.forEach(r=>{const m=sr[r.story_id]=sr[r.story_id]||{};m[r.emoji]=(m[r.emoji]||0)+1;if(r.user_id===myId)smy[r.story_id]=r.emoji});
-  const st={};stories.forEach(x=>{if(!users[L(x.user_id)])return;const k=L(x.user_id);(st[k]=st[k]||{userId:k,items:[]}).items.push({id:x.id,type:x.media_type,url:x.media_url,caption:x.caption||'',at:+new Date(x.created_at),
+  const st={};stories.forEach(x=>{if(!users[L(x.user_id)])return;const k=L(x.user_id);(st[k]=st[k]||{userId:k,items:[]}).items.push({id:x.id,type:x.media_type,url:x.media_url,caption:x.caption||'',layout:x.layout||null,at:+new Date(x.created_at),
     comments:sc[x.id]||[],reacts:sr[x.id]||{},myReact:smy[x.id]||null})});
   const seen={};sviews.forEach(v=>seen[v.story_id]=true);
   const threads={},unread={},seenBy={};
@@ -1124,7 +1127,7 @@ async function remote(a,b){
       if(c.myLike)await ok(sb.from('comment_likes').delete().eq('comment_id',a.cid).eq('user_id',myId));else await ok(sb.from('comment_likes').insert({comment_id:a.cid}));return}
     case 'follow':{const u=b.users[a.id];if(!u||a.id==='temp')return;
       if(u.following)await ok(sb.from('follows').delete().eq('follower',myId).eq('followee',R(a.id)));else await ok(sb.from('follows').insert({followee:R(a.id)}));return}
-    case 'story':{const url=await upload(a.file);await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype,caption:a.caption||''}));return {reload:true,toast:'Your story is up'}}
+    case 'story':{const url=await upload(a.file);await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype,caption:a.caption||'',layout:a.layout||null}));return {reload:true,toast:'Your story is up'}}
     case 'repost':{const p=P(a.id);if(!p||p.id<0)return;if(p.myRepost)await ok(sb.from('reposts').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('reposts').insert({post_id:a.id}));return 'reload'}
     case 'storyComment': if(a.id<0)return;await ok(sb.from('story_comments').insert({story_id:a.id,text:a.text}));return 'reload';
     case 'storyReact':{if(a.id<0)return;const it=b.stories.flatMap(x=>x.items).find(x=>x.id===a.id);
@@ -1250,7 +1253,7 @@ function reducer(s,a){
     case 'likeComment': return {...s,posts:mapPost(a.id,p=>({...p,comments:p.comments.map(c=>c.id===a.cid?{...c,myLike:!c.myLike,likes:c.likes+(c.myLike?-1:1)}:c)}))};
     case 'follow':{const u=s.users[a.id];return {...s,users:{...s.users,[a.id]:{...u,following:!u.following,followers:u.followers+(u.following?-1:1)}},toast:u.following?s.toast:T(`Following @${u.handle}`)}}
     case 'story':{
-      const item={id:nid(),type:a.mtype,url:a.url,caption:a.caption||'',at:s.now,uploading:true,comments:[],reacts:{},myReact:null};
+      const item={id:nid(),type:a.mtype,url:a.url,caption:a.caption||'',layout:a.layout||null,at:s.now,uploading:true,comments:[],reacts:{},myReact:null};
       const has=s.stories.find(x=>x.userId==='me');
       const stories=has?s.stories.map(x=>x.userId==='me'?{...x,items:[...x.items,item]}:x):[{userId:'me',items:[item]},...s.stories];
       return {...s,stories,storyUploading:(s.storyUploading||0)+1,toast:{msg:'Uploading your story…',at:Date.now(),sticky:true}};
@@ -1568,18 +1571,30 @@ function Post({p,s,dispatch,open}){
 }
 
 /* ---------- stories ---------- */
+// story photos like Instagram: fitted on a blurred copy; pinch / scroll-wheel to zoom, drag to move, Fit/Fill toggle
+function StoryPhoto({url,layout}){const L=layout||{s:1,x:0,y:0,fill:true};
+  return html`<div className="sp-wrap"><img className="sp-bg" src=${url} alt=""/><img className="sp-fg" src=${url} alt="" style=${{objectFit:L.fill?'cover':'contain',transform:`translate(${(L.x||0)*100}%,${(L.y||0)*100}%) scale(${L.s||1})`}}/></div>`}
 function StoryDraft({draft,onPost,onClose}){
-  const [cap,setCap]=useState('');
+  const [cap,setCap]=useState('');const [L,setL]=useState({s:1,x:0,y:0,fill:false});const g=useRef({pts:{}});
+  const box=useRef();
+  const pd=e=>{if(draft.type==='video')return;g.current.pts[e.pointerId]={x:e.clientX,y:e.clientY};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(x){}g.current.start={...L};g.current.d0=0};
+  const pm=e=>{const p=g.current.pts;if(!p[e.pointerId])return;p[e.pointerId]={...p[e.pointerId],cx:e.clientX,cy:e.clientY};const ids=Object.keys(p);const r=box.current.getBoundingClientRect();const st=g.current.start;
+    if(ids.length>=2){const a=p[ids[0]],b=p[ids[1]];const d=Math.hypot((a.cx??a.x)-(b.cx??b.x),(a.cy??a.y)-(b.cy??b.y));if(!g.current.d0){g.current.d0=d;g.current.start={...L};return}
+      setL({...g.current.start,s:Math.max(.5,Math.min(5,g.current.start.s*d/g.current.d0))})}
+    else if(!g.current.d0){const a=p[ids[0]];setL({...st,x:st.x+((a.cx??a.x)-a.x)/r.width,y:st.y+((a.cy??a.y)-a.y)/r.height})}};
+  const pu=e=>{delete g.current.pts[e.pointerId];if(!Object.keys(g.current.pts).length)g.current.d0=0;else{g.current.start={...L};Object.values(g.current.pts).forEach(p=>{p.x=p.cx??p.x;p.y=p.cy??p.y})}};
+  const wheel=e=>{if(draft.type==='video')return;setL(l=>({...l,s:Math.max(.5,Math.min(5,l.s*(e.deltaY<0?1.08:.93)))}))};
   return html`<div className="sv" role="dialog" aria-label="New story">
     <div className="sv-in">
-      <div className="sv-media">${draft.type==='video'?html`<video src=${draft.url} autoPlay muted loop playsInline></video>`:html`<img src=${draft.url} alt="" />`}</div>
-      <div className="sv-head"><span>New story</span><div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Cancel"><${Icon} n="x"/></button></div></div>
+      <div className="sv-media" ref=${box} style=${{touchAction:'none'}} onPointerDown=${pd} onPointerMove=${pm} onPointerUp=${pu} onPointerCancel=${pu} onWheel=${wheel}>${draft.type==='video'?html`<video src=${draft.url} autoPlay muted loop playsInline></video>`:html`<${StoryPhoto} url=${draft.url} layout=${L}/>`}</div>
+      ${draft.type!=='video'&&html`<button className="sp-toggle" onClick=${()=>setL({s:1,x:0,y:0,fill:!L.fill})}>${L.fill?'Fit':'Fill'}</button>`}
+      <div className="sv-head"><span>New story <small style=${{opacity:.7,fontWeight:600}}>${draft.type!=='video'?' pinch or scroll to zoom · drag to move':''}</small></span><div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Cancel"><${Icon} n="x"/></button></div></div>
       <div className="sv-foot">
         ${cap.trim()&&html`<p className="sv-cap">${cap}</p>`}
         <div className="sv-bar">
           <div className="sv-input"><label htmlFor="story-cap" className="vh">Caption</label>
-            <input id="story-cap" placeholder="Add a caption…" maxLength=${150} value=${cap} onChange=${e=>setCap(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&onPost(cap.trim())}/></div>
-          <button className="btn orange" onClick=${()=>onPost(cap.trim())}>Share</button>
+            <input id="story-cap" placeholder="Add a caption…" maxLength=${150} value=${cap} onChange=${e=>setCap(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&onPost(cap.trim(),draft.type==='video'?null:L)}/></div>
+          <button className="btn orange" onClick=${()=>onPost(cap.trim(),draft.type==='video'?null:L)}>Share</button>
         </div>
       </div>
     </div>
@@ -1642,7 +1657,7 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   const stop=e=>e.stopPropagation();
   return html`<div className="sv" role="dialog" aria-label="Story" style=${{background:dragY?'rgba(0,0,0,'+Math.max(.3,1-dragY/600)+')':undefined}}>
     <div className="sv-in" style=${dragY?{transform:'translateY('+dragY+'px)',transition:'none'}:{transition:'transform .2s ease'}}>
-      <div className="sv-media">${item.type==='video'?html`<video ref=${vid} key=${item.id} src=${item.url} autoPlay muted playsInline></video>`:html`<img src=${item.url} alt="" />`}
+      <div className="sv-media">${item.type==='video'?html`<video ref=${vid} key=${item.id} src=${item.url} autoPlay muted playsInline></video>`:item.layout?html`<${StoryPhoto} key=${item.id} url=${item.url} layout=${item.layout}/>`:html`<img src=${item.url} alt="" />`}
         ${burning===item.id&&html`<${AshBurn} onDone=${()=>{const id=burning;setBurning(null);onClose();dispatch({type:'burnStory',id})}}/>`}</div>
       <div className="sv-bars">${st.items.map((it,i)=>html`<div key=${it.id}><span style=${{width:(i<ii?1:i===ii?prog:0)*100+'%'}}></span></div>`)}</div>
       <div className="sv-head"><${Avatar} u=${u} size=${32}/><span>${u.handle} <span className="t">${item.uploading?'Posting…':ago(s.now-item.at)}</span></span>
@@ -3037,7 +3052,7 @@ function App(){
 
     <input ref=${storyFile} type="file" accept="image/*,video/*" className="vh" id="story-file"
       onChange=${e=>{const f=e.target.files[0];if(f){const r=readFile(f);setStoryDraft({url:r.url,type:r.type,file:f})}e.target.value=''}}/>
-    ${storyDraft&&html`<${StoryDraft} draft=${storyDraft} onClose=${()=>setStoryDraft(null)} onPost=${cap=>{dispatch({type:'story',url:storyDraft.url,mtype:storyDraft.type,file:storyDraft.file,caption:cap});setStoryDraft(null)}}/>`}
+    ${storyDraft&&html`<${StoryDraft} draft=${storyDraft} onClose=${()=>setStoryDraft(null)} onPost=${(cap,layout)=>{dispatch({type:'story',url:storyDraft.url,mtype:storyDraft.type,file:storyDraft.file,caption:cap,layout});setStoryDraft(null)}}/>`}
     ${sheet&&sheet.kind==='compose'&&html`<${Composer} s=${s} dispatch=${dispatch} onClose=${close} startReel=${sheet.reel} open=${open}/>`}
     ${sheet&&sheet.kind==='record'&&html`<${Recorder} s=${s} dispatch=${dispatch} onClose=${close} open=${open} startMode=${sheet.mode} onStory=${d=>{close();setStoryDraft(d)}}/>`}
     ${sheet&&sheet.kind==='comments'&&sheetPost&&html`<${Comments} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}

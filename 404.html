@@ -757,14 +757,14 @@ img,video{max-width:100%;display:block}
 .fv-btns{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}.fv-btns button{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}
 .fv-big{position:absolute;inset:0;margin:auto;width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;pointer-events:none}
 /* intro + ash */
-.intro{position:fixed;inset:0;z-index:200;background:#000;display:grid;place-items:center;pointer-events:none;animation:introOut .4s ease 2.95s forwards}
-.intro-glow{position:absolute;width:420px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,85,0,.35),rgba(255,45,0,.12) 55%,transparent);opacity:0;filter:blur(8px);animation:iglow 2.2s ease 0.9s forwards}
+.intro{position:fixed;inset:0;z-index:200;background:#000;display:grid;place-items:center;pointer-events:none;animation:introOut .4s ease 3.45s forwards}
+.intro-glow{position:absolute;width:420px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,85,0,.35),rgba(255,45,0,.12) 55%,transparent);opacity:0;filter:blur(8px);animation:iglow 2.6s ease 0.9s forwards}
 @keyframes iglow{20%{opacity:1;transform:scale(1.05)}60%{opacity:.8}100%{opacity:0;transform:scale(1.25)}}
 .il{position:relative;display:inline-block}
 .il .ch{display:inline-block;color:#fff;opacity:0;transform:translateY(10px);
-  animation:iin .6s cubic-bezier(.2,.9,.3,1) var(--in) forwards,iheat .45s ease-in var(--b) forwards,ichar .25s linear calc(var(--b) + .45s) forwards,icrumble .6s ease-in calc(var(--b) + .55s) forwards}
+  animation:iin .6s cubic-bezier(.2,.9,.3,1) var(--in) forwards,iheat .45s ease-in var(--b) forwards,ichar .18s linear calc(var(--c) - .16s) forwards,icrumble .6s ease-in var(--c) forwards}
 .il .ch.dot{width:17px;height:17px;border-radius:4px;margin:0 0 9px 5px;background:#ff5500;
-  animation:iin .6s cubic-bezier(.2,.9,.3,1) var(--in) forwards,dheat .45s ease-in var(--b) forwards,dchar .25s linear calc(var(--b) + .45s) forwards,dcrumble .6s ease-in calc(var(--b) + .55s) forwards}
+  animation:iin .6s cubic-bezier(.2,.9,.3,1) var(--in) forwards,dheat .45s ease-in var(--b) forwards,dchar .18s linear calc(var(--c) - .16s) forwards,dcrumble .6s ease-in var(--c) forwards}
 @keyframes iin{to{opacity:1;transform:none}}
 @keyframes iheat{0%{color:#fff;text-shadow:none}50%{color:#ffe7b0;text-shadow:0 0 6px #ffd27a,0 0 18px #ff8a2b,0 0 36px #ff5500}100%{color:#ff7a1a;text-shadow:0 0 8px #ff5500,0 0 26px #ff2d00,0 0 54px #ff2d00}}
 @keyframes dheat{0%{background:#ff5500;box-shadow:none}50%{background:#ffd27a;box-shadow:0 0 18px #ff8a2b}100%{background:#ff7a1a;box-shadow:0 0 26px #ff2d00}}
@@ -1411,14 +1411,29 @@ function Flakes({n,seed,from=0,embers=.3}){const r=rnd(seed);
   return Array.from({length:n}).map((_,i)=>{const e=r()<embers;const st={left:r()*100+'%',top:(15+r()*80)+'%','--dx':((r()-.3)*70)+'px','--dy':(-(40+r()*130))+'px','--rot':(r()*540-270)+'deg',
     animationDelay:(from+r()*.55)*2.2+'s',width:(2+r()*5)+'px',background:e?(i%2?'#ff8a2b':'#ffd27a'):['#6b6b6b','#3d3d3d','#9a9a9a'][i%3],borderRadius:e?'50%':'1px'};
     return html`<i key=${i} className="flake" style=${st}></i>`})}
+// launch intro: logo fades in, glows orange, then each letter crumbles to ash on a piano note,
+// with a clock tick between notes — dun(tick) dun(tick) dun(tick) dun(tock)
+const INTRO_CRUMBLE=[1.5,1.92,2.34,2.76];
+function introSound(){
+  try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=new AC();const base='sounds/';
+    const names=['n1','n2','n3','n4','tick','tock'];
+    Promise.all(names.map(n=>fetch(base+n+'.wav').then(r=>r.arrayBuffer()).then(b=>ac.decodeAudioData(b)))).then(buf=>{
+      const B=Object.fromEntries(names.map((n,i)=>[n,buf[i]]));const t0=ac.currentTime-(performance.now()-introStart)/1000;
+      const at=(name,sec,g=1)=>{const when=t0+sec;if(when<ac.currentTime-.05)return;const src=ac.createBufferSource();src.buffer=B[name];const gn=ac.createGain();gn.gain.value=g;src.connect(gn).connect(ac.destination);src.start(Math.max(ac.currentTime,when))};
+      INTRO_CRUMBLE.forEach((c,i)=>{at('n'+(i+1),c,.9);at(i<3?'tick':'tock',c+.21,.7)});
+    }).catch(()=>{});
+    ac.resume().catch(()=>{});
+  }catch(e){}
+}
+let introStart=performance.now();
 function Intro(){
-  const [on,setOn]=useState(true);useEffect(()=>{const t=setTimeout(()=>setOn(false),3400);return()=>clearTimeout(t)},[]);
+  const [on,setOn]=useState(true);useEffect(()=>{introStart=performance.now();introSound();const t=setTimeout(()=>setOn(false),3900);return()=>clearTimeout(t)},[]);
   if(!on)return null;
   const r=rnd(11);
-  const piece=(ch,i)=>{const burn=1.0+i*.03;
-    const flakes=Array.from({length:16}).map((_,k)=>{const e=r()<.3;return html`<i key=${k} style=${{left:(10+r()*80)+'%',top:(15+r()*75)+'%','--dx':((r()-.35)*70)+'px','--dy':(-(50+r()*110))+'px','--rot':(r()*600-300)+'deg',
-      animationDelay:(burn+.5+r()*.35)+'s',width:(2+r()*4.5)+'px',height:(1.5+r()*3.5)+'px',background:e?(k%2?'#ff8a2b':'#ffd27a'):['#5c5c5c','#3a3a3a','#8a8a8a'][k%3],borderRadius:e?'50%':'1px',boxShadow:e?'0 0 6px #ff5500':'none'}}></i>`});
-    return html`<span className="il" key=${i} style=${{'--in':(i*.08)+'s','--b':burn+'s'}}>${ch?html`<span className="ch">${ch}</span>`:html`<b className="ch dot"></b>`}<span className="il-ash">${flakes}</span></span>`};
+  const piece=(ch,i)=>{const k=Math.min(i,3);const crumble=INTRO_CRUMBLE[k];
+    const flakes=Array.from({length:18}).map((_,q)=>{const e=r()<.3;const w=1.2+r()*2.6;return html`<i key=${q} style=${{left:(10+r()*80)+'%',top:(15+r()*75)+'%','--dx':((r()-.35)*60)+'px','--dy':(-(40+r()*90))+'px','--rot':(r()*600-300)+'deg',
+      animationDelay:(crumble+r()*.3)+'s',width:w+'px',height:(e?w:w*.7)+'px',background:e?(q%2?'#ff8a2b':'#ffd27a'):['#5c5c5c','#3a3a3a','#8a8a8a'][q%3],borderRadius:e?'50%':'1px',boxShadow:e?'0 0 4px #ff5500':'none'}}></i>`});
+    return html`<span className="il" key=${i} style=${{'--in':(i*.08)+'s','--b':(.9+i*.03)+'s','--c':crumble+'s'}}>${ch?html`<span className="ch">${ch}</span>`:html`<b className="ch dot"></b>`}<span className="il-ash">${flakes}</span></span>`};
   return html`<div className="intro" aria-hidden="true"><div className="intro-glow"></div><div className="intro-logo">${['t','e','m','p',null].map(piece)}</div></div>`;
 }
 function AshBurn({onDone}){

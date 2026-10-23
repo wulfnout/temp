@@ -24,39 +24,71 @@ function Flakes({ t, n, seed, w, h, from = 0, embers = 0.35 }) {
   });
 }
 
-/* ---------- launch intro: logo fades in, then burns to ash ---------- */
+/* ---------- launch intro (matches the website): "temp." fades in, glows orange, then each letter
+   crumbles to ash on a piano note with a clock tick between — dun(tick) dun(tick) dun(tick) dun(tock) ---------- */
+const TOTAL = 3.85; // seconds
+const CRUMBLE = [1.5, 1.92, 2.34, 2.76];
+const SOUNDS = { n1: require('../assets/sounds/n1.wav'), n2: require('../assets/sounds/n2.wav'), n3: require('../assets/sounds/n3.wav'), n4: require('../assets/sounds/n4.wav'),
+  tick: require('../assets/sounds/tick.wav'), tock: require('../assets/sounds/tock.wav') };
+function playIntroSounds() {
+  const timers = []; const players = [];
+  try {
+    const { createAudioPlayer } = require('expo-audio');
+    const mk = (k, vol) => { const p = createAudioPlayer(SOUNDS[k]); try { p.volume = vol; } catch (e) {} players.push(p); return p; };
+    CRUMBLE.forEach((c, i) => {
+      const note = mk('n' + (i + 1), 0.9), tk = mk(i < 3 ? 'tick' : 'tock', 0.7);
+      timers.push(setTimeout(() => { try { note.play(); } catch (e) {} }, c * 1000));
+      timers.push(setTimeout(() => { try { tk.play(); } catch (e) {} }, (c + 0.21) * 1000));
+    });
+  } catch (e) {}
+  return () => { timers.forEach(clearTimeout); setTimeout(() => players.forEach((p) => { try { p.remove(); } catch (e) {} }), 2500); };
+}
 export function Intro({ onDone }) {
-  const t = useRef(new Animated.Value(0)).current;      // native: fades, motion
-  const burn = useRef(new Animated.Value(0)).current;   // JS: letter colour
-  const out = useRef(new Animated.Value(1)).current;
-  const letters = ['t', 'e', 'm', 'p'];
+  const tN = useRef(new Animated.Value(0)).current; // native: motion + fades
+  const tJ = useRef(new Animated.Value(0)).current; // JS: letter colour
   useEffect(() => {
-    Animated.sequence([
-      Animated.timing(t, { toValue: 0.25, duration: 650, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.delay(350),
-      Animated.parallel([
-        Animated.timing(t, { toValue: 1, duration: 1700, easing: Easing.linear, useNativeDriver: true }),
-        Animated.timing(burn, { toValue: 1, duration: 1700, easing: Easing.linear, useNativeDriver: false })]),
-      Animated.timing(out, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start(() => onDone && onDone());
+    const stopSound = playIntroSounds();
+    const lin = (v, nd) => Animated.timing(v, { toValue: TOTAL, duration: TOTAL * 1000, easing: Easing.linear, useNativeDriver: nd });
+    Animated.parallel([lin(tN, true), lin(tJ, false)]).start(() => onDone && onDone());
+    return stopSound;
   }, []);
-  // each letter (and the dot) burns a little after the one before it
-  const step = (i) => { const a = 0.25 + i * 0.1; return [a, a + 0.1, a + 0.25]; };
-  const piece = (i, child) => { const [a, b, c] = step(i);
-    return <Animated.View key={i} style={{ opacity: t.interpolate({ inputRange: [0, 0.25, b, c], outputRange: [0, 1, 1, 0], extrapolate: 'clamp' }),
-      transform: [{ translateY: t.interpolate({ inputRange: [0, 0.25, b, c], outputRange: [8, 0, 0, -18], extrapolate: 'clamp' }) },
-        { scale: t.interpolate({ inputRange: [0, b, c], outputRange: [1, 1, 0.82], extrapolate: 'clamp' }) }] }}>{child}</Animated.View>; };
-  const col = (i) => { const [a, b] = step(i); return burn.interpolate({ inputRange: [0, Math.max(0, (a - 0.25) / 0.75), (b - 0.25) / 0.75 - 0.05, (b - 0.25) / 0.75], outputRange: ['#ffffff', '#ffffff', '#ff6a1a', '#3a3a3a'], extrapolate: 'clamp' }); };
-  return (
-    <Animated.View pointerEvents="none" style={[fill, { backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', zIndex: 100, opacity: out }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-        {letters.map((l, i) => piece(i, <Animated.Text style={{ fontFamily: F.display, fontSize: 64, letterSpacing: -3, color: col(i),
-          textShadowColor: '#ff5500', textShadowRadius: 18 }}>{l}</Animated.Text>))}
-        {piece(4, <Animated.View style={{ width: 17, height: 17, borderRadius: 4, marginLeft: 5, marginBottom: 12, backgroundColor: col(4) }} />)}
-        <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, width: 200, height: 80 }}>
-          <Flakes t={t} n={46} seed={7} w={200} h={80} from={0.3} />
+  const at = (v, inp, out) => v.interpolate({ inputRange: inp, outputRange: out, extrapolate: 'clamp' });
+  const r = rng(11);
+  const piece = (ch, i) => {
+    const inS = i * 0.08, b = 0.9 + i * 0.03, c = CRUMBLE[Math.min(i, 3)];
+    const heatCols = ['#ffffff', '#ffffff', '#ffe7b0', '#ff7a1a', '#ff7a1a', '#2e2e2e'];
+    const heatIn = [0, b, b + 0.22, b + 0.45, c - 0.16, c + 0.02];
+    const body = ch
+      ? <View>
+          <Animated.Text style={{ fontFamily: F.display, fontSize: 64, letterSpacing: -3, color: at(tJ, heatIn, heatCols) }}>{ch}</Animated.Text>
+          <Animated.Text style={{ position: 'absolute', left: 0, top: 0, fontFamily: F.display, fontSize: 64, letterSpacing: -3, color: '#ff8a2b', textShadowColor: '#ff2d00', textShadowRadius: 22,
+            opacity: at(tN, [0, b, b + 0.35, c - 0.16, c + 0.02], [0, 0, 0.9, 0.9, 0]) }}>{ch}</Animated.Text>
         </View>
-      </View>
+      : <View style={{ marginLeft: 5, marginBottom: 12 }}>
+          <Animated.View style={{ width: 17, height: 17, borderRadius: 4, backgroundColor: at(tJ, heatIn, ['#ff5500', '#ff5500', '#ffd27a', '#ff7a1a', '#ff7a1a', '#2e2e2e']) }} />
+          <Animated.View style={{ position: 'absolute', left: -4, top: -4, width: 25, height: 25, borderRadius: 7, backgroundColor: '#ff5500', shadowColor: '#ff2d00', shadowOpacity: 1, shadowRadius: 14,
+            opacity: at(tN, [0, b, b + 0.35, c - 0.16, c + 0.02], [0, 0, 0.55, 0.55, 0]) }} />
+        </View>;
+    const flakes = Array.from({ length: 18 }).map((_, k) => {
+      const e = r() < 0.3; const st = c + r() * 0.3; const dx = (r() - 0.35) * 60, dy = -(40 + r() * 90), rot = r() * 600 - 300;
+      const w = 1.2 + r() * 2.6;
+      return <Animated.View key={'a' + k} pointerEvents="none" style={{ position: 'absolute', left: (10 + r() * 80) + '%', top: (15 + r() * 75) + '%', width: w, height: e ? w : w * 0.7, borderRadius: e ? w : 1,
+        backgroundColor: e ? (k % 2 ? '#ff8a2b' : '#ffd27a') : ['#5c5c5c', '#3a3a3a', '#8a8a8a'][k % 3],
+        opacity: at(tN, [0, st, st + 0.13, st + 1.3], [0, 0, 1, 0]),
+        transform: [{ translateX: at(tN, [st, st + 1.3], [0, dx]) }, { translateY: at(tN, [st, st + 1.3], [0, dy]) }, { rotate: at(tN, [st, st + 1.3], ['0deg', rot + 'deg']) }] }} />; });
+    return <View key={i}>
+      <Animated.View style={{ opacity: at(tN, [0, inS, inS + 0.6, c, c + 0.6], [0, 0, 1, 1, 0]),
+        transform: [{ translateY: at(tN, [inS, inS + 0.6, c, c + 0.6], [10, 0, 0, -16]) }, { scale: at(tN, [c, c + 0.6], [1, 0.86]) }, { skewX: at(tN, [c, c + 0.6], ['0deg', '-6deg']) }] }}>{body}</Animated.View>
+      {flakes}
+    </View>;
+  };
+  return (
+    <Animated.View pointerEvents="none" style={[fill, { backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', zIndex: 100, opacity: at(tN, [0, 3.45, TOTAL], [1, 1, 0]) }]}>
+      <Animated.View style={{ position: 'absolute', alignItems: 'center', justifyContent: 'center', opacity: at(tN, [0, 0.9, 1.4, 2.9, 3.5], [0, 0, 1, 0.8, 0]),
+        transform: [{ scale: at(tN, [0.9, 1.4, 3.5], [1, 1.05, 1.25]) }] }}>
+        {[[420, 220, 0.07], [330, 170, 0.08], [240, 120, 0.1], [160, 80, 0.12]].map(([w, h, o], k) => <View key={k} style={{ position: 'absolute', width: w, height: h, borderRadius: h, backgroundColor: k > 1 ? '#ff5500' : '#ff2d00', opacity: o }} />)}
+      </Animated.View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>{['t', 'e', 'm', 'p', null].map(piece)}</View>
     </Animated.View>
   );
 }

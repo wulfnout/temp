@@ -214,7 +214,9 @@ export function Composer({ reel: reel0, onClose }) {
         <Btn small kind="ghost" title="Cancel" onPress={onClose} />
         <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 999, padding: 3 }}>
           {[[false, 'Post'], [true, 'Replay']].map(([v, l]) => <Pressable key={l} onPress={() => { setReel(v); if (v && asset && asset.type !== 'video') setAsset(null); }}
-            style={{ paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: reel === v ? C.card : 'transparent' }}><T h style={{ color: reel === v ? C.ink : C.muted, fontSize: 13 }}>{l}</T></Pressable>)}
+            style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, backgroundColor: reel === v ? C.card : 'transparent' }}><T h style={{ color: reel === v ? C.ink : C.muted, fontSize: 13 }}>{l}</T></Pressable>)}
+          <Pressable onPress={() => { onClose(); setTimeout(() => nav.push('live'), 250); }} accessibilityLabel="Live Takes" style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#ff2d2d' }} /><T h style={{ color: C.muted, fontSize: 13 }}>Live</T></Pressable>
         </View>
         <Btn small kind="orange" title={busy ? 'Posting…' : 'Post'} disabled={!ok || busy} onPress={post} />
       </View>

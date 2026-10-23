@@ -5,7 +5,8 @@ import { View, ActivityIndicator, AppState } from 'react-native';
 import { setAudioModeAsync } from 'expo-audio';
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from './ui';
+import { useApp, IconBtn } from './ui';
+import { Header } from './screens';
 import { sb } from './lib';
 
 const SITE = 'https://wulfnout.github.io/temp/';
@@ -29,7 +30,8 @@ export function LiveScreen() {
     return () => { sub.subscription.unsubscribe(); as.remove(); setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false, allowsRecording: false }).catch(() => {}); };
   }, []);
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: ins.top }}>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Header back title="Live Takes" />
       {uri ? <WebView ref={web} source={{ uri }} style={{ flex: 1, backgroundColor: C.bg }} originWhitelist={['*']}
         allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false} mediaCapturePermissionGrantType="grant"
         javaScriptEnabled domStorageEnabled startInLoadingState

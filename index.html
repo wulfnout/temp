@@ -573,6 +573,7 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.live-mini{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff2d2d;margin-right:5px;vertical-align:middle}
 /* drawn header art */
 .ha{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .fx-disco{background:linear-gradient(#1a0820,#07030c 60%,#2a0d05)!important}
@@ -1898,7 +1899,7 @@ function Composer({s,dispatch,onClose,startReel,open}){
   const submit=()=>{const f=MOD.classify(text);const why=MOD.rules(f,plus,adult);if(why)return setErr(why);dispatch({type:'post',text:text.trim(),media,reel,nsfw:nsfw||f.sexual});onClose()};
   return html`<${Sheet} onClose=${onClose} label="New post">
     <div className="sheet-head"><button className="btn ghost" onClick=${onClose}>Cancel</button>
-      <div className="mode" role="group" aria-label="Type"><button aria-pressed=${!reel} onClick=${()=>setReel(false)}>Post</button><button aria-pressed=${reel} onClick=${()=>{setReel(true);if(media&&media.type!=='video')setMedia(null)}}>Replay</button></div>
+      <div className="mode" role="group" aria-label="Type"><button aria-pressed=${!reel} onClick=${()=>setReel(false)}>Post</button><button aria-pressed=${reel} onClick=${()=>{setReel(true);if(media&&media.type!=='video')setMedia(null)}}>Replay</button><button onClick=${()=>{onClose();open.live&&open.live()}}><span className="live-mini"></span>Live</button></div>
       <button className="btn orange" disabled=${!ok} onClick=${submit}>Post</button></div>
     <div className="compose"><${Avatar} u=${s.users.me} size=${42}/>
       <div style=${{minWidth:0}}>
@@ -2940,6 +2941,7 @@ function App(){
   const lastTab=useRef({tab:'home'});
   useEffect(()=>{if(view.tab!=='replay')lastTab.current=view},[view]);
   const open={
+    live:()=>setView({tab:'live'}),
     leaveReplay:()=>setView(lastTab.current&&lastTab.current.tab!=='replay'?lastTab.current:{tab:'home'}),
     profile:(id,tab)=>setView({tab:id==='me'?'me':'profile',profileId:id,ptab:tab}),
     thread:id=>setView({tab:'thread',threadId:id}),
@@ -3004,7 +3006,7 @@ function App(){
     top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'me'}))}<span className="top-title">${view.tab==='shop'?'Fire Sale':'Temp+'}</span></div></div>`;
   } else if(view.tab==='live'){
     body=html`<${LiveView} me=${myId}/>`;
-    top=html`<div className="top"><div className="top-row"><h1 className="logo">live<i></i></h1></div></div>`;
+    top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'home'}))}<span className="top-title">Live Takes</span></div></div>`;
   } else if(view.tab==='replay'){
     body=html`<${Replay} s=${s} dispatch=${dispatch} open=${open} startId=${view.reelId}/>`;
   } else {
@@ -3023,7 +3025,6 @@ function App(){
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>
       <button className="create" aria-label="New post" data-tour="nav-create" onClick=${guard(()=>setSheet({kind:'compose',reel:isReplay}))}><${Icon} n="plus" s=${26} w=${2.6}/></button>
       <button aria-label="Replay" data-tour="nav-replay" aria-current=${isReplay?'page':null} onClick=${guard(()=>setView({tab:'replay'}))}><${Icon} n="reels" s=${25}/></button>
-      <button aria-label="Live Takes" aria-current=${view.tab==='live'?'page':null} onClick=${guard(()=>setView({tab:'live'}))}><${Icon} n="mic" s=${24}/></button>
       <button aria-label="Profile" data-tour="nav-me" aria-current=${['me','settings','shop','plus'].includes(view.tab)?'page':null} onClick=${guard(()=>setView({tab:'me'}))}><${Avatar} u=${s.users.me} size=${28}/></button>
     </div></nav>
 

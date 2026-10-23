@@ -218,7 +218,6 @@ function TabBar({ tab, stacked, dark, onTab }) {
       <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 0.9, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null), width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name="add" size={28} color="#fff" /></Pressable>
       <Item name="replay" icon="play-circle" label="Replay" />
-      <Item name="live" icon="mic" label="Live Takes" />
       <Item name="me" label="Profile"><Avatar u={s.users[s.me]} size={28} /></Item>
     </View>
   );

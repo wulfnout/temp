@@ -23,9 +23,10 @@ export const THEMES = {
   volcano: ['#c1121f', '#ff4d00'], toxic: ['#5fd400', '#d4ff3a'], ocean: ['#0077ff', '#00d4c8'], grape: ['#7c3aed', '#d946ef'], sunset: ['#ff5e62', '#ffb347'],
   cyber: ['#00d9ff', '#ff00d4'], rust: ['#a63c06', '#e07a2f'], bubblegum: ['#ff5fa2', '#ffb3d9'],
   // glowing themes: accents light up
+  pumpkin: ['#ff7518', '#ffb347'], witch: ['#8b2cff', '#39ff14'], bloodmoon: ['#b3001b', '#ff4d4d'],
   glowember: ['#ff5500', '#ffb37a'], glowneon: ['#ff2bd6', '#8a5cff'], radioactive: ['#39ff14', '#d4ff3a'], glowice: ['#00e5ff', '#a5f3ff'], plasma: ['#8b5cff', '#00d9ff'], molten: ['#ff2d00', '#ffd27a'],
 };
-export const GLOW = { glowember: 1, glowneon: 1, radioactive: 1, glowice: 1, plasma: 1, molten: 1 };
+export const GLOW = { witch: 1, bloodmoon: 1, glowember: 1, glowneon: 1, radioactive: 1, glowice: 1, plasma: 1, molten: 1 };
 // mode: 'system' follows the phone's setting; 'light' or 'dark' overrides it (same setting as the website)
 export function useColors(theme, mode) {
   const sys = useColorScheme();
@@ -80,5 +81,8 @@ export const STICKER_PACKS = {
   roast: ['T|SKILL ISSUE|o', 'T|WHO ASKED?|i', 'T|MID|w', 'T|RATIO|f', 'T|TOUCH GRASS|y', 'T|COPE|i', 'T|L + BOZO|o', 'T|SIT DOWN|w'],
   thermo: ['T|212°F|f', 'T|ROOM TEMP IQ|i', 'T|LUKEWARM|w', 'T|ABSOLUTE ZERO|c', 'T|FREEZER BURN|c', 'T|TOO HOT 4 U|o'],
   receipts: ['T|SCREENSHOTTED 📸|o', 'T|BRB FREEZING IT|i', 'T|SAY IT LOUDER|y', 'T|THIS AGED BADLY|w', 'T|BOLD OF YOU|p', 'T|RECEIPTS|o'],
+  // Halloween (limited)
+  spooky: ['🎃', '👻', '🦇', '🕷️', '🕸️', '💀'],
+  boo: ['T|BOO!|o', 'T|TRICK OR TAKE|i', 'T|SPOOKY TAKE|w', 'T|DEAD WRONG 💀|y', 'T|THIS TAKE IS CURSED|f', 'T|GHOSTED 👻|c']
 };
 export const STICKER_COLORS = { o: ['#ff5500', '#fff'], f: ['#ff4d1a', '#fff'], i: ['#0a0a0a', '#ff7a33'], w: ['#ffffff', '#0a0a0a'], c: ['#dfe6eb', '#0a0a0a'], y: ['#ffd60a', '#0a0a0a'], p: ['#ff2bd6', '#fff'] };

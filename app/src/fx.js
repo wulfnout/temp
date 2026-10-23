@@ -543,6 +543,80 @@ function Volcano() {
   </View>;
 }
 
+/* ---- Halloween headers (limited) ---- */
+function Bat({ size, color = '#0a0510' }) {
+  return <View style={{ width: size * 2.2, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ position: 'absolute', left: 0, top: size * 0.15, width: size * 0.95, height: size * 0.55, borderTopLeftRadius: size, borderBottomRightRadius: size * 0.4, backgroundColor: color, transform: [{ rotate: '-12deg' }] }} />
+    <View style={{ position: 'absolute', right: 0, top: size * 0.15, width: size * 0.95, height: size * 0.55, borderTopRightRadius: size, borderBottomLeftRadius: size * 0.4, backgroundColor: color, transform: [{ rotate: '12deg' }] }} />
+    <View style={{ width: size * 0.42, height: size * 0.6, borderRadius: size, backgroundColor: color }} />
+  </View>;
+}
+// Haunted House: a crooked house on a hill under a huge moon, lit windows flickering, bats flapping across
+function Haunted() {
+  const [b, onL] = useBox(); const fl = clock(900), flap = clock(260);
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#12061f', '#2a0f3d', '#4a1a2a']} style={fill} />
+    <Twinkle n={30} seed={33} />
+    <View style={{ position: 'absolute', right: b.w * 0.14, top: b.h * 0.08, width: b.h * 0.5, height: b.h * 0.5, borderRadius: b.h, backgroundColor: '#ffe7a8', shadowColor: '#ffcf6b', shadowOpacity: 0.9, shadowRadius: 30 }} />
+    <View style={{ position: 'absolute', left: -b.w * 0.1, right: -b.w * 0.1, bottom: -b.h * 0.25, height: b.h * 0.5, borderRadius: b.w, backgroundColor: '#0a0510' }} />
+    <View style={{ position: 'absolute', left: b.w * 0.18, bottom: b.h * 0.18, width: b.h * 0.55, height: b.h * 0.45, backgroundColor: '#0a0510' }}>
+      <View style={{ position: 'absolute', left: -b.h * 0.06, top: -b.h * 0.2, width: 0, height: 0, borderLeftWidth: b.h * 0.335, borderRightWidth: b.h * 0.335, borderBottomWidth: b.h * 0.22, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: '#0a0510', transform: [{ rotate: '-3deg' }] }} />
+      <View style={{ position: 'absolute', right: -b.h * 0.12, top: -b.h * 0.34, width: b.h * 0.14, height: b.h * 0.5, backgroundColor: '#0a0510' }} />
+      {[[0.15, 0.25], [0.6, 0.25], [0.38, 0.6]].map(([x, y], i) => <Animated.View key={i} style={{ position: 'absolute', left: x * b.h * 0.55, top: y * b.h * 0.45, width: b.h * 0.1, height: b.h * 0.12, backgroundColor: '#ffb347',
+        opacity: jitter(fl, 70 + i, 0.4, 1, 6), shadowColor: '#ff8a2b', shadowOpacity: 1, shadowRadius: 6 }} />)}
+    </View>
+    {Array.from({ length: 5 }).map((_, i) => { const r = rng(2100 + i); const c = clock(Math.round((7000 + r() * 5000) / 100) * 100); const ph = r(); const y = b.h * (0.1 + r() * 0.45); const s = 8 + r() * 8;
+      return <Animated.View key={i} style={{ position: 'absolute', left: 0, top: y, transform: [{ translateX: cycle(c, ph, -40, b.w + 40) }, { translateY: sway(c, r(), 10) }, { scaleY: flap.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.35, 1] }) }] }}>
+        <Bat size={s} /></Animated.View>; })}
+  </View>;
+}
+// Pumpkin Patch: a row of glowing jack-o'-lanterns flickering on a dark field, with fireflies
+function Jack({ s, k }) {
+  const fl = clock(700);
+  return <View style={{ width: s * 1.25, height: s, alignItems: 'center' }}>
+    <View style={{ position: 'absolute', top: -s * 0.14, width: s * 0.12, height: s * 0.22, borderRadius: 3, backgroundColor: '#3b6b1f' }} />
+    <View style={{ width: s * 1.25, height: s, borderRadius: s * 0.5, backgroundColor: '#ff7518', overflow: 'hidden', alignItems: 'center' }}>
+      {[0.18, 0.5, 0.82].map((x, i) => <View key={i} style={{ position: 'absolute', left: x * s * 1.25 - s * 0.15, top: 0, width: s * 0.3, height: s, borderRadius: s, backgroundColor: 'rgba(160,50,0,.25)' }} />)}
+      <Animated.View style={{ position: 'absolute', top: s * 0.28, flexDirection: 'row', gap: s * 0.22, opacity: jitter(fl, k, 0.55, 1, 6) }}>
+        {[0, 1].map((i) => <View key={i} style={{ width: 0, height: 0, borderLeftWidth: s * 0.11, borderRightWidth: s * 0.11, borderBottomWidth: s * 0.2, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: '#ffe14d' }} />)}
+      </Animated.View>
+      <Animated.View style={{ position: 'absolute', top: s * 0.58, width: s * 0.62, height: s * 0.2, borderBottomLeftRadius: s, borderBottomRightRadius: s, backgroundColor: '#ffe14d', opacity: jitter(fl, k + 9, 0.55, 1, 6) }} />
+    </View>
+  </View>;
+}
+function PumpkinPatch() {
+  const [b, onL] = useBox();
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#0b0614', '#1d0f26', '#2e1405']} style={fill} />
+    <Particles n={14} seed={77} ms={9000} color="#d9ff66" w={3} rise drift={50} glow="#d9ff66" />
+    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: b.h * 0.3, backgroundColor: '#140a06' }} />
+    {[[0.08, 0.36], [0.33, 0.48], [0.6, 0.4], [0.82, 0.3]].map(([x, k], i) => <View key={i} style={{ position: 'absolute', left: b.w * x, bottom: b.h * 0.1 + (i % 2) * 6 }}><Jack s={b.h * k} k={i * 5 + 1} /></View>)}
+  </View>;
+}
+// Ghost Town: little ghosts drifting and bobbing through purple fog
+function Ghost({ s }) {
+  return <View style={{ width: s, height: s * 1.25, alignItems: 'center' }}>
+    <View style={{ width: s, height: s * 1.1, borderTopLeftRadius: s, borderTopRightRadius: s, backgroundColor: 'rgba(255,255,255,.92)' }}>
+      <View style={{ position: 'absolute', left: s * 0.28, top: s * 0.36, width: s * 0.14, height: s * 0.2, borderRadius: s, backgroundColor: '#1a1030' }} />
+      <View style={{ position: 'absolute', right: s * 0.28, top: s * 0.36, width: s * 0.14, height: s * 0.2, borderRadius: s, backgroundColor: '#1a1030' }} />
+      <View style={{ position: 'absolute', left: s * 0.42, top: s * 0.64, width: s * 0.16, height: s * 0.14, borderRadius: s, backgroundColor: '#1a1030' }} />
+    </View>
+    <View style={{ flexDirection: 'row', marginTop: -s * 0.12 }}>{[0, 1, 2].map((i) => <View key={i} style={{ width: s / 3, height: s * 0.24, borderBottomLeftRadius: s, borderBottomRightRadius: s, backgroundColor: 'rgba(255,255,255,.92)' }} />)}</View>
+  </View>;
+}
+function GhostTown() {
+  const [b, onL] = useBox(); const fog = clock(12000);
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#160b2e', '#2c1652', '#4a2a6a']} style={fill} />
+    {Array.from({ length: 6 }).map((_, i) => { const r = rng(2300 + i); const c = clock(Math.round((9000 + r() * 7000) / 100) * 100); const bob = clock(Math.round((1800 + r() * 1400) / 100) * 100); const ph = r(); const s = 24 + r() * 26;
+      return <Animated.View key={i} style={{ position: 'absolute', left: 0, top: b.h * (0.12 + r() * 0.5), opacity: 0.85,
+        transform: [{ translateX: cycle(c, ph, -60, b.w + 20) }, { translateY: sway(bob, r(), 8) }, { rotate: bob.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-6deg', '6deg', '-6deg'] }) }] }}><Ghost s={s} /></Animated.View>; })}
+    <Animated.View style={{ position: 'absolute', left: -b.w, bottom: -10, width: b.w * 3, height: b.h * 0.4, flexDirection: 'row', transform: [{ translateX: fog.interpolate({ inputRange: [0, 1], outputRange: [0, b.w] }) }] }}>
+      {Array.from({ length: 9 }).map((_, i) => <View key={i} style={{ width: b.w / 2.4, height: b.h * 0.3 + (i % 3) * 10, marginRight: -b.w / 10, borderRadius: b.w, backgroundColor: 'rgba(220,200,255,.18)' }} />)}
+    </Animated.View>
+  </View>;
+}
+
 export function HeaderFx({ id, fallback }) {
   useClockKick();
   const cols = HEADER_FX[id] || fallback;
@@ -551,6 +625,9 @@ export function HeaderFx({ id, fallback }) {
   switch (id) {
     case 'aurora': return <View style={[fill, { overflow: 'hidden' }]}><Pan cols={cols} /></View>;
     case 'lava': return <Volcano />;
+    case 'haunted': return <Haunted />;
+    case 'pumpkinpatch': return <PumpkinPatch />;
+    case 'ghosts': return <GhostTown />;
     case 'hazard': return <Hazard />;
     case 'checker': return <Checker />;
     case 'sunburst': return <SunPop />;

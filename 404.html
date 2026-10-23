@@ -573,6 +573,30 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.item{position:relative}.ltd{position:absolute;top:16px;right:16px;z-index:2;background:#1a0b2e;color:#ffb347;font-weight:800;font-size:10.5px;padding:2px 7px;border-radius:8px}
+.fx-haunted{background:linear-gradient(#12061f,#2a0f3d 60%,#4a1a2a)!important}.fx-pumpkinpatch{background:linear-gradient(#0b0614,#1d0f26 60%,#2e1405)!important}.fx-ghosts{background:linear-gradient(#160b2e,#2c1652 60%,#4a2a6a)!important}
+.ha-haunt i,.ha-haunt span{position:absolute;display:block}
+.hh-moon{right:14%;top:8%;width:28%;max-width:90px;aspect-ratio:1;border-radius:50%;background:#ffe7a8;box-shadow:0 0 30px #ffcf6b}
+.hh-hill{left:-10%;right:-10%;bottom:-25%;height:50%;border-radius:50%;background:#0a0510}
+.hh-house{left:18%;bottom:18%;width:28%;max-width:100px;aspect-ratio:1.2;background:#0a0510}
+.hh-house::before{content:"";position:absolute;left:-10%;right:-10%;bottom:100%;height:45%;background:#0a0510;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.hh-house::after{content:"";position:absolute;right:-6%;bottom:100%;width:18%;height:70%;background:#0a0510}
+.hh-house i{position:absolute;width:18%;height:22%;background:#ffb347;box-shadow:0 0 8px #ff8a2b;animation:hhflick .9s steps(3) infinite}
+.hh-house .w1{left:14%;top:22%}.hh-house .w2{right:14%;top:22%;animation-delay:-.4s}.hh-house .w3{left:41%;top:58%;animation-delay:-.7s}
+@keyframes hhflick{50%{opacity:.45}}
+.hh-bat{left:-10%;font-style:normal;filter:brightness(0);animation:hhbat linear infinite}
+@keyframes hhbat{0%{transform:translate(0,0)}25%{transform:translate(30vw,-8px)}50%{transform:translate(60vw,6px)}75%{transform:translate(90vw,-6px)}100%{transform:translate(130vw,0)}}
+.header-img .hh-bat,.pv .hh-bat{animation-name:hhbat2}
+@keyframes hhbat2{0%{left:-10%;margin-top:0}25%{margin-top:-8px}50%{margin-top:6px}75%{margin-top:-6px}100%{left:110%;margin-top:0}}
+.pp-ground{position:absolute;left:0;right:0;bottom:0;height:30%;background:#140a06}
+.pp-jack{position:absolute;bottom:8%;line-height:1;filter:drop-shadow(0 0 10px #ff8a2b);animation:ppglow .7s steps(3) infinite}
+@keyframes ppglow{50%{filter:drop-shadow(0 0 4px #ff8a2b) brightness(.85)}}
+.pp-fly{position:absolute;bottom:20%;width:3px;height:3px;border-radius:50%;background:#d9ff66;box-shadow:0 0 6px #d9ff66;animation:ppfly ease-in-out infinite}
+@keyframes ppfly{0%{transform:translate(0,0);opacity:0}20%{opacity:1}50%{transform:translate(20px,-60px)}80%{opacity:1}100%{transform:translate(-10px,-120px);opacity:0}}
+.gh{position:absolute;left:-15%;line-height:1;opacity:.9;animation:ghx linear infinite,ghbob ease-in-out infinite alternate}
+@keyframes ghx{to{left:110%}}@keyframes ghbob{from{margin-top:-6px;transform:rotate(-6deg)}to{margin-top:6px;transform:rotate(6deg)}}
+.gh-fog{position:absolute;left:-100%;right:-100%;bottom:-10px;height:40%;background:radial-gradient(ellipse 18% 60% at 10% 100%,rgba(220,200,255,.22),transparent 70%) 0 0/33% 100% repeat-x;animation:ghfog 12s linear infinite}
+@keyframes ghfog{to{transform:translateX(33%)}}
 /* Go Live */
 .gl-lobby{padding:calc(12px + env(safe-area-inset-top,0px)) 16px 40px}
 .gl-top{display:flex;align-items:center;gap:10px}.gl-top h2{margin:0;font-family:var(--display);font-size:26px;letter-spacing:-.04em}
@@ -1400,6 +1424,8 @@ const SHOP={
   stickers:[{id:'basic',name:'Basics',price:0,items:['🔥','🧊','😂','💀','👀','🙏']},{id:'spicy',name:'Spicy',price:150,items:['🌶️','🥵','🧯','🫠','🚒','♨️']},
     {id:'cold',name:'Cold',price:150,items:['🥶','❄️','⛄','🌨️','🫥','🧤']},{id:'chaos',name:'Chaos',price:250,items:['🤡','💅','🗿','🫡','😤','🧨']},
     {id:'royal',name:'Royalty',price:400,items:['👑','💎','🏆','🥇','✨','🦁']},
+    {id:'spooky',name:'Spooky Season',price:150,until:'2026-11-01T05:00:00Z',items:['🎃','👻','🦇','🕷️','🕸️','💀']},
+    {id:'boo',name:'Boo!',price:200,until:'2026-11-01T05:00:00Z',items:['T|BOO!|o','T|TRICK OR TAKE|i','T|SPOOKY TAKE|w','T|DEAD WRONG 💀|y','T|THIS TAKE IS CURSED|f','T|GHOSTED 👻|c']},
     {id:'temp',name:'Temp Originals',price:100,items:['T|TEMP|o','T|HOT TAKE|f','T|COLD TAKE|c','T|FROZEN 🧊|i','T|GONE IN 24H|o','T|STILL HERE|w']},
     {id:'roast',name:'Roast',price:200,items:['T|SKILL ISSUE|o','T|WHO ASKED?|i','T|MID|w','T|RATIO|f','T|TOUCH GRASS|y','T|COPE|i','T|L + BOZO|o','T|SIT DOWN|w']},
     {id:'thermo',name:'Thermometer',price:150,items:['T|212°F|f','T|ROOM TEMP IQ|i','T|LUKEWARM|w','T|ABSOLUTE ZERO|c','T|FREEZER BURN|c','T|TOO HOT 4 U|o']},
@@ -1411,6 +1437,7 @@ const SHOP={
     {id:'ocean',name:'Deep Sea',price:400,c:['#0077ff','#00d4c8']},{id:'grape',name:'Grape Soda',price:400,c:['#7c3aed','#d946ef']},
     {id:'sunset',name:'Sunset',price:350,c:['#ff5e62','#ffb347']},{id:'cyber',name:'Cyber',price:550,c:['#00d9ff','#ff00d4']},
     {id:'rust',name:'Rust',price:300,c:['#a63c06','#e07a2f']},{id:'bubblegum',name:'Bubblegum',price:350,c:['#ff5fa2','#ffb3d9']},
+    {id:'pumpkin',name:'Pumpkin Spice',price:350,c:['#ff7518','#ffb347'],until:'2026-11-01T05:00:00Z'},{id:'witch',name:'Witching Hour',price:450,c:['#8b2cff','#39ff14'],glow:true,until:'2026-11-01T05:00:00Z'},{id:'bloodmoon',name:'Blood Moon',price:450,c:['#b3001b','#ff4d4d'],glow:true,until:'2026-11-01T05:00:00Z'},
     {id:'glowember',name:'Ember Glow',price:450,c:['#ff5500','#ffb37a'],glow:true},{id:'glowneon',name:'Neon Glow',price:550,c:['#ff2bd6','#8a5cff'],glow:true},
     {id:'radioactive',name:'Radioactive',price:550,c:['#39ff14','#d4ff3a'],glow:true},{id:'glowice',name:'Ice Glow',price:500,c:['#00e5ff','#a5f3ff'],glow:true},
     {id:'plasma',name:'Plasma',price:600,c:['#8b5cff','#00d9ff'],glow:true},{id:'molten',name:'Molten',price:600,c:['#ff2d00','#ffd27a'],glow:true}],
@@ -1420,6 +1447,7 @@ const SHOP={
     {id:'disco',name:'Disco Inferno',price:450},{id:'checker',name:'Checkered Flag',price:300},{id:'synth',name:'Synthwave',price:550},{id:'rain',name:'Rain',price:450},
     {id:'wildfire',name:'Wildfire',price:500},{id:'heatwave',name:'Heatwave',price:400},{id:'blizzard',name:'Blizzard',price:450},
     {id:'glitchtv',name:'Glitch TV',price:500},{id:'starfield',name:'Night Drive',price:400},{id:'lavalamp',name:'Lava Lamp',price:450},
+    {id:'haunted',name:'Haunted House',price:450,until:'2026-11-01T05:00:00Z'},{id:'pumpkinpatch',name:'Pumpkin Patch',price:400,until:'2026-11-01T05:00:00Z'},{id:'ghosts',name:'Ghost Town',price:400,until:'2026-11-01T05:00:00Z'},
     {id:'gif',name:'GIF headers',price:400}],
 };
 
@@ -2301,9 +2329,12 @@ function ThermoCard({s,u,dispatch,open}){
 }
 
 // drawn, animated header art for the effects CSS alone can't do
-const HA_IDS={disco:1,starfield:1,blizzard:1,snow:1,lavalamp:1,rain:1,thermal:1,sunburst:1,embers:1,lava:1};
+const HA_IDS={haunted:1,pumpkinpatch:1,ghosts:1,disco:1,starfield:1,blizzard:1,snow:1,lavalamp:1,rain:1,thermal:1,sunburst:1,embers:1,lava:1};
 function HeaderArt({id}){
   if(!HA_IDS[id])return null;const r=rnd(id.length*97+7);const n=(k,f)=>Array.from({length:k},(_,i)=>f(i));
+  if(id==='haunted')return html`<div className="ha ha-haunt"><i className="hh-moon"></i><i className="hh-hill"></i><span className="hh-house"><i className="w1"></i><i className="w2"></i><i className="w3"></i></span>${n(5,i=>html`<i key=${i} className="hh-bat" style=${{top:(10+r()*45)+'%',animationDuration:(7+r()*5)+'s',animationDelay:(-r()*12)+'s',fontSize:(12+r()*10)+'px'}}>🦇</i>`)}</div>`;
+  if(id==='pumpkinpatch')return html`<div className="ha ha-patch"><i className="pp-ground"></i>${[[8,36],[33,48],[60,40],[82,30]].map(([x,k],i)=>html`<span key=${i} className="pp-jack" style=${{left:x+'%',fontSize:k*1.6+'px',animationDelay:(-i*.3)+'s'}}>🎃</span>`)}${n(12,i=>html`<i key=${'f'+i} className="pp-fly" style=${{left:(r()*100)+'%',animationDuration:(6+r()*5)+'s',animationDelay:(-r()*10)+'s'}}></i>`)}</div>`;
+  if(id==='ghosts')return html`<div className="ha ha-ghost">${n(6,i=>html`<span key=${i} className="gh" style=${{top:(10+r()*50)+'%',fontSize:(22+r()*22)+'px',animationDuration:(10+r()*7)+'s, '+(1.8+r()*1.4)+'s',animationDelay:(-r()*16)+'s, '+(-r()*3)+'s'}}>👻</span>`)}<i className="gh-fog"></i></div>`;
   if(id==='disco')return html`<div className="ha ha-disco"><span className="dz-string"></span><span className="dz-beams"></span>${n(9,i=>html`<i key=${i} className="dz-spot" style=${{top:(15+r()*70)+'%','--c':['#ff5500','#ff2bd6','#00e5ff','#ffd27a','#22ff88','#8a5cff'][i%6],animationDelay:(-r()*6)+'s',animationDuration:(4+r()*4)+'s'}}></i>`)}<span className="dz-ball"></span></div>`;
   if(id==='starfield')return html`<div className="ha ha-night"><span className="nd-moon"></span><span className="nd-hills"></span><span className="nd-road"><i></i></span>
     <span className="nd-car"><b className="nd-beam"></b><b className="nd-cab"><i></i><i></i></b><b className="nd-body"><i className="hl"></i><i className="tl"></i></b><b className="nd-w w1"></b><b className="nd-w w2"></b></span></div>`;
@@ -2362,7 +2393,7 @@ function ShopView({s,dispatch,open}){
     <div className="packs">${PACKS.map(p=>html`<button className="pack" key=${p.n} disabled style=${{opacity:.6,cursor:'default'}}>${p.tag&&html`<span className="tag">${p.tag}</span>`}
       <b><span style=${{color:'var(--orange)',display:'inline-flex'}}><${Icon} n="flame" s=${18} w=${2.4} fill="currentColor"/></span>${p.n.toLocaleString()}</b><span className="usd">${p.usd} · Coming soon</span></button>`)}</div>
     <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
-    <div className="shop-grid">${SHOP[tab].map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/><div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
+    <div className="shop-grid">${SHOP[tab].filter(it=>!it.until||new Date(it.until)>Date.now()).map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/>${it.until&&html`<span className="ltd">🎃 ${Math.max(0,Math.ceil((new Date(it.until)-Date.now())/864e5))}d left</span>`}<div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
     ${studio&&html`<${StickerStudio} s=${s} dispatch=${dispatch} onClose=${()=>setStudio(false)}/>`}
     ${pack&&html`<${Sheet} onClose=${()=>setPack(null)} label="Buy points"><h3>${pack.n.toLocaleString()} points</h3>
       <p className="sub" style=${{marginTop:0}}>${pack.usd}. This prototype won’t charge you.</p>

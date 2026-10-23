@@ -178,6 +178,10 @@ function FullVideo({ postId, uri, start, onClose }) {
             </View>
             {!panel ? <Pressable onPress={() => setPaused(!paused)} style={{ position: 'absolute', alignSelf: 'center', top: bh / 2 - 34, width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(0,0,0,.45)', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={paused ? 'Play' : 'Pause'}>
               <Ionicons name={paused ? 'play' : 'pause'} size={32} color="#fff" /></Pressable> : null}
+            {!panel && (p.text || u.handle) ? <View pointerEvents="none" style={{ position: 'absolute', left: pad.side, right: pad.side + 40, bottom: pad.bottom + 30 }}>
+              <T h style={{ color: '#fff', fontSize: 13.5, textShadowColor: 'rgba(0,0,0,.7)', textShadowRadius: 6 }}>@{u.handle}</T>
+              {p.text ? <T numberOfLines={3} style={{ color: '#fff', fontSize: 14.5, marginTop: 2, textShadowColor: 'rgba(0,0,0,.7)', textShadowRadius: 6 }}>{p.text}</T> : null}
+            </View> : null}
             <View style={{ position: 'absolute', left: pad.side, right: pad.side, bottom: pad.bottom, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               {panel ? <Pressable onPress={() => setPaused(!paused)} hitSlop={8} accessibilityLabel={paused ? 'Play' : 'Pause'}><Ionicons name={paused ? 'play' : 'pause'} size={20} color="#fff" /></Pressable> : null}
               <T h style={{ color: '#fff', fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{fmt(t)}</T>
@@ -203,7 +207,8 @@ function FullVideo({ postId, uri, start, onClose }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="flame" size={16} color="#ff5500" /><T h style={{ color: '#fff', fontSize: 13 }}>{kfmt(p.heat)}</T></View>
             <Pressable onPress={() => setP(2)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} accessibilityLabel="Comments"><Ionicons name="chatbubble-outline" size={16} color="#fff" /><T h style={{ color: '#fff', fontSize: 13 }}>{comments.length}</T></Pressable>
           </View>
-          {panel === 2 ? <FlatList data={comments} keyExtractor={(c) => String(c.id)} style={{ flex: 1, marginTop: 10 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
+          {panel === 2 ? <T h style={{ color: '#8d8883', fontSize: 12, letterSpacing: 0.6, marginTop: 14 }}>COMMENTS</T> : null}
+          {panel === 2 ? <FlatList data={comments} keyExtractor={(c) => String(c.id)} style={{ flex: 1, marginTop: 6 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
             ListEmptyComponent={<T b style={{ color: '#8d8883', textAlign: 'center', marginTop: 20 }}>{frozen ? 'Comments are off while frozen' : 'No comments yet'}</T>}
             renderItem={({ item: c }) => { const cu = s.users[c.userId] || {}; return <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 6 }}><Avatar u={cu} size={26} />
               <View style={{ flex: 1 }}><T h style={{ color: '#fff', fontSize: 13 }}>{cu.handle} <T style={{ color: '#8d8883', fontSize: 12 }}>{ago(Date.now() - c.at)}</T></T>

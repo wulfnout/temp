@@ -573,6 +573,8 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+.fullv-cap{position:absolute;left:16px;right:60px;bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + 48px);color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none}.fullv-cap b{font-size:13.5px}.fullv-cap p{margin:2px 0 0;font-size:14.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fp-label{color:#8d8883;font-size:12px;letter-spacing:.06em;margin-top:14px}
 .live-mini{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff2d2d;margin-right:5px;vertical-align:middle}
 /* drawn header art */
 .ha{position:absolute;inset:0;overflow:hidden;pointer-events:none}
@@ -1484,7 +1486,7 @@ function FullVideo({url,at,onClose,p,s,dispatch}){
     ${panel?html`<div className="fullv-panel"><button className="fp-grab" onClick=${()=>setPanel(panel===2?1:2)} aria-label=${panel===2?'Show less':'Show comments'}><i></i></button>
       <div className="fp-head"><${Avatar} u=${u} size=${32}/><div><b>${u.name||u.handle}</b>${p&&p.text&&html`<p>${p.text}</p>`}</div>
         <span className="fp-stat"><${Icon} n="flame" s=${15} fill="#ff5500"/>${p?p.heat:0}</span><button className="fp-stat" onClick=${()=>setPanel(2)}><${Icon} n="comment" s=${15}/>${cs.length}</button></div>
-      ${panel===2&&html`<div className="fp-list">${cs.length?cs.map(c=>{const cu=s.users[c.userId]||{};return html`<div className="fp-c" key=${c.id}><${Avatar} u=${cu} size=${26}/><div><b>${cu.handle}</b> <span>${ago(s.now-c.at)}</span>${c.sticker?html`<${Sticker} v=${c.sticker} size=${40}/>`:html`<p>${c.text}</p>`}</div></div>`}):html`<p className="fp-empty">${frozen?'Comments are off while frozen':'No comments yet'}</p>`}</div>`}
+      ${panel===2&&html`<b className="fp-label">COMMENTS</b>`}${panel===2&&html`<div className="fp-list">${cs.length?cs.map(c=>{const cu=s.users[c.userId]||{};return html`<div className="fp-c" key=${c.id}><${Avatar} u=${cu} size=${26}/><div><b>${cu.handle}</b> <span>${ago(s.now-c.at)}</span>${c.sticker?html`<${Sticker} v=${c.sticker} size=${40}/>`:html`<p>${c.text}</p>`}</div></div>`}):html`<p className="fp-empty">${frozen?'Comments are off while frozen':'No comments yet'}</p>`}</div>`}
       ${!frozen&&html`<div className="fp-input"><input placeholder="Add a comment…" maxLength=${280} value=${txt} onInput=${e=>setTxt(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Add a comment"/>${txt.trim()&&html`<button onClick=${send} aria-label="Post comment"><${Icon} n="share" s=${16}/></button>`}</div>`}
     </div>`:ui&&html`<span className="fp-hint" aria-hidden="true">⌃</span>`}
     <div className=${'fullv-box'+(land?' land':'')}>
@@ -1493,6 +1495,7 @@ function FullVideo({url,at,onClose,p,s,dispatch}){
     ${ui&&html`<div className="fullv-ui" onClick=${stop}>
       <div className="fullv-top"><button onClick=${close} aria-label="Close"><${Icon} n="x" s=${22}/></button><button onClick=${()=>setLand(!land)} aria-label=${land?'Turn upright':'Turn sideways'}><${Icon} n="replay" s=${20}/></button></div>
       <button className="fullv-play" onClick=${()=>setPaused(!paused)} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${30} fill=${paused?'#fff':null}/></button>
+      ${!panel&&p&&html`<div className="fullv-cap"><b>@${(s.users[p.userId]||{}).handle}</b>${p.text&&html`<p>${p.text}</p>`}</div>`}
       <div className="fullv-bar"><b>${fmt(t)}</b><input type="range" min="0" max=${dur||1} step="0.1" value=${t} aria-label="Seek" onInput=${e=>{const x=+e.target.value;if(v.current)v.current.currentTime=x;setT(x)}}/><b>${fmt(dur)}</b>
         <button onClick=${()=>setMuted(!muted)} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${20}/></button></div></div>`}
   </div></div>`;

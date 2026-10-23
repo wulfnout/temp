@@ -1,7 +1,8 @@
 // Animated rings and headers. Everything runs off a few shared clocks on the native driver,
 // so dozens of animated avatars in a feed cost almost nothing.
 import React from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
+import { F } from './lib';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -254,19 +255,252 @@ function Thermal() {
     </Animated.View></View>;
 }
 
+/* ---- headers, round 2 ---- */
+const useBox = () => { const [b, setB] = React.useState({ w: 360, h: 200 }); return [b, (e) => { const { width, height } = e.nativeEvent.layout; if (width && height && (Math.abs(width - b.w) > 1 || Math.abs(height - b.h) > 1)) setB({ w: width, h: height }); }]; };
+const sway = (c, ph, amp) => c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1].map((x) => x), outputRange: [0, 1, 0, -1, 0].map((k, i) => amp * Math.sin(((i / 4) + ph) * Math.PI * 2)) });
+
+// Disco Inferno: a mirror ball hangs from the top and throws spinning coloured beams and light spots around a dark club
+function Disco2() {
+  const [b, onL] = useBox(); const c = clock(6000), c2 = clock(2600);
+  const cols = ['#ff5500', '#ff2bd6', '#00e5ff', '#ffd27a', '#ffffff', '#ff2d55', '#8a5cff', '#22ff88'];
+  const cx = b.w / 2, cy = b.h * 0.3;
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden', backgroundColor: '#07030c' }]}>
+    <LinearGradient colors={['#1a0820', '#07030c', '#2a0d05']} style={fill} />
+    {/* coloured spots sweeping over the walls */}
+    {Array.from({ length: 10 }).map((_, i) => { const r = rng(90 + i); const s = 30 + r() * 40; const ph = r();
+      return <Animated.View key={'s' + i} style={{ position: 'absolute', left: 0, top: 0, width: s, height: s * 0.6, borderRadius: s, backgroundColor: cols[i % cols.length], opacity: 0.35,
+        transform: [{ translateX: cycle(c, ph, -60, b.w + 20) }, { translateY: b.h * (0.15 + r() * 0.75) }] }} />; })}
+    {/* beams */}
+    <Animated.View style={{ position: 'absolute', left: cx, top: cy, width: 0, height: 0, transform: [{ rotate: spin(c) }] }}>
+      {cols.map((col, i) => <View key={i} style={{ position: 'absolute', left: 0, top: 0, width: 0, height: 0, transform: [{ rotate: (i * 45 + 10) + 'deg' }] }}>
+        <LinearGradient colors={[col, 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: 'absolute', left: 0, top: -7, width: Math.max(b.w, 400), height: 14, opacity: 0.55 }} /></View>)}
+    </Animated.View>
+    {/* the ball */}
+    <View style={{ position: 'absolute', left: cx - 1, top: 0, width: 2, height: cy - 16, backgroundColor: '#555' }} />
+    <View style={{ position: 'absolute', left: cx - 17, top: cy - 17, width: 34, height: 34, borderRadius: 17, overflow: 'hidden', backgroundColor: '#cfcfcf', shadowColor: '#fff', shadowOpacity: 0.9, shadowRadius: 12 }}>
+      <Animated.View style={{ position: 'absolute', left: -34, top: 0, flexDirection: 'row', transform: [{ translateX: c2.interpolate({ inputRange: [0, 1], outputRange: [0, 34] }) }] }}>
+        {Array.from({ length: 12 }).map((_, i) => <View key={i}>{Array.from({ length: 6 }).map((_, k) => <View key={k} style={{ width: 6, height: 6, margin: 0.4, backgroundColor: (i + k) % 3 ? '#e9e9e9' : (i + k) % 2 ? '#8a8a8a' : '#ffffff' }} />)}</View>)}
+      </Animated.View>
+    </View>
+    <Twinkle n={26} seed={8} color="#ffffff" />
+  </View>;
+}
+
+// Night Drive: a car rolling along a road at eye level, hills and a big moon behind it
+function NightDrive() {
+  const [b, onL] = useBox(); const road = clock(900), hills = clock(16000), bob = clock(700), wheel = clock(500);
+  const gy = b.h * 0.78; const carW = Math.min(150, b.w * 0.42), carX = b.w * 0.3;
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#03010d', '#0d1030', '#1d1640']} style={fill} />
+    <Twinkle n={45} seed={15} />
+    {/* moon */}
+    <View style={{ position: 'absolute', right: b.w * 0.12, top: b.h * 0.1, width: b.h * 0.42, height: b.h * 0.42, borderRadius: b.h, backgroundColor: '#f4f0dc', shadowColor: '#fff6d0', shadowOpacity: 0.9, shadowRadius: 28 }}>
+      {[[0.25, 0.3, 0.16], [0.55, 0.5, 0.12], [0.4, 0.68, 0.09]].map(([x, y, s], i) => <View key={i} style={{ position: 'absolute', left: x * b.h * 0.42, top: y * b.h * 0.42, width: s * b.h, height: s * b.h, borderRadius: b.h, backgroundColor: '#dcd6bd' }} />)}
+    </View>
+    {/* hills drifting slowly */}
+    <Animated.View style={{ position: 'absolute', left: 0, top: gy - b.h * 0.22, flexDirection: 'row', transform: [{ translateX: hills.interpolate({ inputRange: [0, 1], outputRange: [0, -b.w] }) }] }}>
+      {Array.from({ length: 8 }).map((_, i) => <View key={i} style={{ width: b.w / 3, height: b.h * 0.22 + (i % 2) * 14, marginTop: (i % 2) ? -14 : 0, borderTopLeftRadius: b.w / 4, borderTopRightRadius: b.w / 5, backgroundColor: '#0b0920', marginRight: -b.w / 12 }} />)}
+    </Animated.View>
+    {/* road with lane dashes sliding past */}
+    <View style={{ position: 'absolute', left: 0, right: 0, top: gy, bottom: 0, backgroundColor: '#15131c' }} />
+    <Animated.View style={{ position: 'absolute', left: 0, top: gy + (b.h - gy) / 2 - 1.5, flexDirection: 'row', transform: [{ translateX: road.interpolate({ inputRange: [0, 1], outputRange: [0, -60] }) }] }}>
+      {Array.from({ length: Math.ceil(b.w / 60) + 2 }).map((_, i) => <View key={i} style={{ width: 30, height: 3, marginRight: 30, backgroundColor: '#ffd27a', opacity: 0.8 }} />)}
+    </Animated.View>
+    {/* the car */}
+    <Animated.View style={{ position: 'absolute', left: carX, top: gy - carW * 0.36, width: carW, height: carW * 0.4, transform: [{ translateY: bob.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, -1.5, 0] }) }] }}>
+      <LinearGradient colors={['rgba(255,240,180,.45)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: 'absolute', left: carW * 0.95, top: carW * 0.12, width: carW * 0.9, height: carW * 0.14, borderRadius: 20 }} />
+      <View style={{ position: 'absolute', left: carW * 0.22, top: 0, width: carW * 0.5, height: carW * 0.2, borderTopLeftRadius: carW * 0.14, borderTopRightRadius: carW * 0.1, backgroundColor: '#ff5500' }}>
+        <View style={{ position: 'absolute', left: carW * 0.05, top: carW * 0.04, width: carW * 0.17, height: carW * 0.12, borderTopLeftRadius: carW * 0.08, backgroundColor: '#7fb2ff', opacity: 0.85 }} />
+        <View style={{ position: 'absolute', left: carW * 0.25, top: carW * 0.04, width: carW * 0.19, height: carW * 0.12, borderTopRightRadius: carW * 0.07, backgroundColor: '#7fb2ff', opacity: 0.85 }} />
+      </View>
+      <View style={{ position: 'absolute', left: 0, top: carW * 0.17, width: carW, height: carW * 0.15, borderRadius: carW * 0.06, borderTopRightRadius: carW * 0.12, backgroundColor: '#ff5500' }}>
+        <View style={{ position: 'absolute', right: 2, top: carW * 0.03, width: carW * 0.06, height: carW * 0.04, borderRadius: 3, backgroundColor: '#fff6c2', shadowColor: '#fff6c2', shadowOpacity: 1, shadowRadius: 8 }} />
+        <View style={{ position: 'absolute', left: 1, top: carW * 0.03, width: carW * 0.04, height: carW * 0.04, borderRadius: 2, backgroundColor: '#ff2d2d', shadowColor: '#ff2d2d', shadowOpacity: 1, shadowRadius: 6 }} />
+      </View>
+      {[0.2, 0.78].map((x, i) => <Animated.View key={i} style={{ position: 'absolute', left: carW * x - carW * 0.09, top: carW * 0.24, width: carW * 0.18, height: carW * 0.18, borderRadius: carW, backgroundColor: '#111', borderWidth: 3, borderColor: '#2a2a2a', alignItems: 'center', justifyContent: 'center', transform: [{ rotate: spin(wheel) }] }}>
+        <View style={{ width: '70%', height: 2, backgroundColor: '#888' }} /><View style={{ position: 'absolute', width: 2, height: '70%', backgroundColor: '#888' }} /></Animated.View>)}
+    </Animated.View>
+  </View>;
+}
+
+// Blizzard: masses of tiny flakes blowing sideways in gusts
+function Blizzard() {
+  const [b, onL] = useBox(); const c = clock(1700), g = clock(4200);
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#0e1620', '#3b5163', '#9fb4c4']} style={fill} />
+    <Animated.View style={[fill, { transform: [{ translateX: sway(g, 0, 18) }] }]}>
+      {Array.from({ length: 140 }).map((_, i) => { const r = rng(300 + i); const s = 1.2 + r() * 2.4; const ph = r(); const x = r() * (b.w + 120) - 20;
+        return <Animated.View key={i} style={{ position: 'absolute', left: 0, top: 0, width: s, height: s, borderRadius: s, backgroundColor: '#fff', opacity: 0.5 + r() * 0.5,
+          transform: [{ translateX: cycle(c, ph, x, x - 110) }, { translateY: cycle(c, ph, -10, b.h + 10) }] }} />; })}
+    </Animated.View>
+  </View>;
+}
+
+// Snowstorm: flakes of every size and shape falling over the whole header
+function Snowstorm() {
+  const [b, onL] = useBox(); const c = clock(7000), w = clock(3000);
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#1b2430', '#3e5266', '#6c8194']} style={fill} />
+    {Array.from({ length: 64 }).map((_, i) => { const r = rng(500 + i); const kind = i % 4; const s = kind === 0 ? 10 + r() * 14 : kind === 1 ? 4 + r() * 5 : 2 + r() * 3; const ph = r(); const x = r() * b.w;
+      const spd = 0.6 + r() * 0.8;
+      return <Animated.View key={i} style={{ position: 'absolute', left: x, top: 0, opacity: 0.6 + r() * 0.4,
+        transform: [{ translateY: cycle(clock(Math.round(7000 / spd / 100) * 100), ph, -30, b.h + 20) }, { translateX: sway(w, r(), 6 + r() * 10) }, { rotate: spin(c) }] }}>
+        {kind === 0 ? <Ionicons name="snow" size={s} color="#ffffff" /> : <View style={{ width: s, height: kind === 3 ? s * 0.7 : s, borderRadius: s, backgroundColor: '#fff' }} />}</Animated.View>; })}
+  </View>;
+}
+
+// Lava Lamp: blobs that rise, stretch, wobble and sink back like real lamp wax
+function LavaLamp() {
+  const [b, onL] = useBox();
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#2b0a3d', '#5a0b2a', '#2a0505']} style={fill} />
+    <LinearGradient colors={['rgba(255,140,40,.35)', 'transparent']} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0.3 }} style={fill} />
+    {Array.from({ length: 7 }).map((_, i) => { const r = rng(700 + i); const s = 38 + r() * 46; const up = clock(9000 + i * 1700); const wob = clock(2400 + i * 300); const ph = r(); const x = (0.08 + 0.13 * i + r() * 0.05) * b.w;
+      const y = up.interpolate({ inputRange: [0, 0.5, 1], outputRange: [b.h - s * 0.4, -s * 0.3, b.h - s * 0.4] });
+      return <Animated.View key={i} style={{ position: 'absolute', left: x, top: 0, width: s, height: s, borderRadius: s, backgroundColor: ['#ff5a1a', '#ff2d55', '#ff8a2b', '#ff3d6e'][i % 4],
+        shadowColor: '#ff5500', shadowOpacity: 0.8, shadowRadius: 14,
+        transform: [{ translateY: y }, { translateX: sway(wob, ph, 10) },
+          { scaleY: up.interpolate({ inputRange: [0, 0.12, 0.25, 0.5, 0.62, 0.75, 1], outputRange: [0.8, 1.45, 1.1, 0.85, 1.4, 1.05, 0.8] }) },
+          { scaleX: wob.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1.1, 0.85, 1.1] }) }] }}>
+        <View style={{ position: 'absolute', left: s * 0.18, top: s * 0.14, width: s * 0.28, height: s * 0.2, borderRadius: s, backgroundColor: 'rgba(255,230,180,.45)' }} /></Animated.View>; })}
+  </View>;
+}
+
+// Rain: straight lines of rain all falling together
+function Rain() {
+  const [b, onL] = useBox(); const c = clock(520); const cell = 60;
+  const cols = Math.ceil((b.w + 80) / 12);
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#0b1220', '#1a2638', '#2b3a4f']} style={fill} />
+    <Animated.View style={{ position: 'absolute', left: -40, top: -cell, transform: [{ translateY: c.interpolate({ inputRange: [0, 1], outputRange: [0, cell] }) }, { translateX: c.interpolate({ inputRange: [0, 1], outputRange: [0, -10] }) }] }}>
+      <View style={{ flexDirection: 'row', transform: [{ skewX: '-10deg' }] }}>
+        {Array.from({ length: cols }).map((_, i) => { const off = (i * 23) % cell;
+          return <View key={i} style={{ width: 12 }}>{Array.from({ length: Math.ceil(b.h / cell) + 2 }).map((_, k) => <View key={k} style={{ width: 1.4, height: 16, marginTop: k ? cell - 16 : off, backgroundColor: 'rgba(200,225,255,.55)' }} />)}</View>; })}
+      </View>
+    </Animated.View>
+    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 6, backgroundColor: 'rgba(160,190,230,.25)' }} />
+  </View>;
+}
+
+// Thermal Cam: a still heat-camera frame with a warm figure, scale bar and viewfinder
+function Thermal2() {
+  const [b, onL] = useBox();
+  const blob = (cx, cy, rx, ry, k) => ['#2b00a8', '#7a00a0', '#c4007a', '#ff2d2d', '#ff7a00', '#ffd400', '#fff7b0'].map((col, i) => { const f = 1 - i * 0.13;
+    return <View key={k + i} style={{ position: 'absolute', left: cx - rx * f, top: cy - ry * f, width: rx * 2 * f, height: ry * 2 * f, borderRadius: rx * 2, backgroundColor: col, opacity: 0.92 }} />; });
+  const cx = b.w * 0.4;
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden', backgroundColor: '#0a0030' }]}>
+    <LinearGradient colors={['#05001f', '#14006a', '#2a0080']} style={fill} />
+    {blob(cx, b.h * 0.95, b.w * 0.2, b.h * 0.45, 'body')}
+    {blob(cx, b.h * 0.36, b.h * 0.17, b.h * 0.2, 'head')}
+    {blob(b.w * 0.82, b.h * 0.8, b.w * 0.09, b.h * 0.14, 'cup')}
+    {Array.from({ length: Math.ceil(b.h / 4) }).map((_, i) => <View key={'l' + i} style={{ position: 'absolute', left: 0, right: 0, top: i * 4, height: 1, backgroundColor: 'rgba(0,0,0,.18)' }} />)}
+    <View style={{ position: 'absolute', left: cx - 18, top: b.h * 0.36 - 18, width: 36, height: 36, borderWidth: 1.5, borderColor: 'rgba(255,255,255,.8)' }} />
+    <Text style={{ position: 'absolute', left: cx + 22, top: b.h * 0.36 - 18, color: '#fff', fontSize: 11, fontWeight: '800' }}>98.6°F</Text>
+    <LinearGradient colors={['#fff7b0', '#ffd400', '#ff7a00', '#ff2d2d', '#c4007a', '#2b00a8']} style={{ position: 'absolute', right: 10, top: 14, width: 7, height: b.h * 0.5, borderRadius: 4 }} />
+    <View style={{ position: 'absolute', left: 10, top: 10, width: 14, height: 14, borderLeftWidth: 2, borderTopWidth: 2, borderColor: '#fff' }} />
+    <View style={{ position: 'absolute', right: 26, bottom: 10, width: 14, height: 14, borderRightWidth: 2, borderBottomWidth: 2, borderColor: '#fff' }} />
+  </View>;
+}
+
+// Sunburst: a cool sun in shades grins, swells up and bursts into a shower of logo t's, then comes back
+function SunPop() {
+  const [b, onL] = useBox(); const c = clock(5200);
+  const cx = b.w / 2, cy = b.h * 0.52, R = Math.min(b.h * 0.3, 60);
+  const sunScale = c.interpolate({ inputRange: [0, 0.08, 0.55, 0.66, 0.7, 0.9, 1], outputRange: [0.2, 1, 1.05, 1.35, 0, 0, 0.2] });
+  const sunOp = c.interpolate({ inputRange: [0, 0.04, 0.68, 0.7, 0.96, 1], outputRange: [0, 1, 1, 0, 0, 0] });
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#ffb347', '#ff7a1a', '#ff5500']} style={fill} />
+    <Animated.View style={{ position: 'absolute', left: cx, top: cy, width: 0, height: 0, opacity: sunOp, transform: [{ scale: sunScale }, { rotate: c.interpolate({ inputRange: [0, 0.55, 0.66, 0.7], outputRange: ['-6deg', '6deg', '-10deg', '10deg'], extrapolate: 'clamp' }) }] }}>
+      <Animated.View style={{ position: 'absolute', left: 0, top: 0, transform: [{ rotate: spin(clock(9000)) }] }}>
+        {Array.from({ length: 12 }).map((_, i) => <View key={i} style={{ position: 'absolute', left: 0, top: 0, transform: [{ rotate: i * 30 + 'deg' }] }}>
+          <View style={{ position: 'absolute', left: -5, top: -R * 1.55, width: 10, height: R * 0.4, borderRadius: 5, backgroundColor: '#ffe14d' }} /></View>)}
+      </Animated.View>
+      <View style={{ position: 'absolute', left: -R, top: -R, width: R * 2, height: R * 2, borderRadius: R, backgroundColor: '#ffd21a', borderWidth: 3, borderColor: '#ffe873' }}>
+        {/* shades */}
+        <View style={{ position: 'absolute', left: R * 0.22, top: R * 0.62, width: R * 0.68, height: R * 0.42, borderRadius: R * 0.14, borderBottomLeftRadius: R * 0.3, borderBottomRightRadius: R * 0.3, backgroundColor: '#111' }} />
+        <View style={{ position: 'absolute', right: R * 0.22, top: R * 0.62, width: R * 0.68, height: R * 0.42, borderRadius: R * 0.14, borderBottomLeftRadius: R * 0.3, borderBottomRightRadius: R * 0.3, backgroundColor: '#111' }} />
+        <View style={{ position: 'absolute', left: R * 0.85, top: R * 0.68, width: R * 0.3, height: R * 0.07, backgroundColor: '#111' }} />
+        <View style={{ position: 'absolute', left: R * 0.3, top: R * 0.68, width: R * 0.2, height: R * 0.08, borderRadius: R, backgroundColor: 'rgba(255,255,255,.5)' }} />
+        {/* grin */}
+        <View style={{ position: 'absolute', left: R * 0.55, top: R * 1.05, width: R * 0.9, height: R * 0.5, borderBottomLeftRadius: R, borderBottomRightRadius: R, borderWidth: R * 0.08, borderTopWidth: 0, borderColor: '#7a2b00' }} />
+      </View>
+    </Animated.View>
+    {/* the burst of t's */}
+    {Array.from({ length: 18 }).map((_, i) => { const r = rng(900 + i); const ang = (i / 18) * Math.PI * 2 + r() * 0.3; const dist = (0.6 + r() * 0.6) * Math.max(b.w, b.h) * 0.6;
+      const sz = 18 + r() * 22;
+      return <Animated.Text key={i} style={{ position: 'absolute', left: cx - sz * 0.3, top: cy - sz * 0.7, fontFamily: F.display, fontSize: sz, color: i % 3 === 0 ? '#ffffff' : i % 3 === 1 ? '#0a0a0a' : '#ffe14d',
+        opacity: c.interpolate({ inputRange: [0, 0.67, 0.69, 0.88, 1], outputRange: [0, 0, 1, 0, 0] }),
+        transform: [{ translateX: c.interpolate({ inputRange: [0, 0.68, 0.9, 1], outputRange: [0, 0, Math.cos(ang) * dist, Math.cos(ang) * dist] }) },
+          { translateY: c.interpolate({ inputRange: [0, 0.68, 0.9, 1], outputRange: [0, 0, Math.sin(ang) * dist + 30, Math.sin(ang) * dist + 30] }) },
+          { rotate: c.interpolate({ inputRange: [0, 0.68, 0.9, 1], outputRange: ['0deg', '0deg', (r() * 720 - 360) + 'deg', '0deg'] }) },
+          { scale: c.interpolate({ inputRange: [0, 0.68, 0.72, 0.9, 1], outputRange: [0.2, 0.2, 1.2, 0.9, 0.2] }) }] }}>t</Animated.Text>; })}
+    <Animated.View pointerEvents="none" style={[fill, { backgroundColor: '#fff', opacity: c.interpolate({ inputRange: [0, 0.68, 0.7, 0.76, 1], outputRange: [0, 0, 0.7, 0, 0] }) }]} />
+  </View>;
+}
+
+// Embers: glowing sparks drifting up off a fire below, swaying and burning out as they rise
+function Embers2() {
+  const [b, onL] = useBox();
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#050302', '#1a0702', '#5a1a04']} style={fill} />
+    <LinearGradient colors={['rgba(255,110,20,.55)', 'transparent']} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0.45 }} style={fill} />
+    {Array.from({ length: 48 }).map((_, i) => { const r = rng(1100 + i); const s = 1.5 + r() * 3.2; const ph = r(); const life = clock(Math.round((3200 + r() * 3800) / 100) * 100); const w = clock(Math.round((1400 + r() * 1600) / 100) * 100);
+      const x = r() * b.w; const col = ['#ffd27a', '#ff8a2b', '#ff5500', '#fff1c4'][i % 4];
+      return <Animated.View key={i} style={{ position: 'absolute', left: x, top: 0, width: s, height: s, borderRadius: s, backgroundColor: col, shadowColor: '#ff6a00', shadowOpacity: 1, shadowRadius: 5,
+        opacity: Animated.multiply(cycle(life, ph, 1, 0), jitter(clock(400), i * 7 + 3, 0.55, 1, 8)),
+        transform: [{ translateY: cycle(life, ph, b.h + 6, b.h * 0.05) }, { translateX: sway(w, r(), 6 + r() * 14) }, { scale: cycle(life, ph, 1.2, 0.4) }] }} />; })}
+  </View>;
+}
+
+// Lava: molten rock welling up from the ground on the left and pouring off to the right
+function LavaFlow() {
+  const [b, onL] = useBox(); const c = clock(3200), slow = clock(5200), pop = clock(1600);
+  const top = b.h * 0.5;
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#0b0505', '#1f0a06', '#3a1206']} style={fill} />
+    <LinearGradient colors={['transparent', 'rgba(255,90,0,.35)']} start={{ x: 0.5, y: 0.35 }} end={{ x: 0.5, y: 1 }} style={fill} />
+    {/* rocky ground */}
+    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: b.h * 0.18, backgroundColor: '#140806' }} />
+    {/* the flow: a sloped channel filled with moving molten bands */}
+    <View style={{ position: 'absolute', left: -20, top, width: b.w + 40, height: b.h - top + 20, overflow: 'hidden', borderTopLeftRadius: b.h * 0.5, borderTopRightRadius: 30, transform: [{ skewY: '6deg' }] }}>
+      <LinearGradient colors={['#ffd27a', '#ff8a2b', '#ff3d00', '#a01800']} style={fill} />
+      <Animated.View style={{ position: 'absolute', left: -b.w, top: 0, bottom: 0, flexDirection: 'row', transform: [{ translateX: c.interpolate({ inputRange: [0, 1], outputRange: [0, b.w / 2] }) }] }}>
+        {Array.from({ length: 24 }).map((_, i) => { const r = rng(1300 + i); return <View key={i} style={{ width: b.w / 8, marginRight: -b.w / 40, marginTop: r() * 20, height: 26 + r() * 30, borderRadius: 30, backgroundColor: ['rgba(255,240,180,.55)', 'rgba(120,20,0,.45)', 'rgba(255,200,80,.5)'][i % 3] }} />; })}
+      </Animated.View>
+      <Animated.View style={{ position: 'absolute', left: -b.w, top: 22, bottom: 0, flexDirection: 'row', transform: [{ translateX: slow.interpolate({ inputRange: [0, 1], outputRange: [0, b.w / 2] }) }] }}>
+        {Array.from({ length: 20 }).map((_, i) => <View key={i} style={{ width: b.w / 10, marginRight: b.w / 30, height: 14, marginTop: (i % 3) * 14, borderRadius: 10, backgroundColor: i % 2 ? 'rgba(60,10,0,.5)' : 'rgba(255,255,200,.35)' }} />)}
+      </Animated.View>
+    </View>
+    {/* source welling up from the ground */}
+    <Animated.View style={{ position: 'absolute', left: b.w * 0.02, top: top - 26, width: 70, height: 46, borderRadius: 40, backgroundColor: '#ff8a2b', shadowColor: '#ff5500', shadowOpacity: 1, shadowRadius: 18,
+      transform: [{ scaleY: pop.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.85, 1.15, 0.85] }) }] }} />
+    {/* bubbles popping along the flow */}
+    {Array.from({ length: 6 }).map((_, i) => { const r = rng(1500 + i); const ph = r(); const x = b.w * (0.15 + r() * 0.8);
+      return <Animated.View key={'b' + i} style={{ position: 'absolute', left: x, top: top + 10 + (x / b.w) * 30 + r() * 20, width: 10, height: 10, borderRadius: 10, borderWidth: 2, borderColor: '#ffe7a0',
+        opacity: cycle(pop, ph, 1, 0), transform: [{ scale: cycle(pop, ph, 0.3, 1.6) }] }} />; })}
+  </View>;
+}
+
 export function HeaderFx({ id, fallback }) {
   useClockKick();
   const cols = HEADER_FX[id] || fallback;
   const base = <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={fill} />;
   let fx = null;
   switch (id) {
-    case 'lava': case 'aurora': return <View style={[fill, { overflow: 'hidden' }]}><Pan cols={cols} />{id === 'lava' ? <Blobs seed={21} /> : null}</View>;
+    case 'aurora': return <View style={[fill, { overflow: 'hidden' }]}><Pan cols={cols} /></View>;
+    case 'lava': return <LavaFlow />;
     case 'hazard': return <Hazard />;
     case 'checker': return <Checker />;
-    case 'sunburst': return <Sunburst />;
-    case 'disco': return <Disco />;
+    case 'sunburst': return <SunPop />;
+    case 'disco': return <Disco2 />;
     case 'synth': return <Synth />;
-    case 'thermal': return <Thermal />;
+    case 'thermal': return <Thermal2 />;
+    case 'starfield': return <NightDrive />;
+    case 'blizzard': return <Blizzard />;
+    case 'snow': return <Snowstorm />;
+    case 'lavalamp': return <LavaLamp />;
+    case 'rain': return <Rain />;
+    case 'embers': return <Embers2 />;
     case 'embers': fx = <Particles n={26} seed={3} ms={7000} color={['#ff8a2b', '#ffd27a', '#ff3d00']} w={4} rise drift={30} glow="#ff5500" />; break;
     case 'rain': fx = <Particles n={34} seed={9} ms={1800} color="#ff7a33" w={2} len={9} round={false} />; break;
     case 'snow': fx = <Particles n={36} seed={4} ms={8000} color="#ffffff" w={4} drift={40} />; break;

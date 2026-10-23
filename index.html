@@ -615,7 +615,7 @@ img,video{max-width:100%;display:block}
 .live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:14px 8px}.live-grid.small{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
 .live-p{display:grid;justify-items:center;gap:3px;text-align:center;min-width:0}.live-p b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .live-av{position:relative;border-radius:50%;padding:3px;transition:box-shadow .1s}
-.live-av.talking{box-shadow:0 0 0 calc(2px + var(--lv)*5px) var(--orange),0 0 calc(10px + var(--lv)*20px) var(--orange)}
+.live-av.talking{box-shadow:0 0 0 calc(3px + var(--lv)*5px) var(--rc),0 0 calc(12px + var(--lv)*22px) var(--rc)}
 .live-mute,.live-hand{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-style:normal;font-size:13px}
 .live-hand{left:-2px;right:auto;top:-2px;bottom:auto}
 .live-ctl{display:grid;gap:4px;margin-top:4px}.live-ctl button{font-size:11.5px;font-weight:800;color:var(--orange)}
@@ -2629,6 +2629,7 @@ class LiveEngine{
   async setSpeaking(on,muted){
     if(on&&!this.local){
       this.local=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+      try{await this.ac.resume()}catch(e){}
       try{const src=this.ac.createMediaStreamSource(this.local);const an=this.ac.createAnalyser();an.fftSize=512;src.connect(an);this.an[this.me]=an}catch(e){}
       Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));
     }
@@ -2636,11 +2637,13 @@ class LiveEngine{
     this.muted=!!muted;if(this.local)this.local.getAudioTracks().forEach(t=>t.enabled=!this.muted);
   }
   meter(){const lv={};const buf=new Uint8Array(256);Object.entries(this.an).forEach(([id,an])=>{an.getByteTimeDomainData(buf);let s=0;for(const v of buf){const d=(v-128)/128;s+=d*d}lv[id]=Math.sqrt(s/buf.length)});
-    if(this.local&&this.muted)lv[this.me]=0;this.onChange({levels:lv})}
+    if(this.local&&this.muted)lv[this.me]=0;this.sm=this.sm||{};Object.keys(lv).forEach(k=>{const p=this.sm[k]||0;this.sm[k]=lv[k]>p?lv[k]:p*.82+lv[k]*.18});this.onChange({levels:{...this.sm}})}
   leave(){clearInterval(this.loop);Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}try{this.ac&&this.ac.close()}catch(e){}}
 }
 const liveUser=p=>p?{id:p.id,uid:p.id,name:p.name||p.handle,handle:p.handle,avatar:p.avatar_url,color:colorFor(p.id),ring:p.ring}:{id:'?',name:'Someone',handle:'someone',color:'#ff5500'};
 const LIVE_FRESH=70e3;
+// while someone talks their avatar lights up: their own ring if they have one, otherwise orange
+const RING_GLOW={fire:'#ff5500',ice:'#bfe6ff',gold:'#ffd700',morph:'#ff8a2b',glitch:'#00e5ff',plus:'#ff5500'};
 function useLiveData(){
   const [rooms,setRooms]=useState([]);const [members,setMembers]=useState([]);const [people,setPeople]=useState({});const [tick,setTick]=useState(0);
   const load=useCallback(async()=>{
@@ -2698,9 +2701,9 @@ function LiveRoom({roomId,room,people,me,reload,onLeave}){
   const react=e=>{eng.current&&eng.current.react(e);const f={id:Math.random(),e,x:10+Math.random()*80};setFloaters(x=>[...x.slice(-14),f]);setTimeout(()=>setFloaters(x=>x.filter(y=>y!==f)),2600)};
   if(!room)return html`<div className="live-room"><div className="empty">${ready?'This Live Take has ended.':'Joining…'}</div><button className="btn ghost wide" onClick=${onLeave}>Back</button></div>`;
   const sp=members.filter(m=>m.role!=='listener').sort((a,b)=>(b.role==='host')-(a.role==='host'));const ls=members.filter(m=>m.role==='listener').sort((a,b)=>b.hand-a.hand);
-  const person=(m,big)=>{const u=people[m.user_id]||liveUser(null);const lv=levels[m.user_id]||0;const talking=m.role!=='listener'&&!m.muted&&lv>.04;
+  const person=(m,big)=>{const u=people[m.user_id]||liveUser(null);const lv=levels[m.user_id]||0;const talking=m.role!=='listener'&&!m.muted&&lv>.018;
     return html`<div className=${'live-p'+(big?' big':'')} key=${m.user_id}>
-      <span className=${'live-av'+(talking?' talking':'')} style=${{'--lv':Math.min(1,lv*6)}}><${Avatar} u=${u} size=${big?64:48} noRing=${true}/>
+      <span className=${'live-av'+(talking?' talking':'')} style=${{'--lv':Math.min(1,lv*6),'--rc':RING_GLOW[u.ring]||'var(--orange)'}}><${Avatar} u=${u} size=${big?64:48} noRing=${!(talking&&u.ring)}/>
         ${m.role!=='listener'&&m.muted&&html`<i className="live-mute"><${Icon} n="mute" s=${12}/></i>`}${m.hand&&html`<i className="live-hand">✋</i>`}</span>
       <b>${u.name}</b><span className="sub">${m.role==='host'?'Host':m.role==='speaker'?'Speaker':''}</span>
       ${isHost&&m.user_id!==me&&html`<span className="live-ctl">${m.role==='listener'?html`<button onClick=${()=>upd(m.user_id,{role:'speaker'})}>Invite to speak</button>`:html`<button onClick=${()=>upd(m.user_id,{role:'listener'})}>Move to listeners</button>${!m.muted&&html`<button onClick=${()=>upd(m.user_id,{muted:true})}>Mute</button>`}`}</span>`}

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Get Temp</title>
+<meta name="description" content="Put Temp on your Home Screen — hot takes with a shelf life.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Temp">
+<meta property="og:title" content="Get Temp">
+<meta property="og:description" content="Hot takes with a shelf life. Add Temp to your Home Screen.">
+<meta property="og:image" content="../icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Figtree:wght@500;600;700;800&display=swap">
+<style>
+:root{--bg:#000;--card:#111;--soft:#1c1c1c;--ink:#fff;--muted:#8d8883;--line:#252525;--orange:#ff5500;--orange2:#ff8a2b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100dvh;overflow-x:hidden}
+a{color:inherit}
+.wrap{max-width:520px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px))}
+.glow{position:fixed;left:50%;top:-180px;width:640px;height:520px;margin-left:-320px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,85,0,.35),rgba(255,85,0,.08) 60%,transparent);pointer-events:none;animation:breathe 6s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.08);opacity:.8}}
+.hero{position:relative;display:grid;justify-items:center;text-align:center;gap:14px;padding-top:12px}
+.icon{width:108px;height:108px;border-radius:26px;box-shadow:0 18px 50px rgba(255,85,0,.35),0 0 0 1px rgba(255,255,255,.06);animation:pop .7s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{transform:scale(.6) rotate(-8deg);opacity:0}}
+h1{font-family:Unbounded,system-ui,sans-serif;font-weight:800;font-size:clamp(34px,10vw,46px);letter-spacing:-.05em;line-height:1;margin:6px 0 0}
+h1 i{display:inline-block;width:.24em;height:.24em;border-radius:.05em;background:var(--orange);margin-left:.05em;vertical-align:baseline}
+.tag{font-size:17px;font-weight:600;color:#cfcac5;margin:0;max-width:340px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:4px}
+.chip{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-weight:700;font-size:13px}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:20px;margin-top:22px}
+.card h2{font-family:Unbounded,system-ui,sans-serif;font-size:18px;letter-spacing:-.03em;margin:0 0 4px}
+.card .sub{color:var(--muted);font-weight:600;margin:0 0 14px;font-size:14.5px}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
+ol li{counter-increment:s;display:flex;gap:12px;align-items:center;background:var(--soft);border-radius:18px;padding:12px 14px;font-weight:700;font-size:15.5px;line-height:1.3}
+ol li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+.k{display:inline-flex;align-items:center;gap:4px;background:#2a2a2a;border-radius:8px;padding:2px 7px;font-weight:800;white-space:nowrap}
+.k svg{width:16px;height:16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:999px;padding:15px 20px;font:800 16px Figtree,system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.btn.orange{background:var(--orange);color:#fff;box-shadow:0 10px 30px rgba(255,85,0,.35)}
+.btn.ghost{background:var(--soft);color:#fff;margin-top:10px}
+.btn:active{transform:scale(.98)}
+.hide{display:none!important}
+.done{display:grid;justify-items:center;gap:6px;text-align:center}
+.done b{font-size:17px}
+.foot{color:var(--muted);font-size:13px;text-align:center;margin-top:24px;font-weight:600}
+.arrow{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);color:var(--orange);animation:bob 1.2s ease-in-out infinite;pointer-events:none}
+@keyframes bob{50%{transform:translate(-50%,8px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<main class="wrap">
+  <section class="hero">
+    <img class="icon" src="../icons/icon-512.png" alt="Temp app icon" width="108" height="108">
+    <h1>temp<i></i></h1>
+    <p class="tag">Hot takes with a shelf life. Put Temp on your Home Screen and open it like any other app.</p>
+    <div class="chips"><span class="chip">🔥 Heat or 🧊 freeze</span><span class="chip">Replays</span><span class="chip">Live</span><span class="chip">Stories</span></div>
+  </section>
+
+  <section class="card hide" id="ios">
+    <h2>Add to your iPhone</h2>
+    <p class="sub">Three taps in Safari. No App Store needed.</p>
+    <ol>
+      <li><span>Tap <span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Share</span> at the bottom of Safari</span></li>
+      <li><span>Scroll down and tap <span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>Add to Home Screen</span></span></li>
+      <li><span>Tap <span class="k">Add</span>. Temp shows up on your Home Screen.</span></li>
+    </ol>
+  </section>
+
+  <section class="card hide" id="ios-other">
+    <h2>Open this page in Safari</h2>
+    <p class="sub">On iPhone, only Safari can add Temp to your Home Screen.</p>
+    <button class="btn orange" id="copy">Copy link</button>
+    <p class="sub" style="margin:12px 0 0">Then open Safari, paste the link, and follow the steps.</p>
+  </section>
+
+  <section class="card hide" id="android">
+    <h2>Install Temp</h2>
+    <p class="sub">Adds Temp to your phone like any other app.</p>
+    <button class="btn orange" id="install">Install Temp</button>
+    <ol class="hide" id="android-steps" style="margin-top:12px">
+      <li><span>Tap <span class="k">⋮</span> in the top corner of Chrome</span></li>
+      <li><span>Tap <span class="k">Add to Home screen</span> or <span class="k">Install app</span></span></li>
+    </ol>
+  </section>
+
+  <section class="card hide" id="desktop">
+    <h2>Install on your computer</h2>
+    <p class="sub">Temp can run in its own window, like a desktop app.</p>
+    <button class="btn orange" id="install-d">Install Temp</button>
+    <ol class="hide" id="desktop-steps" style="margin-top:12px">
+      <li><span>In Chrome or Edge, click the <span class="k">install</span> icon at the right end of the address bar</span></li>
+      <li><span>Click <span class="k">Install</span></span></li>
+    </ol>
+  </section>
+
+  <section class="card hide" id="installed">
+    <div class="done"><span style="font-size:40px">🎉</span><b>Temp is on your Home Screen</b><span class="sub" style="margin:0">Open it from there any time.</span></div>
+  </section>
+
+  <a class="btn ghost" href="../">Open Temp in the browser</a>
+  <p class="foot">Free · Works on iPhone, Android and computers</p>
+</main>
+<div class="arrow hide" id="arrow" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15M6 13l6 6 6-6"/></svg></div>
+<script>
+(function(){
+  var ua=navigator.userAgent, $=function(id){return document.getElementById(id)};
+  var ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var safari=ios&&/Safari/.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA|Instagram|FBAN|FBAV|Snapchat|TikTok/.test(ua);
+  var android=/Android/.test(ua);
+  var standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  var show=function(id){$(id).classList.remove('hide')};
+  if(standalone){show('installed')}
+  else if(ios){if(safari){show('ios');if(!/iPad/.test(ua))show('arrow')}else show('ios-other')}
+  else if(android)show('android');
+  else show('desktop');
+  var deferred=null;
+  addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e});
+  function install(steps){if(deferred){deferred.prompt();deferred.userChoice.then(function(c){if(c.outcome==='accepted'){['android','desktop'].forEach(function(i){$(i).classList.add('hide')});show('installed')}deferred=null})}else $(steps).classList.remove('hide')}
+  $('install').onclick=function(){install('android-steps')};
+  $('install-d').onclick=function(){install('desktop-steps')};
+  addEventListener('appinstalled',function(){['android','desktop'].forEach(function(i){$(i).classList.add('hide')});show('installed')});
+  $('copy').onclick=function(){var b=this;(navigator.clipboard?navigator.clipboard.writeText(location.href):Promise.reject()).then(function(){b.textContent='Link copied'}).catch(function(){prompt('Copy this link',location.href)})};
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});
+})();
+</script>
+</body>
+</html>

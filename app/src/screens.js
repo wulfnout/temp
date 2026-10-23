@@ -373,7 +373,7 @@ export function ThreadScreen({ id }) {
           return <Animated.View style={{ transform: [{ translateX: shift }] }}><TimeTag at={m.at} />
             {m.note ? <T b muted style={{ fontSize: 12, alignSelf: mine ? 'flex-end' : 'flex-start', marginHorizontal: 6 }}>{m.note}</T> : null}
             <Pressable onPress={dbl} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '78%', marginBottom: m.react ? 12 : 0 }}>
-              {m.audio ? <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 8, paddingLeft: 8, paddingRight: 12 }}><VoiceBubble url={m.audio} ms={m.ms} mine={mine} /></View>
+              {m.audio ? <VoiceBubble url={m.audio} ms={m.ms} mine={mine} />
                 : m.sticker ? <View style={{ padding: 4 }}><Sticker v={m.sticker} size={58} /></View>
                 : <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 15 }}><T style={{ color: mine ? '#fff' : C.ink }}>{m.text}</T></View>}
               {m.react ? <T style={{ position: 'absolute', bottom: -12, [mine ? 'left' : 'right']: 8, backgroundColor: C.card, borderRadius: 999, paddingHorizontal: 5, fontSize: 13, overflow: 'hidden' }}>{m.react}</T> : null}

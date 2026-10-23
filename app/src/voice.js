@@ -59,14 +59,22 @@ export function useVoiceRecorder(onDone) {
     try {
       const p = await AudioModule.requestRecordingPermissionsAsync();
       if (!p.granted) { Alert.alert('Microphone needed', 'Allow microphone access to send voice messages.'); return; }
-      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
-      await rec.prepareToRecordAsync(); rec.record(); startAt.current = Date.now(); setOn({ ms: 0 });
+      // keep sound at full volume through the speaker, and don't turn other audio down while recording
+      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true, shouldRouteThroughEarpiece: false, interruptionMode: 'mixWithOthers' });
+      await rec.prepareToRecordAsync();
+      // record with the phone's own microphone, not a Bluetooth headset
+      try {
+        const inputs = await rec.getAvailableInputs();
+        const builtIn = (inputs || []).find((i) => /built.?in|iphone|phone|internal/i.test((i.type || '') + ' ' + (i.name || '')) && !/bluetooth|airpods|hfp|headset/i.test((i.type || '') + ' ' + (i.name || '')));
+        if (builtIn) rec.setInput(builtIn.uid);
+      } catch (e) {}
+      rec.record(); startAt.current = Date.now(); setOn({ ms: 0 });
     } catch (e) { Alert.alert('Couldn’t start recording', String(e.message || e)); }
   }
   async function stop(send) {
     if (!startAt.current) return; const ms = Date.now() - startAt.current; startAt.current = 0; setOn(null);
     try { await rec.stop(); } catch (e) {}
-    try { await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false }); } catch (e) {}
+    try { await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false, shouldRouteThroughEarpiece: false, interruptionMode: 'mixWithOthers' }); } catch (e) {}
     if (send && ms > 600 && rec.uri) onDone({ uri: rec.uri, mimeType: 'audio/mp4', fileName: 'voice.m4a' }, ms);
   }
   return { on, start, stop };

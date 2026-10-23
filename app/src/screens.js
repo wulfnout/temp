@@ -343,13 +343,16 @@ export function ThreadScreen({ id }) {
   // drag the chat sideways to peek at send times, like iMessage
   const shift = useRef(new Animated.Value(0)).current; const [peekLeft, setPeekLeft] = useState(false);
   const peek = useRef(PanResponder.create({
-    onMoveShouldSetPanResponderCapture: (e, d) => d.x0 > 40 && Math.abs(d.dx) > 10 && Math.abs(d.dx) > Math.abs(d.dy) * 1.4,
-    onPanResponderMove: (e, d) => { const v = Math.max(-70, Math.min(70, d.dx)); shift.setValue(v); setPeekLeft(v > 0); },
+    onMoveShouldSetPanResponderCapture: (e, d) => d.x0 > 40 && d.dx < -10 && Math.abs(d.dx) > Math.abs(d.dy) * 1.4,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderMove: (e, d) => shift.setValue(Math.max(-72, Math.min(0, d.dx))),
     onPanResponderRelease: () => Animated.spring(shift, { toValue: 0, useNativeDriver: true, speed: 18 }).start(),
     onPanResponderTerminate: () => Animated.spring(shift, { toValue: 0, useNativeDriver: true }).start(),
   })).current;
   const clock = (at) => new Date(at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  const TimeTag = ({ at }) => <T b muted style={{ position: 'absolute', top: '50%', marginTop: -8, fontSize: 11.5, width: 62, [peekLeft ? 'left' : 'right']: -68, textAlign: peekLeft ? 'right' : 'left' }}>{clock(at)}</T>;
+  // hidden until you drag the chat left, then the times slide in from the right edge
+  const timeOp = shift.interpolate({ inputRange: [-72, -24, 0], outputRange: [1, 0, 0], extrapolate: 'clamp' });
+  const TimeTag = ({ at }) => <Animated.Text style={{ position: 'absolute', top: '50%', marginTop: -8, right: -76, width: 66, fontSize: 11.5, fontFamily: F.bold, color: C.muted, opacity: timeOp }}>{clock(at)}</Animated.Text>;
   const lastSeenAt = lastMine ? Math.max(lastMine.readAt || 0, s.seenBy[id] || 0) : 0;
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>

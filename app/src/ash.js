@@ -66,8 +66,6 @@ export function Intro({ onDone }) {
         </View>
       : <View style={{ marginLeft: 5, marginBottom: 12 }}>
           <Animated.View style={{ width: 17, height: 17, borderRadius: 4, backgroundColor: at(tJ, heatIn, ['#ff5500', '#ff5500', '#ffd27a', '#ff7a1a', '#ff7a1a', '#2e2e2e']) }} />
-          <Animated.View style={{ position: 'absolute', left: -4, top: -4, width: 25, height: 25, borderRadius: 7, backgroundColor: '#ff5500', shadowColor: '#ff2d00', shadowOpacity: 1, shadowRadius: 14,
-            opacity: at(tN, [0, b, b + 0.35, c - 0.16, c + 0.02], [0, 0, 0.55, 0.55, 0]) }} />
         </View>;
     const flakes = Array.from({ length: 18 }).map((_, k) => {
       const e = r() < 0.3; const st = c + r() * 0.3; const dx = (r() - 0.35) * 60, dy = -(40 + r() * 90), rot = r() * 600 - 300;
@@ -84,10 +82,6 @@ export function Intro({ onDone }) {
   };
   return (
     <Animated.View pointerEvents="none" style={[fill, { backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', zIndex: 100, opacity: at(tN, [0, 3.45, TOTAL], [1, 1, 0]) }]}>
-      <Animated.View style={{ position: 'absolute', alignItems: 'center', justifyContent: 'center', opacity: at(tN, [0, 0.9, 1.4, 2.9, 3.5], [0, 0, 1, 0.8, 0]),
-        transform: [{ scale: at(tN, [0.9, 1.4, 3.5], [1, 1.05, 1.25]) }] }}>
-        {[[420, 220, 0.07], [330, 170, 0.08], [240, 120, 0.1], [160, 80, 0.12]].map(([w, h, o], k) => <View key={k} style={{ position: 'absolute', width: w, height: h, borderRadius: h, backgroundColor: k > 1 ? '#ff5500' : '#ff2d00', opacity: o }} />)}
-      </Animated.View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>{['t', 'e', 'm', 'p', null].map(piece)}</View>
     </Animated.View>
   );

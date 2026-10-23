@@ -1148,6 +1148,7 @@ async function remote(a,b){
       return 'reload'}
     case 'set': case 'setNotif': case 'mute':{const n=reducer(b,a);await ok(sb.from('profile_private').update({settings:n.settings}).eq('id',myId));
       if(a.key==='activity'&&liveCh){try{a.value?await liveCh.track({at:Date.now()}):await liveCh.untrack()}catch(e){}}return}
+    case 'deleteReplay':{if(a.id<0)return;const {error}=await sb.rpc('delete_replay',{pid:a.id});if(error)throw new Error(friendly(error));return 'reload'}
     case 'burnStory':{if(a.id<0)return;const {error}=await sb.rpc('burn_story',{sid:a.id});if(error)throw new Error(friendly(error));return 'reload'}
     case 'ashDone':{if(a.id<0)return;const {error}=await sb.rpc('ash_post',{pid:a.id});if(error)throw new Error(friendly(error));return 'reload'}
     case 'buy':{const {error}=await sb.rpc('buy',{k:a.kind,item:a.id});if(error)throw new Error(friendly(error));
@@ -1209,7 +1210,7 @@ function reducer(s,a){
   const mapPost=(id,f)=>s.posts.map(p=>p.id===id?f(p):p);
   const me=s.users.me;
   const settle=n=>{
-    if(n.status==='gone'||n.status==='kept')return n;
+    if(n.status==='gone'||n.status==='kept'||n.reel)return n;
     if(n.freeze>n.heat)return {...n,status:'frozen',burnEnds:null};
     if(n.heat>n.freeze&&n.status!=='burning')return {...n,status:'burning',burnEnds:s.now+DAY};
     return n};
@@ -1278,6 +1279,7 @@ function reducer(s,a){
     case 'setNotif': return {...s,settings:{...s.settings,notif:{...s.settings.notif,[a.key]:a.value}}};
     case 'mute': return {...s,settings:{...s.settings,muted:a.add?[...new Set([...s.settings.muted,a.word.toLowerCase()])]:s.settings.muted.filter(w=>w!==a.word)}};
     case 'toast': return {...s,toast:T(a.msg)};
+    case 'deleteReplay': return {...s,posts:s.posts.filter(p=>p.id!==a.id),toast:T('Replay deleted')};
     case 'burnStory': return {...s,storyBurns:Math.max(0,(s.storyBurns??3)-1),stories:s.stories.map(g=>({...g,items:g.items.filter(i=>i.id!==a.id)})).filter(g=>g.items.length),toast:T('Story burned · '+Math.max(0,(s.storyBurns??3)-1)+' left this week')};
     case 'ash': return s.points<ASH_COST?{...s,toast:T('Ashing a post costs '+ASH_COST+' pts')}:{...s,ashing:a.id};
     case 'ashDone': return s.ashing!==a.id?s:{...s,ashing:null,points:s.points-ASH_COST,posts:s.posts.filter(p=>p.id!==a.id),toast:T('Burned to ash')};
@@ -1869,6 +1871,7 @@ function Reel({p,s,active,dispatch,open}){
         <button className=${'rail-btn rp'+(p.myRepost?' on':'')} disabled=${p.userId==='me'} onClick=${()=>dispatch({type:'repost',id:p.id})} aria-label=${p.myRepost?'Undo repost':'Repost'}><span className="rb"><${Icon} n="repost" s=${23} w=${2.2}/></span>${kfmt(p.reposts||0)}</button>
         <button className="rail-btn" onClick=${()=>open.share(p.id)} aria-label="Send"><span className="rb"><${Icon} n="share" s=${22}/></span></button>
         <button className=${'rail-btn'+(p.saved?' on':'')} onClick=${()=>dispatch({type:'save',id:p.id})} aria-label="Save"><span className="rb"><${Icon} n="save" s=${22} fill=${p.saved?'currentColor':null}/></span></button>
+        <button className="rail-btn" onClick=${()=>open.menu(p.id)} aria-label="More"><span className="rb"><${Icon} n="more" s=${22}/></span></button>
       </div>
     </div>
   </section>`;
@@ -1980,7 +1983,8 @@ function PostMenu({p,s,dispatch,onClose,open}){
     ${confirm?html`<${BlockConfirm} u=${u} dispatch=${dispatch} onClose=${onClose} onCancel=${()=>setConfirm(false)}/>`
     :html`<div className="menu">
       ${u.id==='me'&&p.status==='burning'&&html`<button className="menu-item" onClick=${()=>{if(s.users.me.plus){dispatch({type:'keep',id:p.id});onClose()}else{onClose();open.plus()}}}><${Icon} n="pin" s=${20}/>Keep on the timeline${!s.users.me.plus&&html`<span className="plus-badge">+</span>`}</button>`}
-      ${u.id==='me'&&html`<button className="menu-item warn" onClick=${()=>{if(confirm('Ash this post? It burns to ash and is gone for good. Costs '+ASH_COST+' pts (you have '+s.points+').')){onClose();setTimeout(()=>dispatch({type:'ash',id:p.id}),250)}}}><${Icon} n="flame" s=${20}/>Ash this post · ${ASH_COST} pts</button>`}
+      ${u.id==='me'&&p.reel&&html`<button className="menu-item warn" onClick=${()=>{if(confirm('Delete this Replay? It comes down for everyone.')){onClose();dispatch({type:'deleteReplay',id:p.id})}}}><${Icon} n="x" s=${20}/>Delete Replay</button>`}
+      ${u.id==='me'&&!p.reel&&html`<button className="menu-item warn" onClick=${()=>{if(confirm('Ash this post? It burns to ash and is gone for good. Costs '+ASH_COST+' pts (you have '+s.points+').')){onClose();setTimeout(()=>dispatch({type:'ash',id:p.id}),250)}}}><${Icon} n="flame" s=${20}/>Ash this post · ${ASH_COST} pts</button>`}
       <button className="menu-item" onClick=${()=>{dispatch({type:'save',id:p.id});onClose()}}><${Icon} n="save" s=${20}/>${p.saved?'Unsave':'Save'}</button>
       ${u.id!=='me'&&html`<button className="menu-item" onClick=${()=>{dispatch({type:'follow',id:u.id});onClose()}}><${Icon} n="user" s=${20}/>${u.following?'Unfollow':'Follow'} @${u.handle}</button>`}
       <button className="menu-item" onClick=${()=>{onClose();open.profile(u.id)}}><${Icon} n="eye" s=${20}/>View profile</button>

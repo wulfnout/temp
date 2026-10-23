@@ -191,6 +191,7 @@ function Reel({ p, h, active }) {
           onPress={() => run(() => act.repost(p.id, p.myRepost, s.me), { toast: p.myRepost ? 'Repost removed' : 'Reposted to your profile', optimistic: { post: p.id, patch: { myRepost: !p.myRepost, reposts: p.reposts + (p.myRepost ? -1 : 1) } } })} />
         <Rail icon="paper-plane-outline" label="Send" onPress={() => nav.sheet('share', { post: p })} />
         <Rail icon={p.saved ? 'bookmark' : 'bookmark-outline'} on={p.saved} onColor="#ffd60a" label="Save" onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} />
+        <Rail icon="ellipsis-horizontal" label="More" onPress={() => nav.sheet('menu', { post: p })} />
       </View>
     </View>
   );

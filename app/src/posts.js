@@ -374,7 +374,11 @@ export function PostMenu({ post, onClose }) {
         <Item icon="person-outline" label="View profile" onPress={() => { onClose(); nav.push('profile', { id: u.id }); }} />
         {!mine ? <Item icon="chatbubbles-outline" label="Message" onPress={() => { onClose(); nav.push('thread', { id: u.id }); }} /> : null}
         <Item icon="paper-plane-outline" label="Send" onPress={() => { onClose(); setTimeout(() => nav.sheet('share', { post }), 300); }} />
-        {mine ? <Item icon="flame-outline" label={'Ash this post · ' + ASH_COST + ' pts'} warn onPress={() => {
+        {mine && post.reel ? <Item icon="trash-outline" label="Delete Replay" warn onPress={() => {
+          Alert.alert('Delete this Replay?', 'It comes down for everyone. This can’t be undone.', [
+            { text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => { onClose(); run(() => act.deleteReplay(post.id), { toast: 'Replay deleted' }); } }]);
+        }} /> : null}
+        {mine && !post.reel ? <Item icon="flame-outline" label={'Ash this post · ' + ASH_COST + ' pts'} warn onPress={() => {
           Alert.alert('Ash this post?', 'It burns to ash and is gone for good. Costs ' + ASH_COST + ' pts (you have ' + (s.priv.points || 0) + ').', [
             { text: 'Cancel', style: 'cancel' }, { text: 'Ash it', style: 'destructive', onPress: () => { onClose(); setTimeout(() => ash(post), 350); } }]);
         }} /> : null}

@@ -129,6 +129,7 @@ export const act = {
     return ok(sb.from('profiles').update(up).eq('id', me));
   },
   settings: (me, settings) => ok(sb.from('profile_private').update({ settings }).eq('id', me)),
+  deleteReplay: async (id) => { const { error } = await sb.rpc('delete_replay', { pid: id }); if (error) throw new Error(error.message); },
   ash: async (id) => { const { error } = await sb.rpc('ash_post', { pid: id }); if (error) throw new Error(error.message); },
   buy: async (kind, id) => { const { error } = await sb.rpc('buy', { k: kind, item: id }); if (error) throw new Error(error.message); },
   equip: (me, kind, id) => (kind === 'themes' ? ok(sb.from('profile_private').update({ theme: id || 'ember' }).eq('id', me))

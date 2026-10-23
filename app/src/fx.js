@@ -100,6 +100,35 @@ export function GlitchRing({ size, children, bg }) {
   );
 }
 
+/* ---- Morph ring: the whole picture moves like liquid, like the story circles ---- */
+const jsClocks = {};
+function jsClock(ms) { // corner shapes can't run on the native driver, so this one ticks in JS
+  if (!jsClocks[ms]) { const v = new Animated.Value(0); jsClocks[ms] = v; Animated.loop(Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: false })).start(); }
+  return jsClocks[ms];
+}
+export function MorphRing({ size, bg, children }) {
+  useClockKick();
+  const c = clock(3600), r = jsClock(6000);
+  const corner = (ph, k) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => size * k * (0.5 + 0.13 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
+  const radii = (k) => ({ borderTopLeftRadius: corner(0, k), borderTopRightRadius: corner(0.27, k), borderBottomRightRadius: corner(0.55, k), borderBottomLeftRadius: corner(0.8, k) });
+  const inner = size - 8;
+  return (
+    <Animated.View style={{ width: size, height: size, transform: [
+      { scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.06, 0.97, 1.03, 1] }) },
+      { scaleY: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.95, 1.05, 0.98, 1] }) },
+      { rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }] }}>
+      <Animated.View style={[{ width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii(1)]}>
+        <Animated.View style={{ position: 'absolute', width: size * 1.5, height: size * 1.5, transform: [{ rotate: c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+          <LinearGradient colors={['#ff5500', '#ff8a2b', '#ffd27a', '#ff2d55']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />
+        </Animated.View>
+        <Animated.View style={[{ width: size - 4, height: size - 4, backgroundColor: bg, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii((size - 4) / size)]}>
+          <Animated.View style={[{ width: inner, height: inner, overflow: 'hidden' }, radii(inner / size)]}>{children(inner)}</Animated.View>
+        </Animated.View>
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
 /* ---------------- headers ---------------- */
 // colours for every header; the ones listed in ANIM also get motion
 export const HEADER_FX = { lava: ['#ffd27a', '#ff2d00', '#0a0a0a'], aurora: ['#0a0a0a', '#ff5500', '#ffd27a'], static: ['#151515', '#ff5500'], embers: ['#0a0a0a', '#3a1204'],

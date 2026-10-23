@@ -46,7 +46,7 @@ export function IconBtn({ name, onPress, size = 22, color, label, badge, style }
 }
 
 const RING_COLORS = { fire: ['#ff2d00', '#ffd27a'], ice: ['#ffffff', '#7f95a6'], gold: ['#ffd700', '#b98900'], morph: null, glitch: ['#ff2d55', '#00e5ff'], plus: ['#0a0a0a', '#ff5500'] };
-import { FireRing, GlitchRing } from './fx';
+import { FireRing, GlitchRing, MorphRing } from './fx';
 export function Avatar({ u, size = 40 }) {
   const { C } = useApp();
   if (!u) return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.soft }} />;
@@ -56,6 +56,8 @@ export function Avatar({ u, size = 40 }) {
     : <View style={{ width: s, height: s, borderRadius: s / 2, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>;
   if (!u.ring) return inner(size);
   if (u.ring === 'fire') return <FireRing size={size} bg={C.card}>{inner(size - 8)}</FireRing>;
+  if (u.ring === 'morph') return <MorphRing size={size} bg={C.card}>{(s) => u.avatar ? <Image source={{ uri: u.avatar }} style={{ width: s, height: s }} />
+    : <View style={{ width: s, height: s, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>}</MorphRing>;
   if (u.ring === 'glitch') return <GlitchRing size={size} bg={C.card}>{inner(size - 8)}</GlitchRing>;
   const cols = RING_COLORS[u.ring] || [C.orange, C.orange2];
   return (

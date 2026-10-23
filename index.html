@@ -394,8 +394,10 @@ img,video{max-width:100%;display:block}
 .ring-fire{background:conic-gradient(from var(--spin),#ff2d00,#ff8a2b,#ffd27a,#ff2d00);animation:spin 2.2s linear infinite}
 .ring-ice{background:conic-gradient(from var(--spin),#ffffff,#cfd8de,#7f95a6,#ffffff);animation:spin 4s linear infinite}
 .ring-gold{background:conic-gradient(from var(--spin),#ffd700,#fff4b0,#b98900,#ffd700);animation:spin 3s linear infinite}
-.ring-morph{background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),#ffd27a,var(--orange));animation:morph 6s ease-in-out infinite,spin 3s linear infinite}
-.ring-morph>.av{border-radius:inherit}
+.ring-morph{background:conic-gradient(from var(--spin),#ff5500,#ff8a2b,#ffd27a,#ff2d55,#ff5500);animation:morph 6s ease-in-out infinite,spin 3.6s linear infinite,blob 3.6s ease-in-out infinite}
+.ring-morph>.av{border-radius:inherit;overflow:hidden}
+.ring-morph>.av img{border-radius:0}
+@keyframes blob{0%,100%{transform:scale(1,1) rotate(-4deg)}25%{transform:scale(1.06,.95) rotate(0deg)}50%{transform:scale(.97,1.05) rotate(4deg)}75%{transform:scale(1.03,.98) rotate(0deg)}}
 .ring-glitch{background:linear-gradient(90deg,#ff2d55,#00e5ff,#ff2d55,#00e5ff);background-size:300% 100%;animation:glitch 1s steps(4) infinite}
 .ring-plus{background:conic-gradient(from var(--spin),#0a0a0a,var(--orange),#0a0a0a,var(--orange),#0a0a0a);animation:spin 3s linear infinite}
 .fx-lava{background:radial-gradient(circle at 20% 30%,#ffd27a,transparent 35%),radial-gradient(circle at 80% 70%,#ff2d00,transparent 40%),radial-gradient(circle at 50% 50%,#ff8a2b,#0a0a0a 85%)!important;background-size:220% 220%!important;animation:drift 7s ease-in-out infinite alternate}
@@ -749,7 +751,7 @@ img,video{max-width:100%;display:block}
 .glowing .nav button[aria-current="page"]::after{box-shadow:0 0 8px var(--orange)}
 .glow-sw{box-shadow:0 0 18px var(--sw),0 0 4px var(--sw)}
 
-@keyframes morph{0%,100%{border-radius:60% 40% 55% 45%/50% 60% 40% 50%}25%{border-radius:42% 58% 45% 55%/62% 40% 60% 38%}50%{border-radius:55% 45% 38% 62%/44% 56% 50% 50%}75%{border-radius:46% 54% 62% 38%/55% 44% 58% 42%}}
+@keyframes morph{0%,100%{border-radius:63% 37% 58% 42%/48% 62% 38% 52%}25%{border-radius:42% 58% 45% 55%/62% 40% 60% 38%}50%{border-radius:55% 45% 38% 62%/44% 56% 50% 50%}75%{border-radius:46% 54% 62% 38%/55% 44% 58% 42%}}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}10%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.orb{border-radius:50%}}

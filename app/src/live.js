@@ -1,7 +1,8 @@
 // Live Takes tab: the live audio rooms run inside an embedded page (the same rooms as the website),
 // signed in with this app's session so everyone ends up in the same rooms.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, AppState } from 'react-native';
+import { setAudioModeAsync } from 'expo-audio';
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from './ui';
@@ -21,7 +22,11 @@ export function LiveScreen() {
     const { data: sub } = sb.auth.onAuthStateChange((ev, ses) => {
       if (ses && web.current) web.current.injectJavaScript('window.__tempToken&&window.__tempToken(' + JSON.stringify(ses.access_token) + ');true;');
     });
-    return () => sub.subscription.unsubscribe();
+    // keep room audio playing when the app goes to the background (listeners);
+    // tell the page when we leave so speakers and hosts get muted
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, allowsRecording: true }).catch(() => {});
+    const as = AppState.addEventListener('change', (st) => { if (st === 'background' && web.current) web.current.injectJavaScript('window.__tempBackground&&window.__tempBackground(true);true;'); });
+    return () => { sub.subscription.unsubscribe(); as.remove(); setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false, allowsRecording: false }).catch(() => {}); };
   }, []);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: ins.top }}>

@@ -2695,6 +2695,12 @@ function LiveRoom({roomId,room,people,me,reload,onLeave}){
   // turn the mic on/off as the host moves people up to speak
   useEffect(()=>{if(!ready||!eng.current)return;eng.current.setSpeaking(speaking,mine?mine.muted:true).catch(()=>setErr('Temp needs your microphone to speak.'))},[ready,speaking,mine&&mine.muted]);
   useEffect(()=>{if(room===undefined&&ready){const t=setTimeout(onLeave,1500);return()=>clearTimeout(t)}},[room,ready]);
+  // listeners can keep listening in the background; speakers and the host get muted when they leave the app
+  const stRef=useRef({});stRef.current={speaking,muted:mine?mine.muted:true};
+  useEffect(()=>{const away=()=>{const k=stRef.current;if(k.speaking&&!k.muted){eng.current&&eng.current.setSpeaking(true,true).catch(()=>{});
+      sb.from('live_members').update({muted:true}).eq('room_id',roomId).eq('user_id',me).then(()=>reload());setErr('You were muted because you left the app. Unmute when you’re back.')}};
+    const vis=()=>{if(document.visibilityState==='hidden')away()};document.addEventListener('visibilitychange',vis);window.__tempBackground=on=>{if(on)away()};
+    return()=>{document.removeEventListener('visibilitychange',vis);window.__tempBackground=null}},[roomId]);
   const upd=(uid,patch)=>sb.from('live_members').update(patch).eq('room_id',roomId).eq('user_id',uid).then(({error})=>{if(error)setErr(friendly(error));reload()});
   async function leave(){if(isHost){if(!confirm('End this Live Take for everyone?'))return;await sb.from('live_rooms').update({ended_at:new Date().toISOString()}).eq('id',roomId)}
     await sb.from('live_members').update({left_at:new Date().toISOString()}).eq('room_id',roomId).eq('user_id',me);onLeave()}

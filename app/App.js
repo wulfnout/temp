@@ -15,6 +15,7 @@ import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
 import { Recorder } from './src/recorder';
 import { Intro } from './src/ash';
 import { LiveScreen } from './src/live';
+import { ClockKeeper } from './src/fx';
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
@@ -182,6 +183,7 @@ function Root() {
     <Ctx.Provider value={ctx}>
       <StatusBar style={dark || C.dark ? 'light' : 'dark'} />
       <View {...tapAway} style={{ flex: 1, backgroundColor: C.bg }}>
+        <ClockKeeper />
         <Animated.View {...edge.panHandlers} style={{ flex: 1, transform: [{ translateX: top ? edgeX : 0 }] }}>{screen(current)}</Animated.View>
         {current.name !== 'thread' ? <Animated.View onLayout={(e) => setTabH(e.nativeEvent.layout.height)}
           style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : null}>

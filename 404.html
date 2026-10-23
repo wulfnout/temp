@@ -652,18 +652,20 @@ img,video{max-width:100%;display:block}
 @keyframes emrise{0%{transform:translateY(0) scale(1.2);opacity:1}100%{transform:translateY(-220px) scale(.4);opacity:0}}
 @keyframes emsway{from{margin-left:calc(var(--sw) * -1)}to{margin-left:var(--sw)}}
 @keyframes emflick{50%{filter:brightness(.6)}}
-.fx-lava{background:linear-gradient(#0b0505,#1f0a06 60%,#3a1206)!important;animation:none!important}
-.ha-lava::before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 35%,rgba(255,90,0,.35))}
-.lv-flow{position:absolute;left:-20px;right:-20px;top:50%;bottom:-20px;border-radius:50% 30px 0 0/60% 30px 0 0;transform:skewY(6deg);overflow:hidden;background:linear-gradient(#ffd27a,#ff8a2b 30%,#ff3d00 65%,#a01800)}
-.lv-flow i{position:absolute;inset:0 -100% 0 -100%}
-.lv-b1{background:radial-gradient(ellipse 60px 18px at 30px 20px,rgba(255,240,180,.55),transparent 70%) 0 0/120px 50px,radial-gradient(ellipse 50px 14px at 80px 34px,rgba(120,20,0,.45),transparent 70%) 0 0/140px 56px;animation:lavaflow 3.2s linear infinite}
-.lv-b2{background:radial-gradient(ellipse 40px 8px at 20px 10px,rgba(255,255,200,.35),transparent 70%) 0 22px/90px 40px,radial-gradient(ellipse 50px 10px at 60px 30px,rgba(60,10,0,.5),transparent 70%) 0 22px/110px 44px;animation:lavaflow 5.2s linear infinite}
-@keyframes lavaflow{to{transform:translateX(50%)}}
-.lv-src{position:absolute;left:2%;top:calc(50% - 26px);width:70px;height:46px;border-radius:40px;background:#ff8a2b;box-shadow:0 0 22px #ff5500;animation:lvsrc 1.6s ease-in-out infinite}
-@keyframes lvsrc{50%{transform:scaleY(1.15)}}
-.lv-bub{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid #ffe7a0;animation:lvbub 1.6s ease-out infinite}
-@keyframes lvbub{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
-.lv-ground{position:absolute;left:0;right:0;bottom:0;height:12%;background:#140806}
+.fx-lava{background:linear-gradient(#12060a,#2a0b08 60%,#4a1606)!important;animation:none!important}
+.ha-volc i{position:absolute;display:block}
+.vc-glow{left:15%;right:15%;top:15%;height:60%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,85,0,.3),transparent);animation:vcglow 2.6s ease-in-out infinite}
+@keyframes vcglow{50%{opacity:.5}}
+.vc-mtn{left:5%;right:5%;bottom:0;height:55%;background:#1c0e0a;clip-path:polygon(0 100%,41% 0,59% 0,100% 100%)}
+.vc-crater{left:43%;width:14%;bottom:calc(55% - 6px);height:12px;border-radius:10px;background:#ffb347;box-shadow:0 0 16px #ff5500,0 0 30px #ff5500;animation:vccr 2.6s ease-in-out infinite}
+@keyframes vccr{50%{transform:scaleX(1.12)}}
+.vc-run{bottom:6%;width:7px;height:47%;border-radius:4px;background:repeating-linear-gradient(#ffd27a 0,#ff5500 18px,#a01800 36px,#ff8a2b 54px,#ffd27a 72px);background-size:100% 72px;animation:vcrun 2.4s linear infinite;transform-origin:top}
+.vc-run.l{left:46%;transform:rotate(22deg)}.vc-run.r{left:53%;transform:rotate(-22deg)}
+@keyframes vcrun{to{background-position:0 72px}}
+.vc-blob{left:50%;bottom:55%;aspect-ratio:1;border-radius:50%;box-shadow:0 0 6px #ff5500;animation:vcblob linear infinite}
+@keyframes vcblob{0%{transform:translate(-50%,0);opacity:1;animation-timing-function:ease-out}50%{transform:translate(calc(-50% + var(--dx) * 1.8),var(--up));animation-timing-function:ease-in}100%{transform:translate(calc(-50% + var(--dx) * 3.6),80px);opacity:0}}
+.vc-smoke{left:50%;bottom:55%;aspect-ratio:1;border-radius:50%;background:#3a3036;animation:vcsmoke linear infinite}
+@keyframes vcsmoke{0%{transform:translate(-50%,0) scale(.6);opacity:.55}100%{transform:translate(calc(-50% + var(--dx)),-160px) scale(2.2);opacity:0}}
 
 /* chat: drag sideways for times, voice notes */
 .msgs{--shift:0px;overflow-x:hidden;touch-action:pan-y}
@@ -2220,13 +2222,16 @@ function HeaderArt({id}){
   if(id==='blizzard')return html`<div className="ha ha-bliz">${n(3,i=>html`<i key=${i} className=${'bz bz'+i}></i>`)}</div>`;
   if(id==='snow')return html`<div className="ha ha-snow">${n(46,i=>{const k=i%4;const sz=k===0?10+r()*14:k===1?4+r()*5:2+r()*3;
     return html`<i key=${i} className=${k===0?'sf flake':'sf'} style=${{left:(r()*100)+'%',fontSize:sz+'px',width:k?sz:'auto',height:k?sz*(k===3?.7:1):'auto',animationDuration:(5+r()*6)+'s',animationDelay:(-r()*11)+'s','--sw':(6+r()*12)+'px'}}>${k===0?'❄':''}</i>`})}</div>`;
-  if(id==='lavalamp')return html`<div className="ha ha-lamp"><div className="lp-goo">${n(7,i=>html`<i key=${i} style=${{left:(6+i*13+r()*4)+'%',width:(38+r()*46)+'px',height:(38+r()*46)+'px',animationDuration:(9+i*1.7)+'s',animationDelay:(-r()*12)+'s'}}></i>`)}<i className="lp-pool"></i></div></div>`;
+  if(id==='lavalamp')return html`<div className="ha ha-lamp"><div className="lp-goo">${n(7,i=>html`<i key=${i} style=${{left:(6+i*13+r()*4)+'%',width:(38+r()*46)+'px',height:(38+r()*46)+'px',animationDuration:(15+i*2.5)+'s',animationDelay:(-r()*12)+'s'}}></i>`)}<i className="lp-pool"></i></div></div>`;
   if(id==='rain')return html`<div className="ha ha-rain"><i className="rn"></i><i className="rn-floor"></i></div>`;
   if(id==='thermal')return html`<div className="ha ha-therm"><i className="th-body"></i><i className="th-head"></i><i className="th-cup"></i><i className="th-lines"></i><i className="th-box"></i><b className="th-read">98.6°F</b><i className="th-scale"></i><i className="th-c1"></i><i className="th-c2"></i></div>`;
   if(id==='sunburst')return html`<div className="ha ha-sun"><span className="sp-sun"><span className="sp-rays">${n(12,i=>html`<i key=${i} style=${{transform:`rotate(${i*30}deg) translateY(-74px)`}}></i>`)}</span><b className="sp-face"><i className="sp-l"></i><i className="sp-r"></i><i className="sp-br"></i><i className="sp-grin"></i></b></span>
     ${n(18,i=>{const a=(i/18)*Math.PI*2+r()*.3;const d=110+r()*90;return html`<b key=${i} className="sp-t" style=${{'--x':Math.cos(a)*d+'px','--y':(Math.sin(a)*d*.75+20)+'px','--r':(r()*720-360)+'deg',fontSize:(18+r()*22)+'px',color:['#fff','#0a0a0a','#ffe14d'][i%3]}}>t</b>`})}<i className="sp-flash"></i></div>`;
   if(id==='embers')return html`<div className="ha ha-emb">${n(44,i=>html`<i key=${i} style=${{left:(r()*100)+'%',width:(1.5+r()*3.2)+'px',height:(1.5+r()*3.2)+'px',background:['#ffd27a','#ff8a2b','#ff5500','#fff1c4'][i%4],animationDuration:(3.2+r()*3.8)+'s, '+(1.4+r()*1.6)+'s, .4s',animationDelay:(-r()*7)+'s, '+(-r()*3)+'s, '+(-r())+'s','--sw':(6+r()*14)+'px'}}></i>`)}</div>`;
-  if(id==='lava')return html`<div className="ha ha-lava"><span className="lv-flow"><i className="lv-b1"></i><i className="lv-b2"></i></span><span className="lv-src"></span>${n(6,i=>html`<i key=${i} className="lv-bub" style=${{left:(15+r()*80)+'%',bottom:(8+r()*24)+'%',animationDelay:(-r()*1.6)+'s'}}></i>`)}<span className="lv-ground"></span></div>`;
+  if(id==='lava')return html`<div className="ha ha-volc"><i className="vc-glow"></i>
+    ${n(7,i=>html`<i key=${'k'+i} className="vc-smoke" style=${{animationDuration:(7+r()*4)+'s',animationDelay:(-r()*11)+'s','--dx':((r()-.3)*80)+'px',width:(30+r()*40)+'px'}}></i>`)}
+    ${n(9,i=>{const dx=(r()-.5)*55;return html`<i key=${'l'+i} className="vc-blob" style=${{'--dx':dx+'%','--up':(-(30+r()*60))+'px',animationDuration:(3.4+r()*2.2)+'s',animationDelay:(-r()*5)+'s',width:(5+r()*7)+'px',background:['#ffd27a','#ff8a2b','#ff5500'][i%3]}}></i>`})}
+    <i className="vc-mtn"></i><i className="vc-run l"></i><i className="vc-run r"></i><i className="vc-crater"></i></div>`;
   return null;
 }
 

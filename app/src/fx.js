@@ -16,8 +16,9 @@ function run(c) {
 }
 export function kickClocks() { Object.values(clocks).forEach((c) => { if (!c.running) { c.v.setValue(0); run(c); } }); }
 setInterval(kickClocks, 1000);
+const keepers = new Set(); const notify = () => keepers.forEach((f) => f());
 export function clock(ms) {
-  if (!clocks[ms]) { clocks[ms] = { v: new Animated.Value(0), ms, running: false }; run(clocks[ms]); }
+  if (!clocks[ms]) { clocks[ms] = { v: new Animated.Value(0), ms, running: false }; run(clocks[ms]); setTimeout(notify, 0); }
   else if (!clocks[ms].running) run(clocks[ms]);
   return clocks[ms].v;
 }
@@ -101,10 +102,21 @@ export function GlitchRing({ size, children, bg }) {
   );
 }
 
+// Mounted once at the app root: holds an invisible view on every animation clock, so leaving a screen
+// (like Fire Sale) never stops the shared clocks and headers/rings never come back frozen.
+export function ClockKeeper() {
+  const [, bump] = React.useState(0);
+  React.useEffect(() => { const f = () => bump((x) => x + 1); keepers.add(f); f(); return () => keepers.delete(f); }, []);
+  return <View pointerEvents="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}>
+    {Object.values(clocks).map((c) => <Animated.View key={'n' + c.ms} style={{ width: 0, height: 0, opacity: c.v.interpolate({ inputRange: [0, 1], outputRange: [0, 0] }) }} />)}
+    {Object.entries(jsClocks).map(([ms, v]) => <Animated.View key={'j' + ms} style={{ width: 0, height: 0, opacity: v.interpolate({ inputRange: [0, 1], outputRange: [0, 0] }) }} />)}
+  </View>;
+}
+
 /* ---- Morph ring: the whole picture moves like liquid, like the story circles ---- */
 const jsClocks = {};
 function jsClock(ms) { // corner shapes can't run on the native driver, so this one ticks in JS
-  if (!jsClocks[ms]) { const v = new Animated.Value(0); jsClocks[ms] = v; Animated.loop(Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: false })).start(); }
+  if (!jsClocks[ms]) { const v = new Animated.Value(0); jsClocks[ms] = v; setTimeout(notify, 0); Animated.loop(Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: false })).start(); }
   return jsClocks[ms];
 }
 export function MorphRing({ size, bg, children }) {
@@ -355,7 +367,7 @@ function LavaLamp() {
   return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
     <LinearGradient colors={['#2b0a3d', '#5a0b2a', '#2a0505']} style={fill} />
     <LinearGradient colors={['rgba(255,140,40,.35)', 'transparent']} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0.3 }} style={fill} />
-    {Array.from({ length: 7 }).map((_, i) => { const r = rng(700 + i); const s = 38 + r() * 46; const up = clock(9000 + i * 1700); const wob = clock(2400 + i * 300); const ph = r(); const x = (0.08 + 0.13 * i + r() * 0.05) * b.w;
+    {Array.from({ length: 7 }).map((_, i) => { const r = rng(700 + i); const s = 38 + r() * 46; const up = clock(15000 + i * 2500); const wob = clock(3600 + i * 400); const ph = r(); const x = (0.08 + 0.13 * i + r() * 0.05) * b.w;
       const y = up.interpolate({ inputRange: [0, 0.5, 1], outputRange: [b.h - s * 0.4, -s * 0.3, b.h - s * 0.4] });
       return <Animated.View key={i} style={{ position: 'absolute', left: x, top: 0, width: s, height: s, borderRadius: s, backgroundColor: ['#ff5a1a', '#ff2d55', '#ff8a2b', '#ff3d6e'][i % 4],
         shadowColor: '#ff5500', shadowOpacity: 0.8, shadowRadius: 14,
@@ -481,6 +493,40 @@ function LavaFlow() {
   </View>;
 }
 
+// Lava: a volcano slowly spewing lava — glowing crater, blobs arcing out and falling, lava trickling down the slopes, smoke drifting up
+function Volcano() {
+  const [b, onL] = useBox(); const glow = clock(2600);
+  const baseW = b.w * 0.9, peakW = b.w * 0.16, H = b.h * 0.55; const cx = b.w / 2, topY = b.h - H;
+  const side = (baseW - peakW) / 2;
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden' }]}>
+    <LinearGradient colors={['#12060a', '#2a0b08', '#4a1606']} style={fill} />
+    <Animated.View style={{ position: 'absolute', left: cx - b.w * 0.35, top: topY - b.h * 0.3, width: b.w * 0.7, height: b.h * 0.6, borderRadius: b.w, backgroundColor: '#ff5500',
+      opacity: glow.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.12, 0.24, 0.12] }) }} />
+    {/* smoke */}
+    {Array.from({ length: 7 }).map((_, i) => { const r = rng(1700 + i); const c = clock(Math.round((7000 + r() * 4000) / 100) * 100); const ph = r(); const s = 30 + r() * 40;
+      return <Animated.View key={'k' + i} style={{ position: 'absolute', left: cx - s / 2, top: 0, width: s, height: s, borderRadius: s, backgroundColor: '#3a3036',
+        opacity: cycle(c, ph, 0.55, 0), transform: [{ translateY: cycle(c, ph, topY - s / 2, -s) }, { translateX: cycle(c, ph, 0, (r() - 0.3) * 80) }, { scale: cycle(c, ph, 0.6, 2.2) }] }} />; })}
+    {/* lava blobs arcing out of the crater */}
+    {Array.from({ length: 9 }).map((_, i) => { const r = rng(1900 + i); const c = clock(Math.round((3400 + r() * 2200) / 100) * 100); const ph = r();
+      const dx = (r() - 0.5) * b.w * 0.55, peak = b.h * (0.15 + r() * 0.3), s = 5 + r() * 7;
+      const t = (k) => cycle(c, ph, 0, 1).interpolate({ inputRange: [0, 0.5, 1], outputRange: k });
+      return <Animated.View key={'l' + i} style={{ position: 'absolute', left: cx - s / 2, top: topY - s / 2, width: s, height: s, borderRadius: s, backgroundColor: ['#ffd27a', '#ff8a2b', '#ff5500'][i % 3],
+        shadowColor: '#ff5500', shadowOpacity: 1, shadowRadius: 6,
+        opacity: t([1, 1, 0]), transform: [{ translateX: t([0, dx / 2, dx]) }, { translateY: t([0, -peak, b.h * 0.25]) }] }} />; })}
+    {/* the mountain */}
+    <View style={{ position: 'absolute', left: cx - baseW / 2, top: topY, width: 0, height: 0, borderLeftWidth: side, borderRightWidth: side, borderBottomWidth: H, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: '#1c0e0a' }} />
+    <View style={{ position: 'absolute', left: cx - baseW / 2 + side, top: topY, width: peakW, height: H, backgroundColor: '#1c0e0a' }} />
+    {/* lava running down the slopes */}
+    {[-1, 1].map((d, i) => <View key={'r' + i} style={{ position: 'absolute', left: cx + d * peakW * 0.25 - 4, top: topY + 2, width: 8, height: H * 0.85, overflow: 'hidden', borderRadius: 4,
+      transform: [{ rotate: (-d * Math.atan(side / H) * 180 / Math.PI * 0.8) + 'deg' }], transformOrigin: 'top' }}>
+      <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: -H, height: H * 2, transform: [{ translateY: clock(2400).interpolate({ inputRange: [0, 1], outputRange: [0, H / 2] }) }] }}>
+        <LinearGradient colors={['#ffd27a', '#ff5500', '#a01800', '#ff8a2b', '#ffd27a', '#ff5500', '#a01800', '#ff8a2b']} style={{ flex: 1 }} /></Animated.View></View>)}
+    {/* crater glow */}
+    <Animated.View style={{ position: 'absolute', left: cx - peakW * 0.42, top: topY - 6, width: peakW * 0.84, height: 12, borderRadius: 10, backgroundColor: '#ffb347', shadowColor: '#ff5500', shadowOpacity: 1, shadowRadius: 16,
+      transform: [{ scaleX: glow.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.9, 1.1, 0.9] }) }] }} />
+  </View>;
+}
+
 export function HeaderFx({ id, fallback }) {
   useClockKick();
   const cols = HEADER_FX[id] || fallback;
@@ -488,7 +534,7 @@ export function HeaderFx({ id, fallback }) {
   let fx = null;
   switch (id) {
     case 'aurora': return <View style={[fill, { overflow: 'hidden' }]}><Pan cols={cols} /></View>;
-    case 'lava': return <LavaFlow />;
+    case 'lava': return <Volcano />;
     case 'hazard': return <Hazard />;
     case 'checker': return <Checker />;
     case 'sunburst': return <SunPop />;

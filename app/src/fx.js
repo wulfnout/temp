@@ -113,6 +113,22 @@ export function ClockKeeper() {
   </View>;
 }
 
+// Ice, Gold, Temp+ and other rings: a multi-colour band that keeps spinning, like the website
+const SPIN = { ice: ['#ffffff', '#cfd8de', '#7f95a6', '#ffffff'], gold: ['#ffd700', '#fff4b0', '#b98900', '#ffd700'], plus: ['#0a0a0a', '#ff5500', '#0a0a0a', '#ff5500'] };
+export function SpinRing({ size, ring, bg, accent, children }) {
+  useClockKick();
+  const c = clock(ring === 'ice' ? 4000 : 3000);
+  const cols = SPIN[ring] || [accent[0], accent[1], '#ffd27a', accent[0]];
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View style={{ position: 'absolute', width: size * 1.45, height: size * 1.45, transform: [{ rotate: c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+        <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />
+      </Animated.View>
+      <View style={{ padding: 2, borderRadius: size, backgroundColor: bg }}>{children}</View>
+    </View>
+  );
+}
+
 /* ---- Morph ring: the whole picture moves like liquid, like the story circles ---- */
 const jsClocks = {};
 function jsClock(ms) { // corner shapes can't run on the native driver, so this one ticks in JS

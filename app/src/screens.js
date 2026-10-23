@@ -10,6 +10,7 @@ import { VoiceBubble, useVoiceRecorder, fmtSec } from './voice';
 import { act } from './data';
 import { ReplayOverlay } from './recorder';
 import { GifPicker } from './gif';
+import { GoLiveSide } from './live';
 import { sb, ago, kfmt, F, THEMES, tempOf, upload, friendly } from './lib';
 
 export async function pickMedia(kind = 'all') {
@@ -81,6 +82,7 @@ export function HomeScreen() {
           </ScrollView>}
         ListEmptyComponent={<Empty text={s.loaded ? 'Nothing here yet. Tap + to post the first take.' : 'Loading…'} />}
         extraData={onScreen} renderItem={({ item }) => <PostCard p={item} active={!!onScreen[item.id]} />} />
+      <GoLiveSide />
     </View>
   );
 }

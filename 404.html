@@ -573,6 +573,52 @@ img,video{max-width:100%;display:block}
 @keyframes ring{50%{box-shadow:0 0 0 3px var(--orange),0 0 0 14px rgba(255,85,0,.1)}}
 @keyframes tick{50%{opacity:.25}}
 @keyframes spin{to{--spin:360deg}}
+/* Go Live */
+.gl-lobby{padding:calc(12px + env(safe-area-inset-top,0px)) 16px 40px}
+.gl-top{display:flex;align-items:center;gap:10px}.gl-top h2{margin:0;font-family:var(--display);font-size:26px;letter-spacing:-.04em}
+.gl-start{margin-top:14px;background:linear-gradient(135deg,#1a0700,#3a1204 55%,#ff5500);border-radius:26px;padding:18px;display:grid;gap:12px;color:#fff;justify-items:center}
+.gl-cam{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center}
+.gl-start input{width:100%;background:rgba(0,0,0,.35);border:0;border-radius:14px;padding:12px 14px;color:#fff;font-size:16px;font-weight:600}
+.gl-start input::placeholder{color:rgba(255,255,255,.7)}
+.gl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gl-card{position:relative;background:var(--card);border-radius:22px;padding:16px 10px;display:grid;justify-items:center;gap:6px;text-align:center;min-width:0}
+.gl-card .live-dot{position:absolute;top:10px;left:10px}.gl-card b,.gl-card .sub{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gl-room{position:fixed;inset:0;z-index:160;background:#000;color:#fff;overflow:hidden}
+.gl-room.ended{display:grid;place-items:center;align-content:center;gap:14px}
+.gl-stage{position:absolute;inset:0;display:grid;grid-template-rows:1fr}.gl-stage.split{grid-template-rows:1fr 1fr}
+.gl-tile{position:relative;overflow:hidden;background:#111}
+.gl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.gl-vid.mirror{transform:scaleX(-1)}
+.gl-wait{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:10px;color:#aaa}
+.gl-name{position:absolute;left:12px;bottom:10px;font-weight:800;font-size:13px;background:rgba(0,0,0,.45);padding:3px 9px;border-radius:999px}
+.gl-kick{position:absolute;right:10px;top:10px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:grid;place-items:center}
+.gl-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(0,0,0,.45),transparent 18%,transparent 55%,rgba(0,0,0,.65))}
+.gl-head{position:absolute;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:8px;z-index:3}
+.gl-who{display:grid;min-width:0;flex:1}.gl-who b{font-size:14px}.gl-who span{font-size:12px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-count{display:inline-flex;gap:4px;align-items:center;background:rgba(0,0,0,.4);border-radius:999px;padding:3px 9px;font-weight:800;font-size:12px}
+.gl-x{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;display:grid;place-items:center;flex:none}
+.gl-reqs{position:absolute;left:12px;right:12px;top:calc(60px + env(safe-area-inset-top,0px));z-index:3;display:grid;gap:6px}
+.gl-req{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.6);border-radius:16px;padding:6px 8px}.gl-req .sub{flex:1;color:#ccc}
+.gl-chat{position:absolute;left:12px;right:80px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:3;display:grid;gap:4px;-webkit-mask:linear-gradient(transparent,#000 30%);mask:linear-gradient(transparent,#000 30%)}
+.gl-chat p{margin:0;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.8);animation:up .25s ease}.gl-chat p.gift{color:#ffd27a}
+.gl-hearts{position:absolute;right:0;bottom:calc(80px + env(safe-area-inset-bottom,0px));width:120px;height:0;z-index:3;pointer-events:none}
+.gl-hearts span{position:absolute;bottom:0;font-size:26px;animation:glh 2.4s ease-out forwards}.gl-hearts span.big{font-size:44px}
+@keyframes glh{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:1;transform:translate(-6px,-30px) scale(1.1)}60%{transform:translate(10px,-170px)}100%{opacity:0;transform:translate(-12px,-300px) scale(.9)}}
+.gl-gifts{position:absolute;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;gap:8px;justify-content:center}
+.gl-gifts button{flex:1;max-width:110px;background:rgba(0,0,0,.65);border-radius:18px;padding:10px;color:#fff;display:grid;gap:2px;justify-items:center}.gl-gifts span{font-size:30px}
+.gl-err{position:absolute;left:12px;right:12px;bottom:calc(120px + env(safe-area-inset-bottom,0px));z-index:4;background:rgba(0,0,0,.7);border-radius:12px;padding:8px 12px;margin:0;font-weight:700}
+.gl-bar{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;gap:8px;align-items:center}
+.gl-bar input{flex:1;min-width:0;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.35);border-radius:999px;padding:10px 14px;color:#fff;font-size:16px}
+.gl-bar input::placeholder{color:rgba(255,255,255,.75)}
+.gl-bar button{flex:none;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;font-size:20px}
+/* hidden left page on home */
+.gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
+.gl-side.open{transform:none}
+.gl-peek{position:fixed;left:0;top:30%;z-index:40;width:44px;height:180px;border-radius:0 26px 26px 0;background:linear-gradient(#ff2d2d,#ff5500);color:#fff;display:grid;place-items:center;transform:translateX(-100%);transition:transform .45s cubic-bezier(.2,.9,.3,1);box-shadow:4px 0 18px rgba(255,85,0,.45)}
+.gl-peek.show{transform:none}.gl-peek b{writing-mode:vertical-rl;transform:rotate(180deg);font-weight:900;letter-spacing:.14em;font-size:12px}
+.gl-embed{min-height:100dvh}
+/* Live Takes bar: keep the mic round on small screens */
+.live-mic{flex:none}.live-bar .btn{flex:none;white-space:nowrap;padding-inline:14px}.live-reacts{min-width:0}.live-reacts button{flex:none;width:clamp(34px,10vw,42px);height:clamp(34px,10vw,42px);font-size:clamp(19px,5.5vw,24px)}
+
 .sp-wrap{position:absolute;inset:0;overflow:hidden;background:#000}.sp-bg{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(30px);opacity:.55}
 .sp-fg{position:absolute;inset:0;width:100%;height:100%;transform-origin:50% 50%;pointer-events:none;user-select:none}
 .sp-toggle{position:absolute;right:16px;top:16%;z-index:4;background:rgba(0,0,0,.5);color:#fff;border-radius:999px;padding:7px 14px;font-weight:800;font-size:13px}
@@ -1009,7 +1055,7 @@ const DEFAULT_SETTINGS={theme:'system',private:false,activity:true,receipts:true
 
 /* ================= live backend ================= */
 // ?embed=live is the Live Takes page the app shows in its Live tab; the app hands over its sign-in token
-const EMBED=new URLSearchParams(location.search).get('embed')==='live';
+const EMBED_KIND=new URLSearchParams(location.search).get('embed');const EMBED=EMBED_KIND==='live'||EMBED_KIND==='golive';
 let EMBED_TOKEN=EMBED?decodeURIComponent((location.hash.match(/t=([^&]+)/)||[])[1]||''):'';
 if(EMBED)history.replaceState(null,'',location.pathname+location.search);
 function jwtSub(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub}catch(e){return null}}
@@ -2358,7 +2404,7 @@ document.addEventListener('pointerup',e=>{const a=document.activeElement;if(!a||
 (()=>{let st=null;
   document.addEventListener('touchstart',e=>{const t=e.touches[0];st=t.clientX<32&&!document.querySelector('.scrim,.sv,.fullv')?{x:t.clientX,y:t.clientY}:null},{passive:true});
   document.addEventListener('touchend',e=>{if(!st)return;const t=e.changedTouches[0];const dx=t.clientX-st.x,dy=t.clientY-st.y;st=null;
-    if(dx>80&&Math.abs(dx)>Math.abs(dy)*1.5){const b=document.querySelector('.top button[aria-label="Back"], .header-img button[aria-label="Back"], button[aria-label="Back"]');if(b)b.click()}},{passive:true});})();
+    if(dx>80&&Math.abs(dx)>Math.abs(dy)*1.5){const b=document.querySelector('.top button[aria-label="Back"], .header-img button[aria-label="Back"], button[aria-label="Back"]');if(b)b.click();else if(window.__openGoLive)window.__openGoLive()}},{passive:true});})();
 function BarsOnScroll({on}){
   useEffect(()=>{const b=document.body;if(!on){b.classList.remove('bars-off');return}
     let last=scrollY;const f=()=>{const y=scrollY,dy=y-last;last=y;if(y<40)b.classList.remove('bars-off');else if(dy>6)b.classList.add('bars-off');else if(dy<-6)b.classList.remove('bars-off')};
@@ -2892,6 +2938,145 @@ function LiveEmbed(){
   return html`<div className="app embed"><${LiveView} me=${me}/></div>`;
 }
 
+/* ---------- Go Live: video streams (TikTok / Instagram style) ---------- */
+// peer to peer: whoever is on camera (host, plus one guest) sends to everyone watching
+class StreamEngine{
+  constructor(id,me,on){this.id=id;this.me=me;this.on=on;this.pcs={};this.remote={};this.local=null;this.facing='user'}
+  async join(){
+    this.ch=sb.channel('stream-'+this.id,{config:{broadcast:{self:false},presence:{key:this.me}}});
+    this.ch.on('broadcast',{event:'sig'},({payload})=>this.signal(payload))
+      .on('broadcast',{event:'chat'},({payload})=>this.on({chat:payload}))
+      .on('broadcast',{event:'heart'},({payload})=>this.on({heart:payload}))
+      .on('broadcast',{event:'gift'},({payload})=>this.on({gift:payload}))
+      .on('broadcast',{event:'req'},({payload})=>this.on({req:payload}))
+      .on('broadcast',{event:'guest'},({payload})=>this.on({guest:payload}))
+      .on('presence',{event:'sync'},()=>this.sync());
+    await new Promise(res=>this.ch.subscribe(async st=>{if(st==='SUBSCRIBED'){try{await this.ch.track({at:Date.now()})}catch(e){}res()}}));
+  }
+  send(ev,p){this.ch&&this.ch.send({type:'broadcast',event:ev,payload:{...p,from:this.me}}).catch(()=>{})}
+  sync(){const ids=Object.keys(this.ch.presenceState());this.on({viewers:ids});const others=ids.filter(k=>k!==this.me);others.forEach(id=>this.pc(id));Object.keys(this.pcs).forEach(id=>{if(!others.includes(id))this.drop(id)})}
+  pc(id){
+    if(this.pcs[id])return this.pcs[id];
+    const pc=new RTCPeerConnection({iceServers:ICE});const st={pc,polite:this.me>id,making:false,ignore:false};this.pcs[id]=st;
+    pc.onnegotiationneeded=async()=>{try{st.making=true;await pc.setLocalDescription();this.send('sig',{to:id,desc:pc.localDescription})}catch(e){}finally{st.making=false}};
+    pc.onicecandidate=e=>{if(e.candidate)this.send('sig',{to:id,cand:e.candidate})};
+    pc.ontrack=e=>{const ms=e.streams[0]||new MediaStream([e.track]);this.remote[id]=ms;this.on({remote:{...this.remote}})};
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed')try{pc.restartIce()}catch(e){}};
+    if(this.local)this.local.getTracks().forEach(t=>pc.addTrack(t,this.local));
+    else if(this.me<id){pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'})}
+    return st;
+  }
+  async signal({from,to,desc,cand}){if(to!==this.me||!from)return;const st=this.pc(from);const pc=st.pc;
+    try{if(desc){const coll=desc.type==='offer'&&(st.making||pc.signalingState!=='stable');st.ignore=!st.polite&&coll;if(st.ignore)return;await pc.setRemoteDescription(desc);if(desc.type==='offer'){await pc.setLocalDescription();this.send('sig',{to:from,desc:pc.localDescription})}}
+      else if(cand){try{await pc.addIceCandidate(cand)}catch(e){if(!st.ignore)throw e}}}catch(e){console.warn('stream',e)}}
+  drop(id){const st=this.pcs[id];if(st)try{st.pc.close()}catch(e){}delete this.pcs[id];delete this.remote[id];this.on({remote:{...this.remote}})}
+  async camOn(){
+    this.local=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}},audio:{echoCancellation:true,noiseSuppression:true}});
+    Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));this.on({local:this.local});
+  }
+  async flip(){if(!this.local)return;this.facing=this.facing==='user'?'environment':'user';
+    const ns=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}}});const nt=ns.getVideoTracks()[0];
+    Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track&&sn.track.kind==='video')sn.replaceTrack(nt)}));
+    this.local.getVideoTracks().forEach(t=>{t.stop();this.local.removeTrack(t)});this.local.addTrack(nt);this.on({local:this.local,facing:this.facing})}
+  setMic(on){if(this.local)this.local.getAudioTracks().forEach(t=>t.enabled=on)}
+  setCam(on){if(this.local)this.local.getVideoTracks().forEach(t=>t.enabled=on)}
+  camOff(){if(!this.local)return;Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track)try{st.pc.removeTrack(sn)}catch(e){}}));this.local.getTracks().forEach(t=>t.stop());this.local=null;this.on({local:null})}
+  leave(){Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}}
+}
+function Vid({stream,mirror,muted}){const r=useRef();useEffect(()=>{if(r.current&&r.current.srcObject!==stream){r.current.srcObject=stream||null;if(stream)r.current.play().catch(()=>{})}},[stream]);
+  return html`<video ref=${r} autoPlay playsInline muted=${!!muted} className=${'gl-vid'+(mirror?' mirror':'')}></video>`}
+function useStreams(){
+  const [list,setList]=useState([]);const [people,setPeople]=useState({});
+  const load=useCallback(async()=>{const since=new Date(Date.now()-75e3).toISOString();
+    const {data}=await sb.from('live_streams').select('*').is('ended_at',null).gte('last_seen',since).order('created_at',{ascending:false});
+    const ids=[...new Set((data||[]).flatMap(x=>[x.host_id,x.guest_id]).filter(Boolean))];
+    if(ids.length){const {data:p}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').in('id',ids);setPeople(x=>{const n={...x};(p||[]).forEach(q=>n[q.id]=liveUser(q));return n})}
+    setList(data||[])},[]);
+  useEffect(()=>{load();const ch=sb.channel('streams-'+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'*',schema:'public',table:'live_streams'},()=>load()).subscribe();
+    const t=setInterval(load,20000);return()=>{sb.removeChannel(ch);clearInterval(t)}},[]);
+  return {list,people,reload:load,setPeople};
+}
+function GoLivePage({me,onClose}){
+  const {list,people,reload,setPeople}=useStreams();const [watch,setWatch]=useState(null);const [title,setTitle]=useState('');const [err,setErr]=useState('');const [busy,setBusy]=useState(false);
+  async function start(){setBusy(true);setErr('');const {data,error}=await sb.from('live_streams').insert({title:title.trim()}).select().single();setBusy(false);if(error){setErr(friendly(error));return}setTitle('');setWatch(data.id)}
+  if(watch)return html`<${StreamRoom} key=${watch} id=${watch} me=${me} people=${people} setPeople=${setPeople} onExit=${()=>{setWatch(null);reload()}}/>`;
+  return html`<div className="gl-lobby">
+    <div className="gl-top">${onClose&&html`<button className="circle" onClick=${onClose} aria-label="Close"><${Icon} n="back"/></button>`}<h2>Go Live</h2></div>
+    <div className="gl-start"><span className="gl-cam"><${Icon} n="reels" s=${30}/></span>
+      <input placeholder="Say what your live is about (optional)" maxLength=${80} value=${title} onInput=${e=>setTitle(e.target.value)} aria-label="Live title"/>
+      <button className="btn orange wide" disabled=${busy} onClick=${start}>${busy?'Starting…':'Go live'}</button>${err&&html`<p className="mod-err">${err}</p>`}</div>
+    <h3 className="live-h">Live now</h3>
+    ${list.length?html`<div className="gl-grid">${list.map(x=>{const h=people[x.host_id]||liveUser(null);return html`<button key=${x.id} className="gl-card" onClick=${()=>setWatch(x.id)}>
+      <span className="live-dot">LIVE</span><${Avatar} u=${h} size=${54} noRing=${true}/><b>${h.name}</b><span className="sub">${x.title||'@'+h.handle}</span></button>`})}</div>`
+    :html`<div className="empty">Nobody's live right now. Be the first.</div>`}
+  </div>`;
+}
+function StreamRoom({id,me,people,setPeople,onExit}){
+  const eng=useRef(null);const [row,setRow]=useState(null);const [local,setLocal]=useState(null);const [remote,setRemote]=useState({});const [viewers,setViewers]=useState([]);
+  const [chat,setChat]=useState([]);const [hearts,setHearts]=useState([]);const [txt,setTxt]=useState('');const [gifts,setGifts]=useState(false);const [reqs,setReqs]=useState({});
+  const [mic,setMic]=useState(true);const [cam,setCam]=useState(true);const [err,setErr]=useState('');const [asked,setAsked]=useState(false);
+  const isHost=row&&row.host_id===me;const isGuest=row&&row.guest_id===me;const onCam=isHost||isGuest;
+  const loadRow=async()=>{const {data}=await sb.from('live_streams').select('*').eq('id',id).single();if(data){setRow(data);const need=[data.host_id,data.guest_id].filter(x=>x&&!people[x]);
+    if(need.length){const {data:p}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').in('id',need);setPeople(x=>{const n={...x};(p||[]).forEach(q=>n[q.id]=liveUser(q));return n})}}};
+  const who=async uid=>{if(people[uid])return people[uid];const {data}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').eq('id',uid).single();if(data){const u=liveUser(data);setPeople(x=>({...x,[uid]:u}));return u}return liveUser(null)};
+  useEffect(()=>{loadRow();const e=new StreamEngine(id,me,ev=>{
+      if(ev.remote)setRemote(ev.remote);if('local' in ev)setLocal(ev.local);if(ev.viewers)setViewers(ev.viewers);
+      if(ev.chat)setChat(c=>[...c.slice(-40),{...ev.chat,k:Math.random()}]);
+      if(ev.heart)pop(ev.heart.e||'🧡');
+      if(ev.gift){setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.amount,k:Math.random()}]);pop(ev.gift.amount>=100?'👑':ev.gift.amount>=50?'💎':'🔥',true)}
+      if(ev.req)setReqs(r=>({...r,[ev.req.from]:Date.now()}));
+      if(ev.guest)loadRow()});
+    eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
+    const ch=sb.channel('stream-row-'+id+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'UPDATE',schema:'public',table:'live_streams',filter:'id=eq.'+id},()=>loadRow()).subscribe();
+    return()=>{e.leave();sb.removeChannel(ch)}},[id]);
+  // camera on for the host and the invited guest; heartbeat keeps the live listed
+  useEffect(()=>{if(!row||!eng.current)return;if(onCam&&!local)eng.current.camOn().catch(()=>setErr('Temp needs your camera and microphone to go live.'));if(!onCam&&local)eng.current.camOff()},[row&&row.host_id,row&&row.guest_id]);
+  useEffect(()=>{if(!isHost)return;const t=setInterval(()=>sb.from('live_streams').update({last_seen:new Date().toISOString()}).eq('id',id),20000);return()=>clearInterval(t)},[isHost]);
+  useEffect(()=>{chat.slice(-1).forEach(c=>c.from&&who(c.from))},[chat.length]);
+  function pop(e,big){const h={k:Math.random(),e,x:70+Math.random()*25,big};setHearts(x=>[...x.slice(-24),h]);setTimeout(()=>setHearts(x=>x.filter(y=>y!==h)),2400)}
+  const send=()=>{const t=txt.trim();if(!t)return;const why=MOD&&MOD.rules?MOD.rules(MOD.classify(t),false,true):null;if(why){setErr(why);return}eng.current.send('chat',{text:t});setChat(c=>[...c.slice(-40),{from:me,text:t,k:Math.random()}]);setTxt('')};
+  const heart=()=>{eng.current.send('heart',{e:'🧡'});pop('🧡')};
+  const gift=async amount=>{setGifts(false);const {error}=await sb.rpc('live_gift',{sid:id,amount});if(error){setErr(friendly(error));return}eng.current.send('gift',{amount});setChat(c=>[...c.slice(-40),{from:me,gift:amount,k:Math.random()}]);pop(amount>=100?'👑':amount>=50?'💎':'🔥',true)};
+  const end=async()=>{if(isHost){if(!confirm('End your live?'))return;await sb.from('live_streams').update({ended_at:new Date().toISOString()}).eq('id',id)}
+    else if(isGuest){await sb.from('live_streams').update({guest_id:null}).eq('id',id).then(()=>{});eng.current.send('guest',{})}onExit()};
+  const invite=async uid=>{const {error}=await sb.from('live_streams').update({guest_id:uid}).eq('id',id);if(error){setErr(friendly(error));return}setReqs(r=>{const n={...r};delete n[uid];return n});eng.current.send('guest',{uid})};
+  const dropGuest=async()=>{await sb.from('live_streams').update({guest_id:null}).eq('id',id);eng.current.send('guest',{})};
+  if(row&&row.ended_at)return html`<div className="gl-room ended"><div className="empty" style=${{color:'#fff'}}>This live has ended.</div><button className="btn orange" onClick=${onExit}>Back</button></div>`;
+  const host=row&&(people[row.host_id]||liveUser(null));const guest=row&&row.guest_id&&(people[row.guest_id]||liveUser(null));
+  const hostStream=isHost?local:row&&remote[row.host_id];const guestStream=isGuest?local:row&&row.guest_id&&remote[row.guest_id];
+  const reqList=Object.keys(reqs).filter(u=>u!==(row&&row.guest_id));
+  return html`<div className="gl-room">
+    <div className=${'gl-stage'+(row&&row.guest_id?' split':'')}>
+      <div className="gl-tile">${hostStream?html`<${Vid} stream=${hostStream} mirror=${isHost&&eng.current&&eng.current.facing==='user'} muted=${isHost}/>`:html`<div className="gl-wait"><${Avatar} u=${host||liveUser(null)} size=${84} noRing=${true}/><p>${row?'Connecting…':'Joining…'}</p></div>`}</div>
+      ${row&&row.guest_id&&html`<div className="gl-tile">${guestStream?html`<${Vid} stream=${guestStream} mirror=${isGuest} muted=${isGuest}/>`:html`<div className="gl-wait"><${Avatar} u=${guest} size=${64} noRing=${true}/><p>Joining…</p></div>`}<span className="gl-name">${guest.name}</span>
+        ${isHost&&html`<button className="gl-kick" onClick=${dropGuest} aria-label="Remove guest"><${Icon} n="x" s=${14}/></button>`}</div>`}
+    </div>
+    <div className="gl-shade"></div>
+    <div className="gl-head">${host&&html`<${Avatar} u=${host} size=${34} noRing=${true}/><div className="gl-who"><b>${host.name}</b><span>${row.title||'@'+host.handle}</span></div>`}
+      <span className="live-dot">LIVE</span><span className="gl-count"><${Icon} n="eye" s=${14}/>${Math.max(0,viewers.length-1)}</span>
+      <button className="gl-x" onClick=${end} aria-label=${isHost?'End live':'Leave'}><${Icon} n="x" s=${20}/></button></div>
+    ${isHost&&reqList.length>0&&html`<div className="gl-reqs">${reqList.map(u=>{const p=people[u];if(!p){who(u);return null}return html`<div key=${u} className="gl-req"><${Avatar} u=${p} size=${28} noRing=${true}/><b>${p.name}</b><span className="sub">wants to join</span><button className="btn orange sm" onClick=${()=>invite(u)}>Add</button><button className="btn ghost sm" onClick=${()=>setReqs(r=>{const n={...r};delete n[u];return n})}>No</button></div>`})}</div>`}
+    <div className="gl-chat">${chat.slice(-8).map(c=>{const u=people[c.from]||{name:'…'};return html`<p key=${c.k} className=${c.gift?'gift':''}><b>${u.name}</b> ${c.gift?`sent a ${c.gift>=100?'👑':c.gift>=50?'💎':'🔥'} gift · ${c.gift} pts`:c.text}</p>`})}</div>
+    <div className="gl-hearts" aria-hidden="true">${hearts.map(h=>html`<span key=${h.k} className=${h.big?'big':''} style=${{left:h.x+'%'}}>${h.e}</span>`)}</div>
+    ${err&&html`<p className="gl-err">${err}</p>`}
+    ${gifts&&html`<div className="gl-gifts">${[[10,'🔥'],[50,'💎'],[100,'👑']].map(([a,e])=>html`<button key=${a} onClick=${()=>gift(a)}><span>${e}</span><b>${a} pts</b></button>`)}</div>`}
+    <div className="gl-bar">
+      <input placeholder="Add a comment…" maxLength=${150} value=${txt} onInput=${e=>{setTxt(e.target.value);setErr('')}} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Comment"/>
+      ${onCam?html`<button onClick=${()=>{const v=!mic;setMic(v);eng.current.setMic(v)}} aria-label=${mic?'Mute':'Unmute'}><${Icon} n=${mic?'mic':'mute'} s=${20}/></button>
+        <button onClick=${()=>{const v=!cam;setCam(v);eng.current.setCam(v)}} aria-label=${cam?'Turn camera off':'Turn camera on'}><${Icon} n=${cam?'reels':'eye'} s=${20}/></button>
+        <button onClick=${()=>eng.current.flip().catch(()=>{})} aria-label="Flip camera"><${Icon} n="replay" s=${20}/></button>`
+      :html`${!asked&&html`<button onClick=${()=>{eng.current.send('req',{});setAsked(true)}} aria-label="Ask to join"><${Icon} n="plus" s=${20}/></button>`}
+        <button onClick=${()=>setGifts(!gifts)} aria-label="Send a gift">🎁</button>
+        <button onClick=${heart} aria-label="Send love">🧡</button>`}
+    </div>
+  </div>`;
+}
+function GoLiveEmbed(){
+  const [tok,setTok]=useState(EMBED_TOKEN);useEffect(()=>{window.__tempToken=t=>{EMBED_TOKEN=t;try{sb.realtime.setAuth(t)}catch(e){}setTok(t)}},[]);
+  const me=jwtSub(tok);if(!me)return html`<div className="empty">Sign in to go live.</div>`;
+  return html`<div className="gl-embed"><${GoLivePage} me=${me} onClose=${()=>{try{window.ReactNativeWebView.postMessage('close')}catch(e){}}}/></div>`;
+}
+
 function App(){
   const [s,raw]=useReducer(reducer,null,emptyState);
   const [view,setView]=useState({tab:'home'});
@@ -2988,6 +3173,11 @@ function App(){
   const unread=Object.keys(s.unread).filter(id=>!s.blocked[id]).length;
   const unreadN=s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]).length;
 
+  // hidden Go Live page: swipe in from the left edge on home (or tap the tab that peeks out now and then)
+  const [side,setSide]=useState(false);const [peek,setPeek]=useState(false);
+  useEffect(()=>{window.__openGoLive=view.tab==='home'?()=>setSide(true):null;return()=>{window.__openGoLive=null}},[view.tab]);
+  useEffect(()=>{if(view.tab!=='home'||side)return;let t,h;const plan=()=>{t=setTimeout(()=>{if(Math.random()<.4){setPeek(true);h=setTimeout(()=>setPeek(false),2600)}plan()},(90+Math.random()*330)*1000)};plan();
+    return()=>{clearTimeout(t);clearTimeout(h);setPeek(false)}},[view.tab,side]);
   if(session===undefined)return html`<${Splash}/>`;
   if(recovery)return html`<${NewPassword} onDone=${()=>setRecovery(false)}/>`;
   if(!session)return html`<${Auth}/>`;
@@ -3042,6 +3232,8 @@ function App(){
     ${top}
     ${body}
 
+    ${view.tab==='home'&&html`<button className=${'gl-peek'+(peek?' show':'')} onClick=${()=>{setPeek(false);setSide(true)}} aria-label="Open Go Live"><b>GO LIVE</b></button>`}
+    <div className=${'gl-side'+(side?' open':'')} aria-hidden=${!side} onTouchStart=${e=>{const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${side&&html`<${GoLivePage} me=${myId} onClose=${()=>setSide(false)}/>`}</div>
     <nav className=${'nav'+(isReplay?' dark':'')} aria-label="Main"><div className="nav-in">
       <button aria-label="Home" aria-current=${view.tab==='home'?'page':null} onClick=${guard(()=>setView({tab:'home'}))}><${Icon} n="home" s=${25}/></button>
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>
@@ -3070,7 +3262,7 @@ function App(){
   </div>`;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(EMBED?html`<${LiveEmbed}/>`:html`<${App}/><${Intro}/>`);
+ReactDOM.createRoot(document.getElementById('root')).render(EMBED?(EMBED_KIND==='golive'?html`<${GoLiveEmbed}/>`:html`<${LiveEmbed}/>`):html`<${App}/><${Intro}/>`);
 </script>
 
 </body>

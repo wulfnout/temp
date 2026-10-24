@@ -50,7 +50,8 @@ function GoLiveWeb({ onClose, stream }) {
     const { data: sub } = sb.auth.onAuthStateChange((ev, ses) => { if (ses && web.current) web.current.injectJavaScript('window.__tempToken&&window.__tempToken(' + JSON.stringify(ses.access_token) + ');true;'); });
     return () => sub.subscription.unsubscribe();
   }, []);
-  return uri ? <WebView ref={web} source={{ uri }} style={{ flex: 1, backgroundColor: C.bg }} originWhitelist={['*']} allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false}
+  // the page draws under the status bar itself (camera preview edge to edge), so no inset band at the top
+  return uri ? <WebView ref={web} source={{ uri }} style={{ flex: 1, backgroundColor: '#000' }} contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} originWhitelist={['*']} allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false}
     mediaCapturePermissionGrantType="grant" javaScriptEnabled domStorageEnabled onMessage={(e) => { if (e.nativeEvent.data === 'close') onClose(); }} />
     : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
 }
@@ -82,7 +83,7 @@ export function GoLiveSide() {
         shadowColor: '#ff5500', shadowOpacity: 0.6, shadowRadius: 14 }}>
         <T h style={{ color: '#fff', fontSize: 11.5, letterSpacing: 2, width: 140, textAlign: 'center', transform: [{ rotate: '-90deg' }] }}>GO LIVE</T></Pressable>
     </Animated.View>
-    {mounted ? <Animated.View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: W, zIndex: 30, backgroundColor: C.bg, transform: [{ translateX: x }] }}>
+    {mounted ? <Animated.View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: W, zIndex: 30, backgroundColor: '#000', transform: [{ translateX: x }] }}>
       <GoLiveWeb onClose={() => show(false)} />
     </Animated.View> : null}
   </>;
@@ -91,7 +92,7 @@ export function GoLiveSide() {
 // a specific live, opened from the Replay feed (full screen, back closes it)
 export function GoLiveScreen({ stream }) {
   const { C, nav } = useApp();
-  return <View style={{ flex: 1, backgroundColor: C.bg }}><GoLiveWeb stream={stream} onClose={() => nav.back()} /></View>;
+  return <View style={{ flex: 1, backgroundColor: '#000' }}><GoLiveWeb stream={stream} onClose={() => nav.back()} /></View>;
 }
 
 // who's live right now, refreshed every 30s, for mixing into the Replay feed

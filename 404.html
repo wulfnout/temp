@@ -846,6 +846,15 @@ html.blackout[data-theme="dark"]{--orange:#fff;--orange-2:#cfcfcf;--on-orange:#0
 html.blackout .btn.orange{color:var(--on-orange);text-shadow:none}
 html.blackout .lifebar span.orb>svg,html.blackout .lifebar span.orb>b{color:var(--on-orange);fill:var(--on-orange)}
 html.blackout .lifebar span.orb>b{color:var(--on-orange)}
+.gl-tap .lk-flame{filter:drop-shadow(0 0 10px rgba(255,90,0,.7))}
+.gl-streak{position:absolute;right:12px;top:42%;z-index:5;display:grid;justify-items:center;gap:4px;background:rgba(0,0,0,.45);--r:16px;border-radius:var(--r);padding:8px 8px 10px;pointer-events:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:gbin .25s ease}
+.gl-streak b{font-family:var(--display);font-size:20px;letter-spacing:-.04em;animation:gbn .25s cubic-bezier(.2,1.8,.4,1)}
+.gl-streak-bar{width:8px;height:80px;border-radius:4px;background:rgba(255,255,255,.18);display:flex;align-items:flex-end;overflow:hidden}
+.gl-streak-bar i{display:block;width:100%;border-radius:4px;background:linear-gradient(0deg,#ff2d00,#ff8a2b,#ffd27a);transition:height .15s}
+.gl-sent{position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.6);--r:18px;border-radius:var(--r);padding:10px 16px;font-weight:800;font-size:15px;white-space:nowrap;pointer-events:none;animation:glsent 2.6s ease both}
+.gl-sent b{font-family:var(--display);color:#ffd27a}
+@keyframes glsent{0%{opacity:0;transform:translate(-50%,12px) scale(.9)}12%,80%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-14px)}}
+.gl-lobby:has(.gl-prev-c),.gl-embed:has(.gl-prev-c){background:#000}
 /* hidden left page on home */
 .gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
 .gl-side.open{transform:none}
@@ -3544,6 +3553,8 @@ const GIFTS_LOCAL=[['spark','Spark',1,'small'],['ember','Ember',5,'small'],['ice
 const giftById=id=>GIFTS_LOCAL.find(g=>g.id===id)||GIFTS_LOCAL[0];
 const SPARK_PACKS=[[70,'$0.99'],[350,'$4.99'],[700,'$9.99'],[1400,'$19.99'],[3500,'$49.99'],[7000,'$99.99']];
 const fmtK=n=>n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e4?Math.round(n/1e3)+'K':n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'K':String(n);
+// Temp-style flame used for likes
+const LikeFlame=({s=40})=>html`<svg width=${s} height=${s} viewBox="0 0 24 24" className="lk-flame" aria-hidden="true"><defs><linearGradient id="lkg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".55" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs><path d=${FLAME_D} fill="url(#lkg)"/><path d="M12 11.2c.5 1.6 2.3 2.4 2.3 4.6a2.3 2.3 0 0 1-4.6 0c0-1 .5-1.7 1.1-2.1.1.8.5 1.3 1 1.4-.2-1.3-.2-2.5.2-3.9z" fill="#fff3c4"/></svg>`;
 function LvBadge({lv}){if(!lv)return null;return html`<span className=${'lv '+(lv>=20?'l3':lv>=10?'l2':'l1')}><${SparkIco} s=${9}/>${lv}</span>`}
 
 // big gift animations that take over the screen
@@ -3595,7 +3606,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   const [wallet,setWallet]=useState(null);const [events,setEvents]=useState([]);const [likes,setLikes]=useState(0);const [banners,setBanners]=useState([]);const [shows,setShows]=useState([]);
   const [levels,setLevels]=useState({});const [combo,setCombo]=useState(null);const [score,setScore]=useState({h:0,g:0});const [now,setNow]=useState(Date.now());const [menu,setMenu]=useState(null);
   const pend=useRef({likes:0,t:null});const comboRef=useRef(null);const seenIds=useRef(null);
-  const [dbViewers,setDbViewers]=useState([]);const [conn,setConn]=useState('ok');const lastGiftId=useRef(0);const heard=useRef({});const giftRows=useRef([]);
+  const [dbViewers,setDbViewers]=useState([]);const [streak,setStreak]=useState(0);const [sent,setSent]=useState(null);const streakT=useRef(null);const streakN=useRef(0);const [conn,setConn]=useState('ok');const lastGiftId=useRef(0);const heard=useRef({});const giftRows=useRef([]);
   const isHost=row&&row.host_id===me;const isGuest=row&&row.guest_id===me;const onCam=isHost||isGuest;
   const loadRow=async(n=0)=>{const {data,error}=await sb.from('live_streams').select('*').eq('id',id).maybeSingle();
     if(!data){if(n<8)setTimeout(()=>loadRow(n+1),1500);else setErr(error?friendly(error):'Couldn’t load this live.');return}
@@ -3630,8 +3641,8 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
       if(ev.remote)setRemote(ev.remote);if('local' in ev)setLocal(ev.local);
       if(ev.viewers){setViewers(ev.viewers);const prev=seenIds.current;if(prev){ev.viewers.filter(v=>!prev.has(v)&&v!==me).slice(0,3).forEach(v=>{who(v);setChat(c=>[...c.slice(-40),{from:v,join:true,k:Math.random()}])})}seenIds.current=new Set(ev.viewers);needLv(ev.viewers)}
       if(ev.chat){setChat(c=>[...c.slice(-40),{...ev.chat,k:Math.random()}]);needLv([ev.chat.from])}
-      if(ev.heart)pop(ev.heart.e||'🧡');
-      if(ev.like){setLikes(l=>l+(ev.like.n||1));for(let i=0;i<Math.min(4,ev.like.n||1);i++)setTimeout(()=>pop('🧡'),i*120)}
+      if(ev.heart)pop('flame');
+      if(ev.like){setLikes(l=>l+(ev.like.n||1));for(let i=0;i<Math.min(4,ev.like.n||1);i++)setTimeout(()=>pop('flame'),i*120)}
       if(ev.gift){heard.current[ev.gift.from+'|'+ev.gift.gift]=Date.now();showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
       if(ev.req)setReqs(r=>({...r,[ev.req.from]:Date.now()}));
       if(ev.guest)loadRow()});
@@ -3648,9 +3659,12 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   useEffect(()=>{if(!row||!row.match_started)return;loadScore();if(!matchOn)return;const t=setInterval(loadScore,3000);return()=>clearInterval(t)},[row&&row.match_started,matchOn,events.length]);
 
   const send=()=>{const t=txt.trim();if(!t)return;const why=MOD&&MOD.rules?MOD.rules(MOD.classify(t),false,true):null;if(why){setErr(why.msg||why);return}eng.current.send('chat',{text:t});setChat(c=>[...c.slice(-40),{from:me,text:t,k:Math.random()}]);setTxt('')};
-  const heart=()=>{pend.current.likes++;setLikes(l=>l+1);pop('🧡')};
+  const heart=()=>{pend.current.likes++;setLikes(l=>l+1);pop('flame')};
   const tapLike=e=>{if(e.target.closest('button,input,.gp,.gl-chat p,.gl-menu'))return;if(panel){setPanel(null);return}const r=e.currentTarget.getBoundingClientRect();pend.current.likes++;setLikes(l=>l+1);
-    const h={k:Math.random(),x:e.clientX-r.left,y:e.clientY-r.top,rot:Math.random()*40-20};setHearts(v=>[...v.slice(-30),{...h,tap:true}]);setTimeout(()=>setHearts(v=>v.filter(y=>y.k!==h.k)),900)};
+    const h={k:Math.random(),x:e.clientX-r.left,y:e.clientY-r.top,rot:Math.random()*40-20};setHearts(v=>[...v.slice(-30),{...h,tap:true}]);setTimeout(()=>setHearts(v=>v.filter(y=>y.k!==h.k)),900);
+    // tap streak: past 10 a meter shows your likes; when you stop, it tells you how many you sent
+    streakN.current++;setStreak(streakN.current);clearTimeout(streakT.current);
+    streakT.current=setTimeout(()=>{const n=streakN.current;streakN.current=0;setStreak(0);if(n>=10){setSent({n,k:Math.random()});setTimeout(()=>setSent(null),2600)}},1400)};
   // sending: small gifts start a combo — keep tapping the round button within 3s; taps are batched
   const flush=async()=>{const c=comboRef.current;if(!c||!c.pending)return;const q=c.pending;c.pending=0;
     const {data,error}=await sb.rpc('live_send_gift',{sid:id,gift:c.g.id,qty:q,to_uid:c.to||null});
@@ -3712,8 +3726,10 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
     <div className="gl-chat">${chat.slice(-8).map(c=>{const u=people[c.from]||{name:'…'};return html`<p key=${c.k} className=${c.gift?'gift':c.join?'join':''} onClick=${e=>{if(isHost&&c.text){e.stopPropagation();setMenu(c)}}}>
       <${LvBadge} lv=${levels[c.from]}/><b>${u.name}</b> ${c.join?'joined 👋':c.gift?html`sent ${giftById(c.gift).name}${c.qty>1?' ×'+c.qty:''} <${GiftArt} id=${c.gift} size=${18}/>`:c.text}</p>`})}</div>
     ${menu&&html`<div className="gl-menu" onClick=${e=>e.stopPropagation()}><p><b>${name(menu.from)}</b> ${menu.text}</p><button className="btn orange sm" onClick=${()=>{hostUpd({pinned:{from:menu.from,text:menu.text}});setMenu(null)}}>Pin comment</button><button className="btn ghost sm" onClick=${()=>setMenu(null)}>Cancel</button></div>`}
-    <div className="gl-hearts" aria-hidden="true">${hearts.filter(h=>!h.tap).map(h=>html`<span key=${h.k} className=${h.big?'big':''} style=${{left:h.x+'%'}}>${h.e||html`<${SparkIco} s=${30}/>`}</span>`)}</div>
-    ${hearts.filter(h=>h.tap).map(h=>html`<span key=${h.k} className="gl-tap" style=${{left:h.x,top:h.y,'--r':h.rot+'deg'}} aria-hidden="true">🧡</span>`)}
+    <div className="gl-hearts" aria-hidden="true">${hearts.filter(h=>!h.tap).map(h=>html`<span key=${h.k} className=${h.big?'big':''} style=${{left:h.x+'%'}}>${h.e==='flame'?html`<${LikeFlame} s=${30}/>`:h.e||html`<${SparkIco} s=${30}/>`}</span>`)}</div>
+    ${hearts.filter(h=>h.tap).map(h=>html`<span key=${h.k} className="gl-tap" style=${{left:h.x,top:h.y,'--r':h.rot+'deg'}} aria-hidden="true"><${LikeFlame} s=${48}/></span>`)}
+    ${streak>=10&&html`<div className="gl-streak" aria-live="polite"><${LikeFlame} s=${22}/><b key=${streak}>${streak}</b><div className="gl-streak-bar"><i style=${{height:Math.min(100,(streak%50||50)/50*100)+'%'}}></i></div></div>`}
+    ${sent&&html`<div key=${sent.k} className="gl-sent"><${LikeFlame} s=${30}/><span>You sent <b>${sent.n}</b> likes</span></div>`}
     ${shows.length>0&&html`<${GiftShow} key=${shows[0].k} g=${{...shows[0],name:name(shows[0].from),k:shows[0].k}} onDone=${()=>setShows(v=>v.slice(1))}/>`}
     ${err&&html`<p className="gl-err" onClick=${e=>{e.stopPropagation();setErr('')}}>${err}</p>`}
     ${conn==='retry'&&html`<p className="gl-conn">Reconnecting…</p>`}
@@ -3745,7 +3761,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
         <button onClick=${()=>eng.current.flip().catch(()=>{})} aria-label="Flip camera"><${Icon} n="replay" s=${20}/></button>`
       :html`${!asked&&html`<button onClick=${()=>{eng.current.send('req',{});setAsked(true)}} aria-label="Ask to join"><${Icon} n="plus" s=${20}/></button>`}
         <button className="gl-giftbtn" onClick=${()=>{setPanel(panel==='gifts'?null:'gifts');loadWallet()}} aria-label="Send a gift"><${GiftArt} id="rose" size=${26}/></button>
-        <button onClick=${heart} aria-label="Send love">🧡</button>`}
+        <button onClick=${heart} aria-label="Send a like"><${LikeFlame} s=${24}/></button>`}
     </div>
   </div>`;
 }

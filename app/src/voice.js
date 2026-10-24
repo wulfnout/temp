@@ -33,7 +33,7 @@ export function VoiceBubble({ url, ms, mine }) {
   const fg = mine ? '#fff' : C.ink; const bg = mine ? C.orange : C.card;
   const nextRate = () => { const r = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1; setRate(r); try { player.setPlaybackRate(r); } catch (e) { try { player.playbackRate = r; } catch (e2) {} } };
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: bg, borderRadius: 999, paddingVertical: 5, paddingLeft: 5, paddingRight: 12, width: 250 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: bg, borderRadius: 10, paddingVertical: 5, paddingLeft: 5, paddingRight: 12, width: 250 }}>
       <Pressable onPress={toggle} accessibilityLabel={st.playing ? 'Pause voice message' : 'Play voice message'} hitSlop={6}
         style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: mine ? 'rgba(0,0,0,.22)' : C.soft, alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name={st.playing ? 'pause' : 'play'} size={15} color={fg} style={st.playing ? null : { marginLeft: 2 }} /></Pressable>

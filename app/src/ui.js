@@ -27,7 +27,7 @@ export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon
   const fg = kind === 'orange' ? C.onOrange : kind === 'ghost' ? C.ink : C.bg;
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={title}
-      style={({ pressed }) => [glow, { backgroundColor: bg, borderRadius: 999, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
+      style={({ pressed }) => [glow, { backgroundColor: bg, borderRadius: 10, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
       {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
       <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14 }}>{title}</Text>
     </Pressable>
@@ -99,7 +99,7 @@ export function Timer({ p }) {
   return null;
 }
 function Pill({ bg, fg, icon, text }) {
-  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: bg, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 10 }}>
+  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: bg, borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10 }}>
     <Ionicons name={icon} size={13} color={fg} /><Text style={{ color: fg, fontFamily: F.heavy, fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{text}</Text></View>;
 }
 
@@ -267,8 +267,8 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
   const on = hover != null ? hover : idx;
   return (
     <View ref={bar} {...pan.panHandlers} onLayout={(e) => setW(e.nativeEvent.layout.width)} accessibilityRole="tablist"
-      style={[{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 999, padding: 4 }, style]}>
-      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 999, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
+      style={[{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 10, padding: 4 }, style]}>
+      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 10, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
       {items.map(([k, l], i) => (
         <View key={k} accessible accessibilityRole="tab" accessibilityLabel={l} accessibilityState={{ selected: i === idx }} style={{ flex: 1, paddingVertical: 9, alignItems: 'center' }}>
           <T h style={{ color: i === on ? C.bg : C.muted, fontSize: size }}>{l}</T></View>))}

@@ -63,7 +63,7 @@ export function useVideoTaps(getPlayer, { onSingle, onCenterDouble } = {}) {
   const onLongPress = () => { const pl = getPlayer(); if (!pl) return; try { pl.playbackRate = 2; pl.play(); } catch (e) {} setFast(true); };
   const onPressOut = () => { if (!fast) return; const pl = getPlayer(); try { pl && (pl.playbackRate = baseRate.get(pl) || 1); } catch (e) {} setFast(false); };
   const press = { onPress, onLongPress, delayLongPress: 350, onPressOut, onLayout: (e) => setW(e.nativeEvent.layout.width || 1) };
-  const pill = { backgroundColor: 'rgba(0,0,0,.55)', borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6 };
+  const pill = { backgroundColor: 'rgba(0,0,0,.55)', borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6 };
   const Overlay = ({ top = 70 }) => <>
     {fast ? <View pointerEvents="none" style={[pill, { position: 'absolute', top, alignSelf: 'center' }]}><T h style={{ color: '#fff', fontSize: 13 }}>2x</T><Ionicons name="play-forward" size={14} color="#fff" /></View> : null}
     {flash ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, [flash.side === 'L' ? 'left' : 'right']: 0, width: '33%', alignItems: 'center', justifyContent: 'center',
@@ -94,7 +94,7 @@ export function FeedVideo({ uri, active = false, onHeat, postId }) {
     taps.current.t = now;
     taps.current.timer = setTimeout(() => { let at = 0; try { at = player.currentTime || 0; } catch (e) {} setFull({ at }); }, 280);
   };
-  const chip = { backgroundColor: 'rgba(0,0,0,.6)', borderRadius: 999, alignItems: 'center', justifyContent: 'center' };
+  const chip = { backgroundColor: 'rgba(0,0,0,.6)', borderRadius: 10, alignItems: 'center', justifyContent: 'center' };
   return (
     <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}>
       <Pressable onPress={tap} style={{ flex: 1 }} accessibilityLabel="Open video full screen">
@@ -217,7 +217,7 @@ function FullVideo({ postId, uri, start, onClose }) {
             renderItem={({ item: c }) => { const cu = s.users[c.userId] || {}; return <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 6 }}><Avatar u={cu} size={26} />
               <View style={{ flex: 1 }}><T h style={{ color: '#fff', fontSize: 13 }}>{cu.handle} <T style={{ color: '#8d8883', fontSize: 12 }}>{ago(Date.now() - c.at)}</T></T>
                 {c.sticker ? <Sticker v={c.sticker} size={40} /> : <T style={{ color: '#fff', fontSize: 14 }}>{c.text}</T>}</View></View>; }} /> : <View style={{ flex: 1 }} />}
-          {!frozen ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderRadius: 999, paddingLeft: 14, padding: 4, marginTop: 8 }}>
+          {!frozen ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderRadius: 10, paddingLeft: 14, padding: 4, marginTop: 8 }}>
             <TextInput value={text} onChangeText={setText} placeholder="Add a comment…" placeholderTextColor="#8d8883" maxLength={280} onSubmitEditing={send} returnKeyType="send"
               style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, paddingVertical: 8 }} />
             {text.trim() ? <Pressable onPress={send} accessibilityLabel="Post comment" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#ff5500', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color="#fff" /></Pressable> : null}
@@ -265,10 +265,10 @@ export function PostCard({ p, active = false }) {
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
         <Pressable onPress={heat} accessibilityLabel="Heat" accessibilityState={{ selected: p.myHeat }}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 999, backgroundColor: p.myHeat ? C.orange : C.soft }}>
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 10, backgroundColor: p.myHeat ? C.orange : C.soft }}>
           <Ionicons name={p.myHeat ? 'flame' : 'flame-outline'} size={19} color={p.myHeat ? '#fff' : C.ink} /><T h style={{ color: p.myHeat ? '#fff' : C.ink }}>{kfmt(p.heat)}</T></Pressable>
         <Pressable onPress={() => { if (!p.myFreeze) run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }); }} accessibilityLabel="Freeze" accessibilityState={{ selected: p.myFreeze }}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 999, backgroundColor: p.myFreeze ? C.ink : C.soft }}>
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 10, backgroundColor: p.myFreeze ? C.ink : C.soft }}>
           <Ionicons name="snow" size={19} color={p.myFreeze ? C.bg : C.ink} /><T h style={{ color: p.myFreeze ? C.bg : C.ink }}>{kfmt(p.freeze)}</T></Pressable>
         <View style={{ flex: 1 }} />
         <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, opacity: frozen ? 0.3 : 1 }}>
@@ -358,7 +358,7 @@ export function CommentsSheet({ id, onClose }) {
           <Image source={{ uri: pending }} style={{ width: 120, height: 90, borderRadius: 14, backgroundColor: C.soft }} />
           <Pressable onPress={() => setPending(null)} accessibilityLabel="Remove GIF" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="close" size={16} color={C.ink} /></Pressable>
         </View> : null}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: C.soft, borderRadius: 999, paddingLeft: 16, padding: 4 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: C.soft, borderRadius: 10, paddingLeft: 16, padding: 4 }}>
           <TextInput ref={inp} value={t} onChangeText={setT} placeholder={pending ? 'Say something with your GIF…' : 'Add a comment…'} placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send"
             style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>

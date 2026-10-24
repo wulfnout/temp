@@ -1,0 +1,29 @@
+# Checks what the live website is actually serving (used for debugging the Home Screen icon).
+name: Site check
+on:
+  push:
+    branches: [main]
+    paths: ['tools/site-check.txt', '.github/workflows/site-check.yml']
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Look at the live site
+        run: |
+          sleep 60
+          mkdir -p out
+          for u in https://wulfnout.github.io/temp/ https://wulfnout.github.io/temp/get/ https://wulfnout.github.io/temp/icons/apple-touch-icon.png https://wulfnout.github.io/temp/manifest.webmanifest https://wulfnout.github.io/temp/apple-touch-icon.png; do
+            echo "=== $u" >> out/report.txt
+            curl -sS -o /tmp/body -D - "$u" | head -12 >> out/report.txt
+            echo "bytes: $(wc -c < /tmp/body)" >> out/report.txt
+            grep -o '<link[^>]*apple-touch-icon[^>]*>' /tmp/body >> out/report.txt || true
+          done
+          date -u >> out/report.txt
+      - name: Save report
+        run: |
+          cd out && git init -q && git checkout -q -b site-check && git add report.txt
+          git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "site check ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" site-check

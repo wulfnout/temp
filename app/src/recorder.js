@@ -395,7 +395,7 @@ export function Recorder({ onClose, startMode = 'replay' }) {
                 <Animated.View style={{ height: 4, backgroundColor: C.orange, width: prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} /></View> : null}
               {phase === 'camera' ? <View style={{ flexDirection: 'row', gap: 22 }}>
                 {[['story', 'STORY'], ['replay', 'REPLAY']].map(([k, l]) => <Pressable key={k} onPress={() => setMode(k)} hitSlop={8}>
-                  <T h style={{ color: mode === k ? '#fff' : 'rgba(255,255,255,.55)', fontSize: 14, letterSpacing: 1 }}>{l}</T></Pressable>)}
+                  <T h style={{ color: mode === k ? C.onOrange : 'rgba(255,255,255,.55)', fontSize: 14, letterSpacing: 1 }}>{l}</T></Pressable>)}
               </View> : null}
               {!ready ? <ActivityIndicator color="#fff" /> : null}
             </View>

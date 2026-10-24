@@ -267,7 +267,7 @@ export function PostCard({ p, active = false }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
         <Pressable onPress={heat} accessibilityLabel="Heat" accessibilityState={{ selected: p.myHeat }}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 15, backgroundColor: p.myHeat ? C.orange : C.soft }}>
-          <Ionicons name={p.myHeat ? 'flame' : 'flame-outline'} size={19} color={p.myHeat ? '#fff' : C.ink} /><T h style={{ color: p.myHeat ? '#fff' : C.ink }}>{kfmt(p.heat)}</T></Pressable>
+          <Ionicons name={p.myHeat ? 'flame' : 'flame-outline'} size={19} color={p.myHeat ? C.onOrange : C.ink} /><T h style={{ color: p.myHeat ? C.onOrange : C.ink }}>{kfmt(p.heat)}</T></Pressable>
         <Pressable onPress={() => { if (!p.myFreeze) run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }); }} accessibilityLabel="Freeze" accessibilityState={{ selected: p.myFreeze }}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 15, backgroundColor: p.myFreeze ? C.ink : C.soft }}>
           <Ionicons name="snow" size={19} color={p.myFreeze ? C.bg : C.ink} /><T h style={{ color: p.myFreeze ? C.bg : C.ink }}>{kfmt(p.freeze)}</T></Pressable>
@@ -366,7 +366,7 @@ export function CommentsSheet({ id, onClose }) {
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
           <Pressable onPress={send} disabled={!t.trim() && !pending} accessibilityLabel="Send comment" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: t.trim() || pending ? 1 : 0.3 }}>
-            <Ionicons name="paper-plane" size={17} color="#fff" /></Pressable>
+            <Ionicons name="paper-plane" size={17} color={C.onOrange} /></Pressable>
         </View></>}
     </Sheet>
   );

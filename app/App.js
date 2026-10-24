@@ -180,7 +180,7 @@ function Root() {
     {bootErr ? <>
       <Text style={{ color: C.ink, fontSize: 16, textAlign: 'center' }}>{bootErr}</Text>
       <Pressable onPress={() => { setBootErr(null); sb.auth.getSession().then(({ data }) => setSession(data.session || null)).catch((e) => setBootErr((e && e.message) || 'Couldn’t start.')); }}
-        style={{ backgroundColor: C.orange, borderRadius: 15, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
+        style={{ backgroundColor: C.orange, borderRadius: 15, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: C.onOrange, fontWeight: '800' }}>Try again</Text></Pressable>
       <Pressable onPress={() => setSession(null)}><Text style={{ color: C.muted }}>Sign in again</Text></Pressable>
     </> : <ActivityIndicator color={C.orange} />}</View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;
@@ -244,7 +244,7 @@ function TabBar({ tab, stacked, dark, onTab }) {
       <Item name="home" icon="home" label="Home" />
       <Item name="search" icon="search" label="Search" />
       <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 0.9, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null), width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="add" size={28} color="#fff" /></Pressable>
+        <Ionicons name="add" size={28} color={C.onOrange} /></Pressable>
       <Item name="replay" icon="play-circle" label="Replay" />
       <Item name="me" label="Profile"><Avatar u={s.users[s.me]} size={28} /></Item>
     </View>

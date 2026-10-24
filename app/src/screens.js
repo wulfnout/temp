@@ -309,7 +309,7 @@ export function ActivityScreen() {
   const Seg = ({ k, label }) => (
     <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 15, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>
-      {unread(k) ? <View style={{ backgroundColor: C.orange, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 }}><T h style={{ color: '#fff', fontSize: 11 }}>{unread(k)}</T></View> : null}
+      {unread(k) ? <View style={{ backgroundColor: C.orange, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 }}><T h style={{ color: C.onOrange, fontSize: 11 }}>{unread(k)}</T></View> : null}
     </Pressable>);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -320,7 +320,7 @@ export function ActivityScreen() {
           <FlowBox r={20} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, marginBottom: 6 }}>
             <Pressable onPress={() => nav.push('profile', { id: u.id })}><Avatar u={u} size={44} />
               <View style={{ position: 'absolute', right: -4, bottom: -4, width: 20, height: 20, borderRadius: 7, backgroundColor: C.orange, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={icon[n.type] || 'notifications'} size={10} color="#fff" /></View></Pressable>
+                <Ionicons name={icon[n.type] || 'notifications'} size={10} color={C.onOrange} /></View></Pressable>
             <T style={{ flex: 1, fontSize: 14.5 }}>{n.type === 'viral' ? null : <T h style={{ fontSize: 14.5 }} onPress={() => u.id && nav.push('profile', { id: u.id })} accessibilityRole="link">{u.handle} </T>}{text(n)} <T muted style={{ fontSize: 13 }}>{ago(Date.now() - n.at)}</T></T>
             {!n.read ? <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: C.orange }} /> : null}
           </FlowBox>); }} />
@@ -411,7 +411,7 @@ export function ThreadScreen({ id }) {
             <Pressable onPress={dbl} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '78%', marginBottom: m.react ? 12 : 0 }}>
               {m.audio ? <VoiceBubble url={m.audio} ms={m.ms} mine={mine} />
                 : m.sticker ? <View style={{ padding: 4 }}><Sticker v={m.sticker} size={58} /></View>
-                : <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 15 }}><T style={{ color: mine ? '#fff' : C.ink }}>{m.text}</T></View>}
+                : <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 15 }}><T style={{ color: mine ? C.onOrange : C.ink }}>{m.text}</T></View>}
               {m.react ? <T style={{ position: 'absolute', bottom: -12, [mine ? 'left' : 'right']: 8, backgroundColor: C.card, borderRadius: 15, paddingHorizontal: 5, fontSize: 13, overflow: 'hidden' }}>{m.react}</T> : null}
             </Pressable></Animated.View>;
         }} />
@@ -423,14 +423,14 @@ export function ThreadScreen({ id }) {
           <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#ff2d2d' }} />
           <T h style={{ fontVariant: ['tabular-nums'] }}>{vsend ? 'Sending…' : fmtSec(vr.on.ms)}</T><T muted b style={{ flex: 1 }}>{vsend ? '' : 'Recording'}</T>
           {!vsend ? <><Pressable onPress={() => vr.stop(false)} accessibilityLabel="Cancel voice message" style={{ padding: 8 }}><Ionicons name="close" size={22} color={C.muted} /></Pressable>
-            <Pressable onPress={() => vr.stop(true)} accessibilityLabel="Send voice message" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={17} color="#fff" /></Pressable></> : null}
+            <Pressable onPress={() => vr.stop(true)} accessibilityLabel="Send voice message" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={17} color={C.onOrange} /></Pressable></> : null}
         </FlowBox> :
         <FlowBox r={15} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, paddingLeft: 16, padding: 4 }}>
           <TextInput value={t} onChangeText={(v) => { setT(v); if (v) sendTyping(id); }} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
           <Pressable onPress={t.trim() ? send : vr.start} accessibilityLabel={t.trim() ? 'Send' : 'Record a voice message'} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name={t.trim() ? 'paper-plane' : 'mic'} size={t.trim() ? 17 : 19} color="#fff" /></Pressable>
+            <Ionicons name={t.trim() ? 'paper-plane' : 'mic'} size={t.trim() ? 17 : 19} color={C.onOrange} /></Pressable>
         </FlowBox>}
       </View>
     </KeyboardAvoidingView>

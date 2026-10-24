@@ -177,7 +177,7 @@ export function ShopScreen() {
     <FlowBox r={22} style={{ backgroundColor: C.card, padding: 10, gap: 10, width: '48.5%' }}>
       <FlowBox r={16} style={{ height: 92, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Preview k={k} it={it} />
         {it.available_until ? <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#1a0b2e', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#ffb347', fontSize: 10.5 }}>🎃 {Math.max(0, Math.ceil((new Date(it.available_until) - Date.now()) / 864e5))}d left</T></View> : null}
-        {off ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: C.orange, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#fff', fontSize: 11 }}>-{off}%</T></View> : null}</FlowBox>
+        {off ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: C.orange, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: C.onOrange, fontSize: 11 }}>-{off}%</T></View> : null}</FlowBox>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}><T h numberOfLines={1} style={{ flex: 1 }}>{it.name}</T>{off ? <T muted style={{ textDecorationLine: 'line-through', fontSize: 12 }}>{it.price}</T> : null}</View>
       <Action k={k} it={it} price={price} />
     </FlowBox>);
@@ -380,11 +380,11 @@ export function StoryViewer({ userId, onClose }) {
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderRadius: 15, paddingLeft: 16, padding: 4 }}>
               <TextInput value={text} onChangeText={setText} placeholder={mine ? 'Reply to comments…' : 'Add a comment…'} placeholderTextColor="rgba(255,255,255,.7)" maxLength={300}
                 onSubmitEditing={sendComment} returnKeyType="send" style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, paddingVertical: 8 }} />
-              {text.trim() ? <Pressable onPress={sendComment} accessibilityLabel="Post comment" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color="#fff" /></Pressable> : null}
+              {text.trim() ? <Pressable onPress={sendComment} accessibilityLabel="Post comment" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color={C.onOrange} /></Pressable> : null}
             </View>
             <Pressable onPress={() => { setPanel(!panel); setPicker(false); }} accessibilityLabel="Comments" style={[glass, { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' }]}>
               <Ionicons name="chatbubble-outline" size={21} color="#fff" />
-              {comments.length ? <View style={{ position: 'absolute', top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}><T h style={{ color: '#fff', fontSize: 11 }}>{comments.length}</T></View> : null}
+              {comments.length ? <View style={{ position: 'absolute', top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}><T h style={{ color: C.onOrange, fontSize: 11 }}>{comments.length}</T></View> : null}
             </Pressable>
             {!mine ? <Pressable onPress={() => { setPicker(!picker); setPanel(false); }} accessibilityLabel="React" style={[glass, { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' }]}>
               {myReact ? <T style={{ fontSize: 22 }}>{myReact}</T> : <Ionicons name="heart-outline" size={22} color="#fff" />}</Pressable> : null}

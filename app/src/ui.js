@@ -66,7 +66,7 @@ export function IconBtn({ name, onPress, size = 22, color, label, badge, style }
     <Pressable onPress={onPress} accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [{ width: 42, height: 42, borderRadius: 21, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 }, style]}>
       <Ionicons name={name} size={size} color={color || C.ink} />
       {badge ? <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
-        <Text style={{ color: '#fff', fontSize: 11, fontFamily: F.heavy }}>{badge}</Text></View> : null}
+        <Text style={{ color: C.onOrange, fontSize: 11, fontFamily: F.heavy }}>{badge}</Text></View> : null}
     </Pressable>
   );
 }
@@ -151,7 +151,7 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
           transform: [{ rotate }, { scaleX: sx }, { scaleY: sy }] }} />
         <Avatar u={{ ...u, ring: null }} size={size - 12} />
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="add" size={14} color="#fff" /></Pressable> : null}
+          <Ionicons name="add" size={14} color={C.onOrange} /></Pressable> : null}
       </View>
     </Pressable>
   );

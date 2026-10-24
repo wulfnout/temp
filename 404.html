@@ -206,6 +206,7 @@ img,video{max-width:100%;display:block}
 .header-img{height:180px;background:linear-gradient(135deg,var(--orange) 0%,var(--orange-2) 40%,#0a0a0a 100%);overflow:hidden;position:relative;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)))}
 .header-img img{width:100%;height:100%;object-fit:cover}
 .header-btn{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center}
+.orbs3{display:flex;gap:4px}.orbs3 i{width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.15)}
 .header-btn.l{right:auto;left:max(12px,env(safe-area-inset-left,0px))}
 .prof-top{display:flex;justify-content:space-between;align-items:flex-end;margin-top:-48px;gap:8px}
 .prof-top .av{border:5px solid var(--card)}
@@ -2969,7 +2970,7 @@ function Activity({s,dispatch,open}){
 }
 
 function Profile({s,id,dispatch,open,back,startTab}){
-  const u=s.users[id];const isMe=id==='me';const blocked=s.blocked[id];const [confirm,setConfirm]=useState(false);
+  const u=s.users[id];const isMe=id==='me';const blocked=s.blocked[id];const [confirm,setConfirm]=useState(false);const [more,setMore]=useState(false);
   const [tab,setTab]=useState(startTab||'posts');
   const all=s.posts.filter(p=>p.userId===id&&!p.reel);
   const reels=s.posts.filter(p=>p.userId===id&&p.reel&&p.status!=='gone');
@@ -2981,14 +2982,14 @@ function Profile({s,id,dispatch,open,back,startTab}){
     <div className="prof">
       <div className=${'header-img'+(u.headerFx?' fx-'+u.headerFx:'')}>${u.header&&!u.headerFx&&html`<img src=${u.header} alt="" />`}${u.headerFx&&html`<${HeaderArt} id=${u.headerFx}/>`}
         ${back&&html`<button className="header-btn l" onClick=${back} aria-label="Back"><${Icon} n="back" s=${20}/></button>`}
-        ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${20}/></button>`}</div>
+        ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${20}/></button>`}
+        ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);if(!st)return html`<${Avatar} u=${u} size=${96}/>`;const un=st.items.some(i=>!s.seen[i.id]);
         return html`<button className=${'orb prof-orb'+(un?'':' seen')} onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${92} noRing=${true}/></button>`})()}
         <div className="prof-btns">
           ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${16} w=${2.2}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
-          :html`<button className="btn ghost" onClick=${()=>setConfirm(true)} aria-label="Block"><${Icon} n="block" s=${18}/></button>
-            <button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
+          :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
             <button className=${'btn'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id})}>${u.following?'Following':u.followsMe?'Follow back':'Follow'}</button>`}
         </div></div>
       <h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
@@ -3011,6 +3012,9 @@ function Profile({s,id,dispatch,open,back,startTab}){
     ${tab==='saved'&&html`<div className="feed">${saved.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
       ${saved.some(p=>p.reel)&&html`<div className="grid3">${saved.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
       ${!saved.length&&html`<div className="empty">Nothing saved</div>`}`}`}
+    ${more&&html`<${Sheet} onClose=${()=>setMore(false)} label="More options"><div className="menu">
+      <button className="menu-item warn" onClick=${()=>{setMore(false);setConfirm(true)}}><${Icon} n="block" s=${20}/>Block @${u.handle}</button>
+      <button className="menu-item" onClick=${()=>setMore(false)}><${Icon} n="x" s=${20}/>Cancel</button></div><//>`}
     ${confirm&&html`<${Sheet} onClose=${()=>setConfirm(false)} label="Block"><${BlockConfirm} u=${u} dispatch=${dispatch} onClose=${()=>setConfirm(false)} onCancel=${()=>setConfirm(false)}/><//>`}
   </div>`;
 }

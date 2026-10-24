@@ -17,7 +17,7 @@ import { StoryPhoto, StoryPhotoEditor } from './storyframe';
 export function ProfileScreen({ id, isTab }) {
   const { s, C, nav, run } = useApp(); const ins = useSafeAreaInsets();
   const uid = id || s.me; const u = s.users[uid]; const isMe = uid === s.me;
-  const [tab, setTab] = useState('posts'); const [pick, setPick] = useState(false); const [edit, setEdit] = useState(false);
+  const [tab, setTab] = useState('posts'); const [pick, setPick] = useState(false); const [edit, setEdit] = useState(false); const [more, setMore] = useState(false);
   if (!u) return <View style={{ flex: 1, backgroundColor: C.bg }}><Header back /><Empty text="Loading…" /></View>;
   const blocked = s.blocked[uid];
   const all = s.posts.filter((p) => p.userId === uid);
@@ -34,6 +34,9 @@ export function ProfileScreen({ id, isTab }) {
               <HeaderFx id={fx ? u.headerFx : null} fallback={[C.orange, C.orange2, '#0a0a0a']} />}
             {!isTab ? <IconBtn name="chevron-back" label="Back" onPress={nav.back} color="#fff" style={{ position: 'absolute', top: ins.top + 8, left: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
             {isMe ? <IconBtn name="settings-outline" label="Settings" onPress={() => nav.push('settings')} color="#fff" style={{ position: 'absolute', top: ins.top + 8, right: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
+            {!isMe && !blocked ? <Pressable onPress={() => setMore(true)} accessibilityLabel="More options" hitSlop={8}
+              style={{ position: 'absolute', top: ins.top + 8, right: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,.45)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              {[0, 1, 2].map((i) => <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' }} />)}</Pressable> : null}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -46 }}>
             {(() => { const story = s.stories.find((x) => x.userId === uid); if (!story) return <View style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></View>;
@@ -48,8 +51,7 @@ export function ProfileScreen({ id, isTab }) {
                 : <>
                   <Btn kind="ghost" title="Message" onPress={() => nav.push('thread', { id: uid })} />
                   <Btn kind={u.following ? 'ghost' : 'orange'} title={u.following ? 'Following' : u.followsMe ? 'Follow back' : 'Follow'} onPress={() => run(() => act.follow(uid, u.following, s.me))} />
-                  <IconBtn name="ban-outline" label="Block" style={{ backgroundColor: C.soft }} onPress={() => Alert.alert('Block @' + u.handle + '?', 'Their posts, stories, comments and messages will be hidden from you.', [
-                    { text: 'Cancel', style: 'cancel' }, { text: 'Block', style: 'destructive', onPress: () => run(() => act.block(uid), { toast: 'Blocked @' + u.handle }) }])} /></>}
+</>}
             </View>
           </View>
           <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
@@ -73,6 +75,16 @@ export function ProfileScreen({ id, isTab }) {
       {pick ? <Sheet visible onClose={() => setPick(false)} title="Add a sticker" right={<Btn small kind="ghost" title="Fire Sale" onPress={() => { setPick(false); nav.push('shop'); }} />}>
         <StickerPicker onPick={(e) => { setPick(false); setStickers([...(u.stickers || []), e].slice(0, 3)); }} /></Sheet> : null}
       {edit ? <EditProfile onClose={() => setEdit(false)} /> : null}
+      {more ? <Sheet visible onClose={() => setMore(false)} title={'@' + u.handle}>
+        <View style={{ gap: 8, paddingTop: 4 }}>
+          <Pressable onPress={() => { setMore(false); setTimeout(() => Alert.alert('Block @' + u.handle + '?', 'Their posts, stories, comments and messages will be hidden from you.', [
+            { text: 'Cancel', style: 'cancel' }, { text: 'Block', style: 'destructive', onPress: () => run(() => act.block(uid), { toast: 'Blocked @' + u.handle }) }]), 250); }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: C.soft }} accessibilityLabel={'Block @' + u.handle}>
+            <Ionicons name="ban-outline" size={21} color="#ff3b30" /><T h style={{ color: '#ff3b30', fontSize: 16 }}>Block @{u.handle}</T></Pressable>
+          <Pressable onPress={() => setMore(false)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: C.soft }} accessibilityLabel="Cancel">
+            <Ionicons name="close" size={21} color={C.ink} /><T h style={{ fontSize: 16 }}>Cancel</T></Pressable>
+        </View>
+      </Sheet> : null}
     </View>
   );
 }

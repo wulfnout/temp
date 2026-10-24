@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { View, Pressable, Image, TextInput, Animated, Alert, FlatList, Modal, Dimensions, PanResponder, LayoutAnimation, Keyboard } from 'react-native';
+import { View, Pressable, Image, TextInput, Animated, Easing, Alert, FlatList, Modal, Dimensions, PanResponder, LayoutAnimation, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AshBurn } from './ash';
 import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
@@ -9,7 +10,9 @@ import { ago, kfmt, F } from './lib';
 import { act } from './data';
 import { GifPicker } from './gif';
 
-export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef, trim }) {
+// playback speed a Replay was posted at, so the hold-for-2x gesture can return to it
+export const baseRate = new WeakMap();
+export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef, trim, rate }) {
   const t0 = (trim && trim.trimStart) || 0, t1 = trim && trim.trimEnd;
   const player = useVideoPlayer(uri, (p) => { p.loop = loop && !t1; p.muted = muted; if (t0) p.currentTime = t0; if (autoPlay) p.play(); });
   // Trimmed Replays: start at trimStart, stop (or loop back) at trimEnd.
@@ -23,6 +26,7 @@ export function Video({ uri, style, autoPlay, controls = true, loop = false, mut
     return () => sub.remove();
   }, [player, t0, t1, loop]);
   if (playerRef) playerRef.current = player;
+  React.useEffect(() => { const r = rate || 1; baseRate.set(player, r); try { player.playbackRate = r; } catch (e) {} }, [player, rate]);
   React.useEffect(() => {
     if (!onEnd) return;
     const sub = player.addListener('playToEnd', onEnd);
@@ -57,7 +61,7 @@ export function useVideoTaps(getPlayer, { onSingle, onCenterDouble } = {}) {
     k.last = now; clearTimeout(k.timer); k.timer = setTimeout(() => onSingle && onSingle(), 280);
   };
   const onLongPress = () => { const pl = getPlayer(); if (!pl) return; try { pl.playbackRate = 2; pl.play(); } catch (e) {} setFast(true); };
-  const onPressOut = () => { if (!fast) return; const pl = getPlayer(); try { pl && (pl.playbackRate = 1); } catch (e) {} setFast(false); };
+  const onPressOut = () => { if (!fast) return; const pl = getPlayer(); try { pl && (pl.playbackRate = baseRate.get(pl) || 1); } catch (e) {} setFast(false); };
   const press = { onPress, onLongPress, delayLongPress: 350, onPressOut, onLayout: (e) => setW(e.nativeEvent.layout.width || 1) };
   const pill = { backgroundColor: 'rgba(0,0,0,.55)', borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6 };
   const Overlay = ({ top = 70 }) => <>
@@ -282,17 +286,38 @@ export function PostCard({ p, active = false }) {
   );
 }
 // heat countdown: the orange line shrinks toward its end with a small time pill riding on the tip
+// time-left orb: a soft, lumpy orange orb that ticks round once every real second while the time stays upright
+function TimeOrb({ label }) {
+  const rot = useRef(new Animated.Value(Math.floor(Date.now() / 1000) * 30)).current;
+  React.useEffect(() => {
+    let t; const step = () => { const sec = Math.floor(Date.now() / 1000);
+      Animated.timing(rot, { toValue: sec * 30, duration: 420, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }).start();
+      t = setTimeout(step, 1000 - (Date.now() % 1000) + 5); };
+    t = setTimeout(step, 1000 - (Date.now() % 1000) + 5); return () => clearTimeout(t);
+  }, []);
+  const spin = rot.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'], extrapolate: 'extend' });
+  const S = 35;
+  return (
+    <View style={{ width: S, height: S, alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View style={{ position: 'absolute', width: S, height: S, borderTopLeftRadius: S * 0.5, borderTopRightRadius: S * 0.42, borderBottomRightRadius: S * 0.54, borderBottomLeftRadius: S * 0.4,
+        overflow: 'hidden', transform: [{ rotate: spin }], shadowColor: '#ff5500', shadowOpacity: 0.35, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } }}>
+        <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+      </Animated.View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+        <Ionicons name="flame" size={7} color="#fff" /><T h style={{ color: '#fff', fontSize: 9.5, fontVariant: ['tabular-nums'], textShadowColor: 'rgba(160,50,0,.55)', textShadowRadius: 2 }}>{label}</T></View>
+    </View>
+  );
+}
 function BurnBar({ p }) {
   const { C } = useApp(); const [, f] = useState(0);
   React.useEffect(() => { const t = setInterval(() => f((x) => x + 1), 15000); return () => clearInterval(t); }, []);
   const left = Math.max(0, p.burnEnds - Date.now()); const pct = Math.max(0.001, Math.min(1, left / 864e5));
-  const h = Math.floor(left / 3600e3), m = Math.floor((left % 3600e3) / 60e3);
+  const h = Math.floor(left / 3600e3);
   const label = h ? h + 'h' : '<1h';
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }} accessibilityLabel={'Heated, ' + label + ' left'}>
-      <View style={{ flex: pct, height: 3, borderRadius: 2, backgroundColor: C.orange }} />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: C.orange, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 }}>
-        <Ionicons name="flame" size={8} color="#fff" /><T h style={{ color: '#fff', fontSize: 9.5, fontVariant: ['tabular-nums'] }}>{label}</T></View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }} accessibilityLabel={'Heated, ' + label + ' left'}>
+      <View style={{ flex: pct, height: 3, borderRadius: 2, backgroundColor: C.orange, marginRight: -2 }} />
+      <TimeOrb label={label} />
       <View style={{ flex: 1 - pct }} />
     </View>
   );

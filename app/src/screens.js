@@ -166,7 +166,7 @@ function Reel({ p, h, active }) {
   return (
     <View style={{ height: h, backgroundColor: '#0a0a0a' }}>
       <Pressable {...g.press} style={{ flex: 1, opacity: frozen ? 0.5 : 1 }}>
-        {p.mediaUrl ? <View pointerEvents="none" style={{ flex: 1 }}><Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} loop playerRef={playerRef} trim={p.overlay} /></View>
+        {p.mediaUrl ? <View pointerEvents="none" style={{ flex: 1 }}><Video uri={p.mediaUrl} style={{ flex: 1 }} controls={false} autoPlay={active} loop playerRef={playerRef} trim={p.overlay} rate={p.overlay && p.overlay.speed} /></View>
           : <TextReel p={p} active={active} />}
         <ReplayOverlay overlay={p.overlay} />
       </Pressable>

@@ -113,6 +113,10 @@ img,video{max-width:100%;display:block}
 .life{position:absolute;left:0;bottom:0;height:3px;transition:width .25s linear}
 .life.burning{background:var(--orange)}
 .lifebar{display:flex;align-items:center;margin-top:12px}.lifebar i{height:3px;border-radius:2px;background:var(--orange);transition:flex .25s linear}
+.lifebar span.orb{position:relative;width:35px;height:35px;padding:0;justify-content:center;gap:1px;background:none;border-radius:0;margin-left:-2px;text-shadow:0 0 2px rgba(160,50,0,.55)}
+.lifebar span.orb>em{position:absolute;inset:0;z-index:0;border-radius:52% 44% 56% 42%/46% 55% 45% 54%;background:conic-gradient(from 210deg,#ee5f1f,#f39a55 35%,#ffe2ac 50%,#f7b072 70%,#ee5f1f);box-shadow:0 0 6px rgba(255,85,0,.35);animation:orbtick 12s infinite;animation-timing-function:cubic-bezier(.3,1.5,.5,1);animation-delay:var(--od)}
+.lifebar span.orb>svg,.lifebar span.orb>b{position:relative;z-index:1}
+@keyframes orbtick{0.000%{transform:rotate(0deg)}3.500%{transform:rotate(30deg)}8.333%{transform:rotate(30deg)}11.833%{transform:rotate(60deg)}16.667%{transform:rotate(60deg)}20.167%{transform:rotate(90deg)}25.000%{transform:rotate(90deg)}28.500%{transform:rotate(120deg)}33.333%{transform:rotate(120deg)}36.833%{transform:rotate(150deg)}41.667%{transform:rotate(150deg)}45.167%{transform:rotate(180deg)}50.000%{transform:rotate(180deg)}53.500%{transform:rotate(210deg)}58.333%{transform:rotate(210deg)}61.833%{transform:rotate(240deg)}66.667%{transform:rotate(240deg)}70.167%{transform:rotate(270deg)}75.000%{transform:rotate(270deg)}78.500%{transform:rotate(300deg)}83.333%{transform:rotate(300deg)}86.833%{transform:rotate(330deg)}91.667%{transform:rotate(330deg)}95.167%{transform:rotate(360deg)}100%{transform:rotate(360deg)}}
 .lifebar span{display:inline-flex;align-items:center;gap:2px;background:var(--orange);color:#fff;border-radius:999px;padding:1px 6px;font-size:9.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap} .life.frozen{background:var(--ink)}
 .p-actions{display:flex;align-items:center;gap:6px;margin-top:12px}
 .react{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:999px;background:var(--soft);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;transition:background .2s,color .2s,transform .15s}
@@ -514,11 +518,62 @@ img,video{max-width:100%;display:block}
 .gsticker{max-width:min(220px,70vw);border-radius:14px;display:block}
 .gif-btn{font-weight:900;font-size:12px;letter-spacing:.02em;width:auto!important;padding:0 8px}
 .gif-btn[aria-pressed="true"],.stk-btn[aria-pressed="true"]{color:var(--orange)}
-.rov{position:absolute;inset:0;pointer-events:none;z-index:1}
+.rov{position:absolute;inset:0;pointer-events:none;z-index:1;container-type:size;overflow:hidden}
+.rov-spot{position:absolute;width:max-content;max-width:90%}
+.rt{display:block;margin:0 auto;font-family:var(--display);font-weight:800;font-size:calc(7.5vw * var(--s,1));font-size:calc(7.5cqw * var(--s,1));line-height:1.2;letter-spacing:-.03em;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:.3em}
+.rt-box,.rt-soft{padding:.1em .35em}
+.ed-texts{pointer-events:none;z-index:2}
+.rov-spot.drag{pointer-events:auto;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.rov-spot.drag:active{cursor:grabbing}
+.ed-tap{position:absolute;inset:0;z-index:1}
+.ed-guide{position:absolute;top:0;bottom:0;left:50%;width:1.5px;margin-left:-.75px;background:#ff8a2b;z-index:2}
+.ed-rail{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:calc(74px + env(safe-area-inset-top,0px));z-index:4;display:grid;gap:14px}
+.ed-rail button{display:grid;justify-items:center;gap:3px;color:#fff;font-weight:800;font-size:11px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.ed-rail span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.38);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.ed-rail button[aria-pressed="true"] span{background:var(--orange)}
+.ed-rail .aa{font-family:var(--display);font-size:17px;letter-spacing:-.06em}
+.ed-trash{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;background:rgba(0,0,0,.5);transition:all .15s;pointer-events:none}
+.ed-trash.on{width:66px;height:66px;background:#ff2d55}
+.ed-panel{position:absolute;left:0;right:0;bottom:0;z-index:5;background:rgba(12,12,12,.94);border-radius:26px 26px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:14px;animation:edup .22s cubic-bezier(.2,.9,.3,1)}
+@keyframes edup{from{transform:translateY(100%)}}
+.ed-ph{display:flex;align-items:center}.ed-ph h3{flex:1;margin:0;font-family:var(--display);font-size:16px;letter-spacing:-.03em}
+.ed-ok{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center}
+.ed-filters{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}.ed-filters::-webkit-scrollbar{display:none}
+.ed-filters button{flex:none;display:grid;justify-items:center;gap:6px;color:rgba(255,255,255,.6);font-weight:800;font-size:12px}
+.ed-filters button span{position:relative;width:62px;height:80px;border-radius:14px;overflow:hidden;border:2.5px solid transparent;background:linear-gradient(160deg,#ff8a2b,#401a08 60%,#0a0a0a) center/cover}
+.ed-filters button span i{position:absolute;inset:0}
+.ed-filters button[aria-pressed="true"]{color:#fff}.ed-filters button[aria-pressed="true"] span{border-color:var(--orange)}
+.ed-speed{display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:4px}
+.ed-speed button{flex:1;padding:10px 0;border-radius:999px;color:#fff;font-weight:800;font-size:14px}
+.ed-speed button[aria-pressed="true"]{background:#fff;color:#000}
+.tl{display:grid;gap:10px}
+.tl-top{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:12px;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums}
+.tl-top b{color:#ff8a2b;background:rgba(255,85,0,.18);border-radius:999px;padding:4px 12px;font-size:13px}
+.tl-wrap{padding:0 18px}
+.tl-strip{position:relative;height:58px;border-radius:6px;display:flex;background:#1c1c1c}
+.tl-strip img{flex:1;min-width:0;height:100%;object-fit:cover;display:block}
+.tl-strip img:first-child{border-radius:6px 0 0 6px}.tl-strip img:nth-last-child(7){border-radius:0 6px 6px 0}
+.tl-ph{flex:1;border-radius:6px;background:linear-gradient(90deg,#2a2a2a,#3a2010,#2a2a2a)}
+.tl-dim{position:absolute;top:0;bottom:0;background:rgba(0,0,0,.66)}
+.tl-win{position:absolute;top:-3px;bottom:-3px;border-top:3px solid var(--orange);border-bottom:3px solid var(--orange);pointer-events:none}
+.tl-head{position:absolute;top:-7px;bottom:-7px;width:3px;margin-left:-1.5px;border-radius:2px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,.5);pointer-events:none}
+.tl-h{position:absolute;top:-3px;bottom:-3px;width:18px;background:var(--orange);display:grid;place-items:center;touch-action:none;cursor:ew-resize}
+.tl-h.s{margin-left:-18px;border-radius:9px 0 0 9px}.tl-h.e{border-radius:0 9px 9px 0}
+.tl-h span{width:3px;height:20px;border-radius:2px;background:#fff}
+.tl-h::before{content:"";position:absolute;inset:-14px}
+.ed-type{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.55);display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(14px + env(safe-area-inset-bottom,0px))}
+.ed-type-top{display:flex;align-items:center;gap:12px}
+.ed-style{width:40px;height:40px;border-radius:12px;border:2px solid #fff;color:#fff;font-family:var(--display);font-weight:800;font-size:17px}
+.ed-style.box{background:#fff;color:#000}.ed-style.soft{background:rgba(255,255,255,.3)}
+.ed-type-mid{flex:1;display:grid;place-items:center;container-type:inline-size}
+.ed-type textarea.rt{font-size:calc(7.5vw * 1.15)!important;font-size:max(16px,calc(7.5cqw * 1.15))!important;font-family:var(--display);font-weight:800;line-height:1.2}
+.ed-type textarea{border:0;outline:none;resize:none;overflow:hidden;width:auto;min-width:60px;max-width:90%;field-sizing:content;caret-color:var(--orange)}
+.ed-type textarea::placeholder{color:rgba(255,255,255,.5)}
+.ed-colors{overflow-x:auto;scrollbar-width:none;padding:4px 2px}.ed-colors button{flex:none;width:30px;height:30px}
+.rec-lens{display:flex;gap:4px;background:rgba(0,0,0,.35);border-radius:999px;padding:3px}
+.rec-lens button{padding:6px 14px;border-radius:999px;color:#fff;font-weight:800;font-size:13px}
+.rec-lens button[aria-pressed="true"]{background:#fff;color:#000}
 .rov-tint{position:absolute;inset:0}
-.rov-text{position:absolute;left:0;right:0;padding:0 20px;text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(22px,7vw,34px);line-height:1.12;letter-spacing:-.03em;text-shadow:0 2px 10px rgba(0,0,0,.55);overflow-wrap:anywhere}
-.rov-text.top{top:14%}.rov-text.middle{top:42%}.rov-text.bottom{bottom:24%}
-.rov.small .rov-text{font-size:11px;padding:0 6px}
 .rec .sv-media video.mirror{transform:scaleX(-1)}
 .rec-start{position:absolute;inset:0;display:grid;place-content:center;gap:12px;text-align:center;padding:30px;z-index:3}
 .rec-start h2{font-family:var(--display);font-size:24px;letter-spacing:-.03em;margin:0}
@@ -948,6 +1003,9 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},se
 const P={
   home:'<path d="M3.5 10.5L12 4l8.5 6.5V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  cut:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/>',
+  gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',
+  filters:'<circle cx="9" cy="9.5" r="5.5"/><circle cx="15" cy="9.5" r="5.5"/><circle cx="12" cy="15" r="5.5"/>',
   dm:'<path d="M21 12a8.5 8.5 0 0 1-12.4 7.6L3.5 21l1.5-4.6A8.5 8.5 0 1 1 21 12z"/>',
   flame:'<path d="M12 2.8c.6 3.2 5 5.2 5 10.4a5 5 0 0 1-10 0c0-2.3 1.1-3.8 2.4-4.8.1 1.7 1 2.9 2.3 3.2C11.3 8.6 10.7 5.8 12 2.8z"/>',
   snow:'<path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8L20.2 7.2M9.2 4.2L12 6l2.8-1.8M9.2 19.8L12 18l2.8 1.8"/>',
@@ -1543,14 +1601,14 @@ function useVidTaps(getV,{onSingle,onCenterDouble}={}){
   const seek=side=>{const v=getV();if(!v)return;const d=side==='L'?-5:5;v.currentTime=Math.max(0,Math.min((v.duration||1e9)-.2,v.currentTime+d));
     const k=r.current;k.total=k.side===side&&Date.now()<k.until?k.total+5:5;k.side=side;k.until=Date.now()+650;setFlash({side,n:k.total});clearTimeout(k.ft);k.ft=setTimeout(()=>setFlash(null),650)};
   const down=e=>{const k=r.current;clearTimeout(k.hold);k.mouse=e.pointerType==='mouse';if(k.mouse)return;k.hold=setTimeout(()=>{const v=getV();if(!v)return;k.fast=true;v.playbackRate=2;v.play().catch(()=>{});setFast(true)},350)};
-  const up=e=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=1;setFast(false);k.last=0;return}
+  const up=e=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=+(v.dataset.rate||1);setFast(false);k.last=0;return}
     const b=e.currentTarget.getBoundingClientRect();const land=e.currentTarget.dataset.rot==='1';
     const frac=land?(e.clientY-b.top)/b.height:(e.clientX-b.left)/b.width;const zone=frac<.33?'L':frac>.67?'R':'C';const now=Date.now();
     if(e.pointerType==='mouse'){if(e.button!==0)return;onSingle&&onSingle();if(now-k.last<300){k.last=0;onSingle&&onSingle();zone==='C'?onCenterDouble&&onCenterDouble():seek(zone)}else k.last=now;return}
     if(zone!=='C'&&zone===k.side&&now<k.until){clearTimeout(k.timer);k.last=0;return seek(zone)}
     if(now-k.last<300){clearTimeout(k.timer);k.last=0;zone==='C'?onCenterDouble&&onCenterDouble():seek(zone);return}
     k.last=now;clearTimeout(k.timer);k.timer=setTimeout(()=>onSingle&&onSingle(),300)};
-  const cancel=()=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=1;setFast(false)}};
+  const cancel=()=>{const k=r.current;clearTimeout(k.hold);if(k.fast){k.fast=false;const v=getV();if(v)v.playbackRate=+(v.dataset.rate||1);setFast(false)}};
   const overlay=html`${fast&&html`<span className="vt-fast">2x <${Icon} n="play" s=${11} fill="#fff"/><${Icon} n="play" s=${11} fill="#fff"/></span>`}
     ${flash&&html`<span className=${'vt-seek '+flash.side}><b>${flash.side==='L'?'−':'+'}${flash.n}s</b></span>`}`;
   return {handlers:{onPointerDown:down,onPointerUp:up,onPointerCancel:cancel,onPointerLeave:cancel,onContextMenu:e=>e.preventDefault()},overlay};
@@ -1651,7 +1709,7 @@ function Post({p,s,dispatch,open}){
     </div>
     ${top&&!frozen&&html`<button className="p-comments" onClick=${()=>open.comments(p.id)}><b>${s.users[top.userId].handle}</b> ${top.sticker?stickerLabel(top.sticker):top.text}${cs.length>1?' · View all '+cs.length:''}</button>`}
     ${live&&(()=>{const left=Math.max(0,p.burnEnds-s.now),h=Math.floor(left/36e5),m=Math.floor(left%36e5/6e4);const lbl=h?h+'h':'<1h';
-      return html`<div className="lifebar" aria-label=${'Heated, '+lbl+' left'}><i style=${{flex:Math.max(.001,pct)}}></i><span data-tour=${p.tour?'state-'+p.tour:null}><${Icon} n="flame" s=${8} w=${2.6}/>${lbl}</span><b style=${{flex:1-Math.max(.001,pct)}}></b></div>`})()}
+      return html`<div className="lifebar" aria-label=${'Heated, '+lbl+' left'}><i style=${{flex:Math.max(.001,pct)}}></i><span className="orb" data-tour=${p.tour?'state-'+p.tour:null} style=${{'--od':-(Date.now()%12000)+'ms'}}><em></em><${Icon} n="flame" s=${7} w=${2.6}/><b>${lbl}</b></span><b style=${{flex:1-Math.max(.001,pct)}}></b></div>`})()}
   </article>`;
 }
 
@@ -1781,28 +1839,173 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
 const FILTERS={none:{name:'Normal'},ember:{name:'Ember',bg:'rgba(255,85,0,.22)'},frost:{name:'Frost',bg:'rgba(80,170,255,.22)'},noir:{name:'Noir',bg:'rgba(0,0,0,.38)'},
   sunset:{name:'Sunset',bg:'linear-gradient(180deg,rgba(255,94,98,.32),rgba(255,179,71,.18))'},neon:{name:'Neon',bg:'rgba(255,43,214,.2)'},
   vintage:{name:'Vintage',bg:'rgba(112,66,20,.28)'},heat:{name:'Heat map',bg:'linear-gradient(180deg,rgba(255,45,0,.35),rgba(255,210,122,.05),rgba(255,45,0,.3))'}};
-const TEXT_COLORS=['#ffffff','#0a0a0a','#ff5500','#ffd60a','#4fd2ff'];
-function ReplayOverlay({o,small}){
+const TEXT_COLORS=['#ffffff','#0a0a0a','#ff5500','#ffd60a','#ff2d55','#4fd2ff','#7dffa1','#b26bff','#ff8fd0'];
+const TEXT_STYLES=['plain','box','soft'];
+const isLight=c=>{const h=(c||'#fff').replace('#','');const n=parseInt(h.length===3?h.split('').map(x=>x+x).join(''):h,16);return((n>>16)&255)*.299+((n>>8)&255)*.587+(n&255)*.114>150};
+// texts on a Replay: [{t, x, y (centre, 0..1 of the frame), s (scale), r (degrees), c (colour), st (plain | box | soft)}]
+function normTexts(o){
+  if(!o)return [];if(Array.isArray(o.texts))return o.texts.filter(x=>x&&x.t);
+  if(o.text){const p=o.textPos||'middle';return [{t:o.text,x:.5,y:p==='top'?.18:p==='bottom'?.72:.46,s:1,r:0,c:o.color||'#ffffff',st:'plain'}]}
+  return [];
+}
+function TextChip({it}){
+  const c=it.c||'#ffffff',st=it.st||'plain';
+  return html`<div className=${'rt rt-'+st} style=${{'--s':it.s||1,color:st==='box'?(isLight(c)?'#0a0a0a':'#fff'):c,background:st==='box'?c:st==='soft'?'rgba(0,0,0,.5)':'transparent',textShadow:st==='plain'?(c==='#0a0a0a'?'0 1px 8px rgba(255,255,255,.6)':'0 2px 10px rgba(0,0,0,.55)'):'none'}}>${it.t}</div>`;
+}
+const spotStyle=it=>({left:it.x*100+'%',top:it.y*100+'%',transform:'translate(-50%,-50%) rotate('+(it.r||0)+'deg)'});
+function ReplayOverlay({o}){
   if(!o)return null;const f=FILTERS[o.filter]||FILTERS.none;
-  return html`<div className=${'rov'+(small?' small':'')} aria-hidden="true">
+  return html`<div className="rov" aria-hidden="true">
     ${f.bg&&html`<div className="rov-tint" style=${{background:f.bg}}></div>`}
-    ${o.text&&html`<div className=${'rov-text '+(o.textPos||'middle')} style=${{color:o.color||'#fff'}}>${o.text}</div>`}
+    ${normTexts(o).map((it,i)=>html`<div key=${i} className="rov-spot" style=${spotStyle(it)}><${TextChip} it=${it}/></div>`)}
   </div>`;
 }
 function pickMime(){
   const c=['video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
   try{return c.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||''}catch(e){return ''}
 }
-const REC_MAX=60;
+const REC_MAX=120;const REC_LENS=[[60,'60s'],[90,'90s'],[120,'2m']];const MAX_BYTES=49*1024*1024;
+const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmtT=t=>{t=Math.max(0,t||0);const m=Math.floor(t/60),x=t-m*60;return m+':'+(x<10?'0':'')+x.toFixed(1)};
+
+// frames from the clip for the trim bar
+function useThumbs(url,dur,n=10){
+  const [th,setTh]=useState(null);
+  useEffect(()=>{if(!url||!dur)return;let dead=false;const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=url;
+    const c=document.createElement('canvas');c.width=90;c.height=160;const g=c.getContext('2d');const out=[];
+    const seekTo=t=>new Promise(res=>{const done=()=>{v.removeEventListener('seeked',done);res()};v.addEventListener('seeked',done);v.currentTime=t;setTimeout(done,1500)});
+    (async()=>{try{
+      await new Promise((res,rej)=>{v.onloadeddata=res;v.onerror=rej;setTimeout(res,3000)});
+      for(let i=0;i<n&&!dead;i++){await seekTo((i+.5)*dur/n);const vw=v.videoWidth||9,vh=v.videoHeight||16;const k=Math.max(90/vw,160/vh);
+        g.fillStyle='#222';g.fillRect(0,0,90,160);g.drawImage(v,(90-vw*k)/2,(160-vh*k)/2,vw*k,vh*k);out.push(c.toDataURL('image/jpeg',.6))}
+      if(!dead)setTh(out);
+    }catch(e){}})();
+    return()=>{dead=true;v.removeAttribute('src');v.load()};
+  },[url,dur]);
+  return th;
+}
+
+// TikTok-style trim: frames, an orange window with handles, a white playhead
+function Timeline({dur,start,end,thumbs,onChange,onScrub,onScrubEnd,getTime}){
+  const strip=useRef();const [now,setNow]=useState(start);const cur=useRef({});cur.current={dur,start,end,onChange,onScrub};
+  useEffect(()=>{let raf;const f=()=>{const t=getTime();if(t!=null)setNow(t);raf=requestAnimationFrame(f)};raf=requestAnimationFrame(f);return()=>cancelAnimationFrame(raf)},[]);
+  const down=which=>e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);const c=cur.current;c.x0=e.clientX;c.v0=which==='s'?c.start:c.end;c.which=which};
+  const move=e=>{const c=cur.current;if(!c.which)return;const w=strip.current.getBoundingClientRect().width||1;const v=c.v0+(e.clientX-c.x0)/w*c.dur;
+    if(c.which==='s'){const ns=clampN(v,0,c.end-1);c.onChange(ns,c.end);c.onScrub(ns)}else{const ne=clampN(v,c.start+1,c.dur);c.onChange(c.start,ne);c.onScrub(ne)}};
+  const up=()=>{if(cur.current.which){cur.current.which=null;onScrubEnd()}};
+  const pc=t=>(dur?t/dur*100:0)+'%';
+  return html`<div className="tl">
+    <div className="tl-top"><span>${fmtT(start)}</span><b>${(end-start).toFixed(1)}s</b><span>${fmtT(end)}</span></div>
+    <div className="tl-wrap"><div className="tl-strip" ref=${strip}>
+      ${thumbs?thumbs.map((u,i)=>html`<img key=${i} src=${u} alt=""/>`):html`<i className="tl-ph"></i>`}
+      <i className="tl-dim" style=${{left:0,width:pc(start)}}></i><i className="tl-dim" style=${{left:pc(end),right:0}}></i>
+      <i className="tl-win" style=${{left:pc(start),width:'calc('+pc(end)+' - '+pc(start)+')'}}></i>
+      <i className="tl-head" style=${{left:pc(clampN(now,start,end))}}></i>
+      <button className="tl-h s" style=${{left:pc(start)}} aria-label="Trim start" onPointerDown=${down('s')} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}><span></span></button>
+      <button className="tl-h e" style=${{left:pc(end)}} aria-label="Trim end" onPointerDown=${down('e')} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}><span></span></button>
+    </div></div>
+  </div>`;
+}
+
+// drag with one finger (or the mouse), pinch to resize and twist to rotate; wheel resizes, shift+wheel rotates; tap to edit
+function DragText({it,frame,onChange,onEdit,onDrag,onDrop}){
+  const k=useRef({pts:new Map()});const live=useRef(it);live.current=it;
+  const down=e=>{e.stopPropagation();e.currentTarget.setPointerCapture(e.pointerId);const g=k.current;
+    if(!g.pts.size){g.start={...live.current};g.t0=Date.now();g.moved=false;g.x0=e.clientX;g.y0=e.clientY;g.pinch=null}
+    g.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(g.pts.size===2)g.pinch=null};
+  const move=e=>{const g=k.current;if(!g.pts.has(e.pointerId))return;g.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const r=frame.current.getBoundingClientRect();const it0=live.current;let s=it0.s||1,rot=it0.r||0;
+    if(g.pts.size>=2){const [a,b]=[...g.pts.values()];const d=Math.hypot(b.x-a.x,b.y-a.y)||1,an=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
+      if(!g.pinch)g.pinch={d,an,s,r:rot,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,x:it0.x,y:it0.y};
+      s=clampN(g.pinch.s*d/g.pinch.d,.35,5);rot=g.pinch.r+an-g.pinch.an;
+      const nx=clampN(g.pinch.x+((a.x+b.x)/2-g.pinch.cx)/r.width,.03,.97),ny=clampN(g.pinch.y+((a.y+b.y)/2-g.pinch.cy)/r.height,.04,.96);
+      if(!g.moved)onDrag();g.moved=true;onChange({...it0,x:nx,y:ny,s,r:rot},e.clientY);return}
+    const dx=e.clientX-g.x0,dy=e.clientY-g.y0;if(Math.abs(dx)+Math.abs(dy)>5){if(!g.moved)onDrag();g.moved=true}
+    if(!g.moved)return;let x=clampN(g.start.x+dx/r.width,.03,.97);const y=clampN(g.start.y+dy/r.height,.04,.96);if(Math.abs(x-.5)<.018)x=.5;
+    onChange({...it0,x,y},e.clientY)};
+  const up=e=>{const g=k.current;if(!g.pts.has(e.pointerId))return;g.pts.delete(e.pointerId);
+    if(g.pts.size===1){const [p]=[...g.pts.values()];g.start={...live.current};g.x0=p.x;g.y0=p.y;g.pinch=null;return}
+    if(g.pts.size)return;if(!g.moved&&Date.now()-g.t0<350){onEdit();return}onDrop(e.clientY)};
+  const wheel=e=>{e.preventDefault();const it0=live.current;if(e.shiftKey)onChange({...it0,r:(it0.r||0)+e.deltaY*.2});else onChange({...it0,s:clampN((it0.s||1)*(1-e.deltaY*.0015),.35,5)})};
+  const el=useRef();useEffect(()=>{const n=el.current;n.addEventListener('wheel',wheel,{passive:false});return()=>n.removeEventListener('wheel',wheel)});
+  return html`<div className="rov-spot drag" style=${spotStyle(it)} ref=${el} onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}><${TextChip} it=${it}/></div>`;
+}
+
+const SPEEDS=[.5,1,1.5,2];
+function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
+  const ed=useRef(),frame=useRef();
+  const [filter,setFilter]=useState('none');const [speed,setSpeed]=useState(1);const [texts,setTexts]=useState([]);const [typing,setTyping]=useState(null);
+  const [dragging,setDragging]=useState(false);const [overTrash,setOverTrash]=useState(false);const [guide,setGuide]=useState(false);
+  const [ts,setTs]=useState(0);const [te,setTe]=useState(clip.dur||0);const [tool,setTool]=useState(null);const [caption,setCaption]=useState('');const [err,setErr]=useState('');
+  const scrub=useRef(false);const thumbs=useThumbs(clip.url,clip.dur);
+  useEffect(()=>{if(clip.dur&&!te)setTe(+clip.dur.toFixed(1))},[clip.dur]);
+  useEffect(()=>{const v=ed.current;if(!v)return;v.playbackRate=speed},[speed]);
+  useEffect(()=>{const v=ed.current;if(!v)return;const tu=()=>{if(scrub.current)return;if(v.currentTime<ts-0.2||(te&&v.currentTime>=te)){v.currentTime=ts}};v.addEventListener('timeupdate',tu);return()=>v.removeEventListener('timeupdate',tu)},[ts,te]);
+  const resume=()=>{const v=ed.current;if(!v)return;v.currentTime=ts;v.playbackRate=speed;v.play().catch(()=>{})};
+  const trashHit=y=>{const r=frame.current.getBoundingClientRect();return y>r.bottom-120};
+  const openText=i=>{const it=i==null?{t:'',c:'#ffffff',st:'plain'}:texts[i];setTool(null);setTyping({i,t:it.t,c:it.c,st:it.st||'plain'})};
+  const doneText=()=>{const tp=typing;setTyping(null);if(!tp)return;const t=tp.t.trim();
+    if(tp.i==null){if(t)setTexts([...texts,{t,x:.5,y:.42,s:1,r:0,c:tp.c,st:tp.st}]);return}
+    setTexts(t?texts.map((x,j)=>j===tp.i?{...x,t,c:tp.c,st:tp.st}:x):texts.filter((_,j)=>j!==tp.i))};
+  const post=()=>{
+    const why=MOD.rules(MOD.classify(caption+' '+texts.map(x=>x.t).join(' ')),s.users.me.plus,isAdult(s));if(why){setErr(why.msg);return}
+    if(clip.file&&clip.file.size>MAX_BYTES){setErr('That video is too big (50 MB max). Trim it shorter or pick a shorter one.');return}
+    const overlay={v:2,filter,texts:texts.map(x=>({...x,x:+x.x.toFixed(4),y:+x.y.toFixed(4),s:+(x.s||1).toFixed(3),r:+(x.r||0).toFixed(1)})),speed,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+(clip.dur||te).toFixed(1)};
+    dispatch({type:'post',text:caption.trim(),media:{type:'video',url:clip.url,file:clip.file},reel:true,overlay});onClose();open.replay();
+  };
+  const togglePlay=()=>{if(tool){setTool(null);resume();return}const v=ed.current;if(v)v.paused?v.play().catch(()=>{}):v.pause()};
+  const panel=(title,body)=>html`<div className="ed-panel"><div className="ed-ph"><h3>${title}</h3><button className="ed-ok" aria-label="Done" onClick=${()=>{setTool(null);resume()}}><${Icon} n="check" s=${18} w=${2.6}/></button></div>${body}</div>`;
+  const tp=typing;const chrome=!typing&&!dragging;
+  return html`
+    <div className="sv-media ed-frame" ref=${frame}>
+      <video ref=${ed} src=${clip.url} playsInline loop autoPlay onLoadedMetadata=${e=>{e.target.playbackRate=speed;if(!clip.dur){const d=Math.max(1,Math.min(REC_MAX,isFinite(e.target.duration)?e.target.duration:REC_MAX));setClip({...clip,dur:d});setTe(+d.toFixed(1))}}}></video>
+      <${ReplayOverlay} o=${{filter}}/>
+      <div className="ed-tap" onClick=${togglePlay}></div>
+      ${guide&&html`<i className="ed-guide"></i>`}
+      <div className="rov ed-texts">${texts.map((it,i)=>tp&&tp.i===i?null:html`<${DragText} key=${i} it=${it} frame=${frame}
+        onChange=${(n,y)=>{setTexts(xs=>xs.map((x,j)=>j===i?n:x));setGuide(n.x===.5);if(y!=null)setOverTrash(trashHit(y))}}
+        onEdit=${()=>openText(i)} onDrag=${()=>setDragging(true)}
+        onDrop=${y=>{setDragging(false);setGuide(false);setOverTrash(false);if(trashHit(y))setTexts(xs=>xs.filter((_,j)=>j!==i))}}/>`)}</div>
+    </div>
+    ${chrome&&html`<div className="sv-head"><button className="rec-back" onClick=${onRetake}><${Icon} n="back" s=${20}/>Retake</button>
+      <div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Discard"><${Icon} n="x"/></button></div></div>`}
+    ${chrome&&!tool&&html`<div className="ed-rail">
+      <button onClick=${()=>openText(null)}><span><b className="aa">Aa</b></span>Text</button>
+      <button onClick=${()=>setTool('filters')}><span><${Icon} n="filters" s=${22}/></span>Filters</button>
+      <button onClick=${()=>setTool('trim')}><span><${Icon} n="cut" s=${21}/></span>Trim</button>
+      <button onClick=${()=>setTool('speed')} aria-pressed=${speed!==1}><span><${Icon} n="gauge" s=${22}/></span>${speed===1?'Speed':speed+'x'}</button>
+    </div>`}
+    ${dragging&&html`<div className=${'ed-trash'+(overTrash?' on':'')}><${Icon} n="trash" s=${overTrash?28:24}/></div>`}
+    ${chrome&&tool==='filters'&&panel('Filters',html`<div className="ed-filters">${Object.entries(FILTERS).map(([k,f])=>html`<button key=${k} aria-pressed=${filter===k} onClick=${()=>setFilter(k)}>
+      <span style=${{backgroundImage:thumbs?'url('+thumbs[4]+')':null}}><i style=${{background:f.bg||'transparent'}}></i></span>${f.name}</button>`)}</div>`)}
+    ${chrome&&tool==='trim'&&panel('Trim',html`<${Timeline} dur=${clip.dur||te} start=${ts} end=${te} thumbs=${thumbs} onChange=${(a,b)=>{setTs(a);setTe(b)}}
+      onScrub=${t=>{scrub.current=true;const v=ed.current;if(v){v.pause();v.currentTime=t}}} onScrubEnd=${()=>{scrub.current=false;setTimeout(resume,30)}}
+      getTime=${()=>ed.current?ed.current.currentTime:null}/>`)}
+    ${chrome&&tool==='speed'&&panel('Speed',html`<div className="ed-speed">${SPEEDS.map(v=>html`<button key=${v} aria-pressed=${speed===v} onClick=${()=>setSpeed(v)}>${v}x</button>`)}</div>`)}
+    ${chrome&&!tool&&html`<div className="sv-foot rec-edit">
+      ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}
+      <div className="sv-bar"><div className="sv-input"><label htmlFor="rec-cap" className="vh">Caption</label>
+        <input id="rec-cap" placeholder="Caption… #hashtags" maxLength=${280} value=${caption} onChange=${e=>setCaption(e.target.value)}/></div>
+        <button className="btn orange" onClick=${post}>Post</button></div></div>`}
+    ${tp&&html`<div className="ed-type">
+      <div className="ed-type-top">
+        <button className=${'ed-style '+tp.st} aria-label="Text style" onClick=${()=>setTyping({...tp,st:TEXT_STYLES[(TEXT_STYLES.indexOf(tp.st)+1)%3]})}>A</button>
+        <span style=${{flex:1}}></span><button className="btn orange sm" onClick=${doneText}>Done</button></div>
+      <div className="ed-type-mid" onClick=${e=>{if(e.target===e.currentTarget)doneText()}}>
+        <textarea autoFocus rows="1" maxLength=${120} placeholder="Type something" value=${tp.t} onInput=${e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';setTyping({...tp,t:e.target.value})}}
+          className=${'rt rt-'+tp.st} style=${{'--s':1.15,color:tp.st==='box'?(isLight(tp.c)?'#0a0a0a':'#fff'):tp.c,background:tp.st==='box'?tp.c:tp.st==='soft'?'rgba(0,0,0,.5)':'transparent'}}></textarea></div>
+      <div className="rec-colors ed-colors" role="group" aria-label="Text color">${TEXT_COLORS.map(c=>html`<button key=${c} aria-pressed=${tp.c===c} aria-label=${'Text color '+c} style=${{background:c}} onClick=${()=>setTyping({...tp,c})}></button>`)}</div>
+    </div>`}`;
+}
+
 function Recorder({s,dispatch,onClose,open,startMode,onStory}){
-  const live=useRef(),stream=useRef(null),rec=useRef(null),chunks=useRef([]),t0=useRef(0),timer=useRef(null);
+  const live=useRef(),stream=useRef(null),rec=useRef(null),chunks=useRef([]),t0=useRef(0),timer=useRef(null),canvas=useRef(null),draw=useRef(0),lastTap=useRef(0);
   const [phase,setPhase]=useState('start');      // start | camera | counting | recording | edit
   const [err,setErr]=useState('');const [facing,setFacing]=useState('user');const [torch,setTorch]=useState(false);const [canTorch,setCanTorch]=useState(false);
   const [countdown,setCountdown]=useState(false);const [count,setCount]=useState(3);const [elapsed,setElapsed]=useState(0);
-  const [clip,setClip]=useState(null);const [filter,setFilter]=useState('none');const [text,setText]=useState('');const [pos,setPos]=useState('middle');const [color,setColor]=useState('#ffffff');
-  const [ts,setTs]=useState(0);const [te,setTe]=useState(0);const [caption,setCaption]=useState('');const ed=useRef();
+  const [clip,setClip]=useState(null);const [filter,setFilter]=useState('none');const [len,setLen]=useState(60);
   const [mode,setMode]=useState(startMode||'replay');const [shot,setShot]=useState('photo');const gal=useRef();
-  const maxLen=mode==='story'?15:REC_MAX;const photo=mode==='story'&&shot==='photo';
+  const maxLen=mode==='story'?15:len;const photo=mode==='story'&&shot==='photo';
   useEffect(()=>{startCam()},[]);
   function snap(){
     const v=live.current;if(!v||!v.videoWidth)return;
@@ -1816,32 +2019,53 @@ function Recorder({s,dispatch,onClose,open,startMode,onStory}){
     const url=URL.createObjectURL(f);const isVid=f.type.startsWith('video');
     if(mode==='story'){stopStream();onStory({url,type:isVid?'video':'image',file:f});return}
     if(!isVid){setErr('Replays need a video.');return}
-    stopStream();setClip({url,file:f,dur:0});setTs(0);setTe(0);setPhase('edit');
+    if(f.size>MAX_BYTES){setErr('That video is too big (50 MB max). Pick a shorter one.');return}
+    stopStream();setClip({url,file:f,dur:0});setPhase('edit');
   }
-  const stopStream=()=>{if(stream.current){stream.current.getTracks().forEach(t=>t.stop());stream.current=null}};
+  const stopStream=()=>{cancelAnimationFrame(draw.current);if(stream.current){stream.current.getTracks().forEach(t=>t.stop());stream.current=null}};
+  const attach=()=>{if(live.current&&stream.current){live.current.srcObject=stream.current;live.current.play().catch(()=>{})}};
   async function startCam(face=facing){
     setErr('');stopStream();
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){setErr('This browser can’t record video. Use Upload instead, or try Safari or Chrome.');return}
     try{
-      const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:{ideal:1080},height:{ideal:1920}},audio:true});
-      stream.current=st;if(live.current){live.current.srcObject=st;live.current.play().catch(()=>{})}
+      const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:{ideal:1280},height:{ideal:720}},audio:true});
+      stream.current=st;attach();
       const vt=st.getVideoTracks()[0];let ct=false;try{ct=!!(vt.getCapabilities&&vt.getCapabilities().torch)}catch(e){}setCanTorch(ct);setTorch(false);
       setPhase('camera');
     }catch(e){setErr(/denied|NotAllowed/i.test(e.name+e.message)?'Camera or microphone access was blocked. Allow it in your browser settings, then try again.':'Couldn’t open the camera. '+(e.message||''))}
   }
   useEffect(()=>()=>{stopStream();clearInterval(timer.current)},[]);
-  useEffect(()=>{if(phase==='camera'&&live.current&&stream.current&&live.current.srcObject!==stream.current){live.current.srcObject=stream.current;live.current.play().catch(()=>{})}},[phase]);
-  const flip=()=>{const f=facing==='user'?'environment':'user';setFacing(f);startCam(f)};
+  useEffect(()=>{if(phase==='camera'&&live.current&&stream.current&&live.current.srcObject!==stream.current)attach()},[phase]);
+  // flip swaps only the camera track, so a recording keeps going (it records from a canvas fed by the preview)
+  async function flip(){
+    const f=facing==='user'?'environment':'user';
+    if(phase==='recording'&&!canvas.current)return;
+    if(!stream.current||phase==='start'){setFacing(f);return startCam(f)}
+    try{
+      const vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:f,width:{ideal:1280},height:{ideal:720}}});
+      const nt=vs.getVideoTracks()[0];stream.current.getVideoTracks().forEach(t=>{t.stop();stream.current.removeTrack(t)});stream.current.addTrack(nt);
+      setFacing(f);attach();let ct=false;try{ct=!!(nt.getCapabilities&&nt.getCapabilities().torch)}catch(e){}setCanTorch(ct);setTorch(false);
+    }catch(e){setFacing(f);startCam(f)}
+  }
+  const camTap=()=>{const n=Date.now();if(n-lastTap.current<320){lastTap.current=0;flip()}else lastTap.current=n};
   const toggleTorch=async()=>{try{await stream.current.getVideoTracks()[0].applyConstraints({advanced:[{torch:!torch}]});setTorch(!torch)}catch(e){}};
+  function recStream(){
+    canvas.current=null;
+    const can=document.createElement('canvas');if(!can.captureStream)return stream.current;
+    can.width=720;can.height=1280;const g=can.getContext('2d');canvas.current=can;
+    const loop=()=>{const v=live.current;if(v&&v.videoWidth){const k=Math.max(720/v.videoWidth,1280/v.videoHeight);g.drawImage(v,(720-v.videoWidth*k)/2,(1280-v.videoHeight*k)/2,v.videoWidth*k,v.videoHeight*k)}draw.current=requestAnimationFrame(loop)};loop();
+    return new MediaStream([...can.captureStream(30).getVideoTracks(),...stream.current.getAudioTracks()]);
+  }
   function begin(){
-    if(!stream.current)return;chunks.current=[];const mime=pickMime();
-    let r;try{r=new MediaRecorder(stream.current,mime?{mimeType:mime}:undefined)}catch(e){r=new MediaRecorder(stream.current)}
+    if(!stream.current)return;chunks.current=[];const mime=pickMime();const src=mode==='replay'?recStream():stream.current;
+    const opts={videoBitsPerSecond:2500000};if(mime)opts.mimeType=mime;
+    let r;try{r=new MediaRecorder(src,opts)}catch(e){try{r=new MediaRecorder(src)}catch(e2){setErr('Couldn’t start recording.');return}}
     rec.current=r;r.ondataavailable=e=>{if(e.data&&e.data.size)chunks.current.push(e.data)};
-    r.onstop=()=>{clearInterval(timer.current);const type=(r.mimeType||mime||'video/webm').split(';')[0];const blob=new Blob(chunks.current,{type});
+    r.onstop=()=>{clearInterval(timer.current);cancelAnimationFrame(draw.current);const type=(r.mimeType||mime||'video/webm').split(';')[0];const blob=new Blob(chunks.current,{type});
       const dur=Math.max(1,Math.min(REC_MAX,(Date.now()-t0.current)/1000));stopStream();
       const ext=type.includes('mp4')?'mp4':'webm';const file=new File([blob],(mode==='story'?'story.':'replay.')+ext,{type});
       if(mode==='story'){onStory({url:URL.createObjectURL(blob),type:'video',file});return}
-      setClip({url:URL.createObjectURL(blob),file,dur});setTs(0);setTe(+dur.toFixed(1));setPhase('edit')};
+      setClip({url:URL.createObjectURL(blob),file,dur});setPhase('edit')};
     r.start(250);t0.current=Date.now();setElapsed(0);setPhase('recording');
     timer.current=setInterval(()=>{const e=(Date.now()-t0.current)/1000;setElapsed(e);if(e>=maxLen&&r.state==='recording')r.stop()},200);
   }
@@ -1850,43 +2074,16 @@ function Recorder({s,dispatch,onClose,open,startMode,onStory}){
     if(phase!=='camera')return;if(photo)return snap();if(!countdown)return begin();
     setPhase('counting');let n=3;setCount(3);const t=setInterval(()=>{n--;if(n<=0){clearInterval(t);begin()}else setCount(n)},1000);
   }
-  // keep the edit preview inside the trim
-  useEffect(()=>{const v=ed.current;if(!v||phase!=='edit')return;
-    const tu=()=>{if(v.currentTime<ts-0.2||v.currentTime>=te)v.currentTime=ts};v.addEventListener('timeupdate',tu);v.currentTime=ts;v.play().catch(()=>{});
-    return()=>v.removeEventListener('timeupdate',tu)},[phase,ts,te]);
-  const post=()=>{
-    const why=MOD.rules(MOD.classify(caption+' '+text),s.users.me.plus,isAdult(s));if(why){setErr(why.msg);return}
-    const overlay={filter,text:text.trim(),textPos:pos,color,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+clip.dur.toFixed(1)};
-    dispatch({type:'post',text:caption.trim(),media:{type:'video',url:clip.url,file:clip.file},reel:true,overlay});onClose();open.replay();
-  };
   const chips=html`<div className="rec-chips">${Object.entries(FILTERS).map(([k,f])=>html`<button key=${k} aria-pressed=${filter===k} onClick=${()=>setFilter(k)}>${f.name}</button>`)}</div>`;
   return html`<div className="sv rec" role="dialog" aria-label="Record a Replay"><div className="sv-in">
-    ${phase==='edit'?html`
-      <div className="sv-media"><video ref=${ed} src=${clip.url} playsInline loop autoPlay onLoadedMetadata=${e=>{if(!clip.dur){const d=Math.max(1,Math.min(REC_MAX,e.target.duration||REC_MAX));setClip({...clip,dur:d});setTe(+d.toFixed(1))}}}></video></div>
-      <${ReplayOverlay} o=${{filter,text,textPos:pos,color}}/>
-      <div className="sv-head"><button className="rec-back" onClick=${()=>{setClip(null);startCam()}}><${Icon} n="back" s=${20}/>Retake</button>
-        <div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Discard"><${Icon} n="x"/></button></div></div>
-      <div className="sv-foot rec-edit">
-        ${chips}
-        <div className="rec-trim">
-          <label htmlFor="trim-s">Start ${ts.toFixed(1)}s</label><input id="trim-s" type="range" min="0" max=${clip.dur} step="0.1" value=${ts} onInput=${e=>setTs(Math.min(+e.target.value,te-1))}/>
-          <label htmlFor="trim-e">End ${te.toFixed(1)}s</label><input id="trim-e" type="range" min="0" max=${clip.dur} step="0.1" value=${te} onInput=${e=>setTe(Math.max(+e.target.value,ts+1))}/>
-        </div>
-        <div className="rec-row"><label htmlFor="rec-text" className="vh">Text on video</label>
-          <input id="rec-text" className="rec-in" placeholder="Add text on the video" maxLength=${80} value=${text} onChange=${e=>setText(e.target.value)}/>
-          <button className="sv-round" onClick=${()=>setPos(pos==='top'?'middle':pos==='middle'?'bottom':'top')} aria-label="Move text">${pos==='top'?'↑':pos==='bottom'?'↓':'↕'}</button></div>
-        <div className="rec-colors" role="group" aria-label="Text color">${TEXT_COLORS.map(c=>html`<button key=${c} aria-pressed=${color===c} aria-label=${'Text color '+c} style=${{background:c}} onClick=${()=>setColor(c)}></button>`)}</div>
-        ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}
-        <div className="sv-bar"><div className="sv-input"><label htmlFor="rec-cap" className="vh">Caption</label>
-          <input id="rec-cap" placeholder="Caption… #hashtags" maxLength=${280} value=${caption} onChange=${e=>setCaption(e.target.value)}/></div>
-          <button className="btn orange" onClick=${post}>Post</button></div>
-      </div>`
+    ${phase==='edit'?html`<${RecEditor} s=${s} dispatch=${dispatch} clip=${clip} setClip=${setClip} onClose=${onClose} open=${open} onRetake=${()=>{setClip(null);startCam()}}/>`
     :html`
-      <div className="sv-media"><video ref=${live} className=${facing==='user'?'mirror':''} playsInline muted autoPlay></video></div>
+      <div className="sv-media" onPointerUp=${camTap}><video ref=${live} className=${facing==='user'?'mirror':''} playsInline muted autoPlay></video></div>
       <${ReplayOverlay} o=${{filter}}/>
       <div className="sv-head">
         <button className="sv-close" onClick=${onClose} aria-label="Close"><${Icon} n="x"/></button>
-        <div className="sv-btns">${phase==='recording'?html`<b>${Math.floor(elapsed)}s / ${maxLen}s</b>`:phase==='camera'?html`
+        <div className="sv-btns">${phase==='recording'?html`<b>${Math.floor(elapsed)}s / ${maxLen}s</b>
+          ${canvas.current&&html`<button className="sv-close" onClick=${flip} aria-label="Flip camera"><${Icon} n="replay"/></button>`}`:phase==='camera'?html`
           ${canTorch&&html`<button className="sv-close" onClick=${toggleTorch} aria-label="Flash" aria-pressed=${torch}><${Icon} n="bolt" fill=${torch?'#fff':null}/></button>`}
           <button className="sv-close" onClick=${()=>setCountdown(!countdown)} aria-label="3 second countdown" aria-pressed=${countdown} style=${{color:countdown?'var(--orange)':'#fff'}}><${Icon} n="clock"/></button>
           <button className="sv-close" onClick=${flip} aria-label="Flip camera"><${Icon} n="replay"/></button>`:null}</div></div>
@@ -1894,8 +2091,10 @@ function Recorder({s,dispatch,onClose,open,startMode,onStory}){
         ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p><button className="btn orange wide" onClick=${()=>startCam()}>Try again</button><button className="btn ghost wide" onClick=${()=>gal.current.click()}>Choose from your photos</button>`}</div>`}
       ${phase==='counting'&&html`<div className="rec-count">${count}</div>`}
       ${phase!=='start'&&html`<div className="sv-foot rec-foot">
+        ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}
         ${phase==='camera'&&mode==='replay'&&chips}
         ${phase==='camera'&&mode==='story'&&html`<div className="rec-chips"><button aria-pressed=${shot==='photo'} onClick=${()=>setShot('photo')}>Photo</button><button aria-pressed=${shot==='video'} onClick=${()=>setShot('video')}>Video</button></div>`}
+        ${phase==='camera'&&mode==='replay'&&html`<div className="rec-lens" role="group" aria-label="Replay length">${REC_LENS.map(([v,l])=>html`<button key=${v} aria-pressed=${len===v} onClick=${()=>setLen(v)}>${l}</button>`)}</div>`}
         <div className="rec-controls">
           <button className="rec-gal" onClick=${()=>gal.current.click()} aria-label="Choose from your photos" style=${{visibility:phase==='camera'?'visible':'hidden'}}><${Icon} n="image" s=${22}/></button>
           <button className=${'rec-shutter'+(phase==='recording'?' on':'')+(photo?' photo':'')} onClick=${shutter} aria-label=${phase==='recording'?'Stop recording':photo?'Take photo':'Record'}><span></span></button>
@@ -1930,6 +2129,7 @@ function ReelClip({p,active,paused,runKey,onEnd}){
     const tu=()=>{const e=t1();setProg(e>t0?(v.currentTime-t0)/(e-t0):0);if(o.trimEnd&&v.currentTime>=o.trimEnd){v.currentTime=t0;v.play().catch(()=>{})}};
     const end=()=>{v.currentTime=t0;setProg(0);v.play().catch(()=>{})};
     v.addEventListener('timeupdate',tu);v.addEventListener('ended',end);
+    v.dataset.rate=o.speed||1;v.playbackRate=o.speed||1;
     if(active){if(v.ended||v.currentTime<t0||(o.trimEnd&&v.currentTime>=o.trimEnd))v.currentTime=t0;v.play().catch(()=>{})}else{v.pause();v.currentTime=t0}
     return()=>{v.removeEventListener('timeupdate',tu);v.removeEventListener('ended',end)};
   },[active,runKey]);

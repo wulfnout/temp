@@ -24,11 +24,13 @@ jobs:
           cp /tmp/p/package/wasm/vision_wasm_internal.js /tmp/p/package/wasm/vision_wasm_internal.wasm vendor/mp/
           cp /tmp/p/package/wasm/vision_wasm_nosimd_internal.js /tmp/p/package/wasm/vision_wasm_nosimd_internal.wasm vendor/mp/
           curl -sSfL -o vendor/mp/face_landmarker.task https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
+          curl -sSfL -o vendor/mp/selfie_segmenter.tflite https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite
           echo "$V" > vendor/mp/VERSION
           ls -la vendor/mp
       - name: Commit to main
         run: |
           git add vendor/mp
+          git pull -q --rebase origin main || true
           git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "Vendor MediaPipe face tracking" || exit 0
           git pull -q --rebase origin main && git push -q origin HEAD:main
       - name: Test pictures (fx-test branch, not served)

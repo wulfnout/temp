@@ -829,6 +829,8 @@ img,video{max-width:100%;display:block}
 .gl-lobby{position:relative;min-height:100dvh}.gl-lobby>*:not(.gl-prev){position:relative;z-index:1}
 .gl-lobby:has(.gl-prev-c) .gl-top h2,.gl-lobby:has(.gl-prev-c) .live-h,.gl-lobby:has(.gl-prev-c) .empty{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.6)}
 .gl-lobby:has(.gl-prev-c) .gl-start{background:rgba(10,10,10,.38);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(255,255,255,.14)}
+.fx-load{position:absolute;z-index:2;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font-weight:800;font-size:13px;padding:8px 14px;border-radius:14px;white-space:nowrap}
+.fx-rows{display:grid;gap:6px;min-width:0}.fx-lbl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin:2px 2px 0}
 .fx-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:100%;padding:2px}.fx-chips::-webkit-scrollbar{display:none}
 .fx-chips button{flex:none;padding:8px 13px;--r:13px;border-radius:var(--r);background:rgba(255,255,255,.14);color:#fff;font-weight:800;font-size:13px;animation:squish 9s ease-in-out infinite}
 .fx-chips button[aria-pressed="true"]{background:#fff;color:#000}
@@ -3495,14 +3497,27 @@ class CamFx{
   stop(){cancelAnimationFrame(this.raf);this.raf=0;try{this.v.pause()}catch(e){}this.v.srcObject=null}
 }
 const canCamFx=()=>{try{return !!HTMLCanvasElement.prototype.captureStream}catch(e){return false}};
-function FxChips({fx,setFx}){return html`<div className="fx-chips" role="group" aria-label="Camera effects">${CAM_FX.map(([k,l])=>html`<button key=${k} aria-pressed=${fx===k} onClick=${e=>{e.stopPropagation();setFx(k)}}>${l}</button>`)}</div>`}
+// face effects engine (WebGL + face tracking) lives in /facefx.js and loads the first time the camera opens
+const FXV='1';let fxP=null;
+function loadFX(){if(window.TempFX)return Promise.resolve(window.TempFX);if(!fxP)fxP=new Promise(r=>{const s=document.createElement('script');s.src='/facefx.js?v='+FXV;s.onload=()=>r(window.TempFX||null);s.onerror=()=>{fxP=null;r(null)};document.head.appendChild(s)});return fxP}
+async function makeCamFx(){const F=await loadFX();if(F&&F.supported()){try{return new F.Engine()}catch(e){console.warn('facefx',e)}}return new CamFx()}
+const FX_LEGACY={none:'off:none',smooth:'smooth:none',beauty:'natural:none',glow:'off:glow',warm:'off:warm',cool:'off:cool',mono:'off:mono',vintage:'off:vintage'};
+const normFx=v=>{v=v||'off:none';return FX_LEGACY[v]||(v.includes(':')?v:'off:none')};
+function useTempFX(){const [F,setF]=useState(window.TempFX||null);useEffect(()=>{if(!F)loadFX().then(x=>{if(x)setF(x)})},[]);return F&&F.supported()?F:null}
+function fxLabel(fx,F){const [b,e]=normFx(fx).split(':');if(!F)return 'Normal';const bl=(F.BEAUTY.find(x=>x[0]===b)||[])[1],el=(F.EFFECTS.find(x=>x[0]===e)||[])[1];return [b!=='off'&&bl,e!=='none'&&el].filter(Boolean).join(' + ')||'Normal'}
+function FxChips({fx,setFx}){const F=useTempFX();
+  if(!F)return html`<div className="fx-chips" role="group" aria-label="Camera effects">${CAM_FX.map(([k,l])=>html`<button key=${k} aria-pressed=${fx===k} onClick=${e=>{e.stopPropagation();setFx(k)}}>${l}</button>`)}</div>`;
+  const [b,e]=normFx(fx).split(':');
+  return html`<div className="fx-rows"><span className="fx-lbl">Beauty</span><div className="fx-chips" role="group" aria-label="Beauty">${F.BEAUTY.map(([k,l])=>html`<button key=${k} aria-pressed=${b===k} onClick=${ev=>{ev.stopPropagation();setFx(k+':'+e)}}>${l}</button>`)}</div>
+    <span className="fx-lbl">Effects</span><div className="fx-chips" role="group" aria-label="Effects">${F.EFFECTS.map(([k,l])=>html`<button key=${k} aria-pressed=${e===k} onClick=${ev=>{ev.stopPropagation();setFx(b+':'+k)}}>${l}</button>`)}</div></div>`}
 function CamPreview({fx}){
-  const box=useRef();const p=useRef(null);
-  useEffect(()=>{let st=null,dead=false;const f=new CamFx();p.current=f;
-    navigator.mediaDevices&&navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:720},height:{ideal:1280}},audio:false}).then(s=>{if(dead){s.getTracks().forEach(t=>t.stop());return}st=s;f.setSource(s);f.c.className='gl-prev-c';box.current&&box.current.appendChild(f.c)}).catch(()=>{});
-    return()=>{dead=true;f.stop();if(st)st.getTracks().forEach(t=>t.stop());if(f.c.parentNode)f.c.parentNode.removeChild(f.c)}},[]);
+  const box=useRef();const p=useRef(null);const [st8,setSt8]=useState('');
+  const fxRef=useRef(fx);fxRef.current=fx;
+  useEffect(()=>{let st=null,dead=false,f=null;
+    Promise.all([makeCamFx(),navigator.mediaDevices?navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:720},height:{ideal:1280}},audio:false}):Promise.reject()]).then(([fe,s])=>{st=s;if(dead){s.getTracks().forEach(t=>t.stop());return}f=fe;p.current=f;f.onstatus=setSt8;f.fx=fxRef.current;f.setSource(s);f.c.className='gl-prev-c';box.current&&box.current.appendChild(f.c)}).catch(()=>{});
+    return()=>{dead=true;if(f){f.stop();if(f.c.parentNode)f.c.parentNode.removeChild(f.c)}if(st)st.getTracks().forEach(t=>t.stop())}},[]);
   useEffect(()=>{if(p.current)p.current.fx=fx},[fx]);
-  return html`<div className="gl-prev" ref=${box} aria-hidden="true"><i className="gl-prev-shade"></i></div>`;
+  return html`<div className="gl-prev" ref=${box} aria-hidden="true"><i className="gl-prev-shade"></i>${st8==='loading'&&html`<span className="fx-load">Loading face effects…</span>`}</div>`;
 }
 class StreamEngine{
   constructor(id,me,on){this.id=id;this.me=me;this.on=on;this.pcs={};this.remote={};this.local=null;this.facing='user'}
@@ -3536,7 +3551,7 @@ class StreamEngine{
   async camOn(){
     const raw=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}},audio:{echoCancellation:true,noiseSuppression:true}});this.raw=raw;
     let out=raw;
-    if(canCamFx()){const f=new CamFx();f.fx=this.fx||'none';f.setSource(new MediaStream(raw.getVideoTracks()));const cs=f.stream(30);if(cs){this.camfx=f;out=new MediaStream([...cs.getVideoTracks(),...raw.getAudioTracks()])}else f.stop()}
+    if(canCamFx()){const f=await makeCamFx();f.fx=this.fx||'none';if(window.TempFX)TempFX.preload().catch(()=>{});f.setSource(new MediaStream(raw.getVideoTracks()));const cs=f.stream(30);if(cs){this.camfx=f;out=new MediaStream([...cs.getVideoTracks(),...raw.getAudioTracks()])}else f.stop()}
     this.local=out;Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));this.on({local:this.local});
   }
   setFx(fx){this.fx=fx;if(this.camfx)this.camfx.fx=fx}
@@ -3719,6 +3734,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
       return [...bs.filter(b=>b.until>Date.now()).slice(-3),{key,from:p.from,to:p.to,gift:p.gift,count:p.combo||p.qty||1,until,bump:0}]});
     if(g.tier!=='small'&&(!p.combo||p.combo===(p.qty||1)))setShows(v=>[...v,{k:Math.random(),id:g.id,tier:g.tier,gname:g.name,from:p.from,qty:p.qty||1}]);
     if(g.tier==='small')pop('',true);
+    const cf=eng.current&&eng.current.camfx;if(cf&&cf.gift&&(!p.to||p.to===me))cf.gift(p.gift,p.combo||p.qty||1);
   }
   useEffect(()=>{const t=setInterval(()=>{setNow(Date.now());setBanners(bs=>bs.some(b=>b.until<Date.now())?bs.filter(b=>b.until>=Date.now()):bs)},500);return()=>clearInterval(t)},[]);
   useEffect(()=>{loadRow();loadGifts();loadWallet();sb.from('live_stats').select('likes').eq('stream_id',id).maybeSingle().then(({data})=>data&&setLikes(+data.likes||0));
@@ -3833,7 +3849,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
       <div className="gp-tools">
         <button onClick=${()=>setPanel('goal')}><${SparkIco} s=${22}/><b>Goal</b><span>${row&&row.goal?fmtK(row.goal)+' Sparks':'Set a Sparks goal'}</span></button>
         <button disabled=${!row||!row.guest_id||matchOn} onClick=${startMatch}><${Icon} n="bolt" s=${22}/><b>Match</b><span>${matchOn?'In progress':row&&row.guest_id?'3 min gift battle with your guest':'Add a guest first'}</span></button>
-        <button onClick=${()=>setPanel('fx')}><${Icon} n="star" s=${22}/><b>Effects</b><span>${(CAM_FX.find(x=>x[0]===fx)||CAM_FX[0])[1]}</span></button>
+        <button onClick=${()=>setPanel('fx')}><${Icon} n="star" s=${22}/><b>Effects</b><span>${fxLabel(fx,window.TempFX)}</span></button>
         <button onClick=${()=>setPanel('board')}><${Icon} n="crown" s=${22}/><b>Top gifters</b><span>${board.length} so far</span></button>
         <button onClick=${()=>setPanel('viewers')}><${Icon} n="eye" s=${22}/><b>Viewers</b><span>${watching} watching</span></button>
       </div></div>`}

@@ -13,5 +13,5 @@ self.addEventListener('fetch', (e) => {
       .catch(() => caches.match(isApp ? './index.html' : req).then((r) => r || caches.match('./index.html'))));
     return;
   }
-  e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => { if (res.ok && /\/(icons|sounds)\//.test(url.pathname)) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; })));
+  e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => { if (res.ok && /\/(icons|sounds|vendor)\//.test(url.pathname)) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; })));
 });

@@ -33,7 +33,7 @@ export function Video({ uri, style, autoPlay, controls = true, loop = false, mut
     const sub = player.addListener('playToEnd', onEnd);
     return () => sub.remove();
   }, [player, onEnd]);
-  return <VideoView player={player} style={style} contentFit="cover" nativeControls={controls} pointerEvents={controls ? 'auto' : 'none'} />;
+  return <VideoView allowsVideoFrameAnalysis={false} allowsPictureInPicture={false} player={player} style={style} contentFit="cover" nativeControls={controls} pointerEvents={controls ? 'auto' : 'none'} />;
 }
 
 export function RichText({ text, style, onTag }) {
@@ -99,7 +99,7 @@ export function FeedVideo({ uri, active = false, onHeat, postId }) {
   return (
     <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}>
       <Pressable onPress={tap} style={{ flex: 1 }} accessibilityLabel="Open video full screen">
-        <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
+        <VideoView allowsVideoFrameAnalysis={false} allowsPictureInPicture={false} player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
       </Pressable>
       {left != null ? <View pointerEvents="none" style={[chip, { position: 'absolute', left: 10, bottom: 10, paddingHorizontal: 8, paddingVertical: 3 }]}>
         <T h style={{ color: '#fff', fontSize: 11.5, fontVariant: ['tabular-nums'] }}>{fmt(left)}</T></View> : null}
@@ -172,7 +172,7 @@ function FullVideo({ postId, uri, start, onClose }) {
       <Animated.View {...pan.panHandlers} style={{ flex: 1, backgroundColor: '#000', opacity: drag.interpolate({ inputRange: [0, 500], outputRange: [1, 0.4], extrapolate: 'clamp' }) }}>
         <Animated.View style={{ position: 'absolute', width: bw, height: bh, left: (W - bw) / 2, top: (vidH - bh) / 2, transform: [{ translateY: drag }, { rotate: land ? '90deg' : '0deg' }] }}>
           <Pressable {...g.press} style={{ flex: 1 }} accessibilityLabel={ui ? 'Hide controls' : 'Show controls'}>
-            <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
+            <VideoView allowsVideoFrameAnalysis={false} allowsPictureInPicture={false} player={player} style={{ flex: 1 }} contentFit="contain" nativeControls={false} pointerEvents="none" />
           </Pressable>
           <g.Overlay top={pad.top + 6} />
           {ui || panel ? <>
@@ -290,7 +290,7 @@ export function PostCard({ p, active = false }) {
 // time-left orb: a soft, lumpy orange orb that ticks round once every real second while the time stays upright
 // time-left orb: moves like the Morph ring — a liquid orange orb that wobbles and reshapes, the time stays put
 function TimeOrb({ label }) {
-  useClockKick(); const S = 35; const c = clock(3600), r = jsClock(6000);
+  const { C } = useApp(); useClockKick(); const S = 35; const c = clock(5600), r = jsClock(9000); // slow, calm motion
   const corner = (ph) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => S * (0.5 + 0.13 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
   const radii = { borderTopLeftRadius: corner(0), borderTopRightRadius: corner(0.27), borderBottomRightRadius: corner(0.55), borderBottomLeftRadius: corner(0.8) };
   return (
@@ -298,15 +298,12 @@ function TimeOrb({ label }) {
       <Animated.View style={{ position: 'absolute', width: S, height: S, transform: [
         { scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.06, 0.97, 1.03, 1] }) },
         { scaleY: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.95, 1.05, 0.98, 1] }) },
-        { rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }] }}>
-        <Animated.View style={[{ flex: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii]}>
-          <Animated.View style={{ position: 'absolute', width: S * 1.5, height: S * 1.5, transform: [{ rotate: c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
-            <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
-          </Animated.View>
+        { rotate: clock(14000).interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+        <Animated.View style={[{ flex: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: C.mono ? C.orange : '#ff5500' }, radii]}>
         </Animated.View>
       </Animated.View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-        <Ionicons name="flame" size={7} color="#fff" /><T d style={{ color: '#fff', fontSize: 8.5, letterSpacing: -0.4, textShadowColor: 'rgba(160,50,0,.55)', textShadowRadius: 2 }}>{label}</T></View>
+        <Ionicons name="flame" size={7} color={C.mono ? C.onOrange : '#fff'} /><T d style={{ color: C.mono ? C.onOrange : '#fff', fontSize: 8.5, letterSpacing: -0.4, textShadowColor: 'transparent' }}>{label}</T></View>
     </View>
   );
 }

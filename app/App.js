@@ -14,7 +14,7 @@ import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, Story
 import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
 import { Recorder } from './src/recorder';
 import { Intro } from './src/ash';
-import { LiveScreen } from './src/live';
+import { LiveScreen, GoLiveScreen } from './src/live';
 import { ClockKeeper } from './src/fx';
 
 // Android: show what went wrong instead of a frozen screen
@@ -192,6 +192,7 @@ function Root() {
       case 'search': return <SearchScreen q={r.params.q} />;
       case 'replay': return <ReplayScreen startId={r.params.startId} />;
       case 'live': return <LiveScreen />;
+      case 'golive': return <GoLiveScreen stream={r.params.stream} />;
       case 'me': return <ProfileScreen isTab />;
       case 'profile': return <ProfileScreen id={r.params.id} />;
       case 'activity': return <ActivityScreen />;

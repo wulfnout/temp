@@ -52,6 +52,7 @@ img,video{max-width:100%;display:block}
 .bars-off .nav{transform:translateY(100%)}
 .top-row{display:flex;align-items:center;gap:10px;height:44px}
 .logo{font-family:var(--display);font-weight:800;font-size:27px;letter-spacing:-.04em;line-height:1;margin:0;display:flex;align-items:flex-end;gap:3px}
+.logo-btn{all:unset;cursor:pointer;display:flex;align-items:flex-end;gap:3px;font:inherit;color:inherit}
 .logo i{width:9px;height:9px;background:var(--orange);display:inline-block;border-radius:2px;margin-bottom:3px}
 .top-title{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.03em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .top-actions{display:flex;gap:6px;margin-left:auto}
@@ -113,8 +114,9 @@ img,video{max-width:100%;display:block}
 .life{position:absolute;left:0;bottom:0;height:3px;transition:width .25s linear}
 .life.burning{background:var(--orange)}
 .lifebar{display:flex;align-items:center;margin-top:12px}.lifebar i{height:3px;border-radius:2px;background:var(--orange);transition:flex .25s linear}
-.lifebar span.orb{position:relative;width:35px;height:35px;padding:0;justify-content:center;gap:1px;background:none;border-radius:0;margin-left:-2px;text-shadow:0 0 2px rgba(160,50,0,.55)}
-.lifebar span.orb>em{position:absolute;inset:0;z-index:0;border-radius:52% 44% 56% 42%/46% 55% 45% 54%;background:conic-gradient(from var(--spin),#ee5f1f,#f39a55 35%,#ffe2ac 50%,#f7b072 70%,#ee5f1f);box-shadow:0 0 6px rgba(255,85,0,.35);animation:morph 6s ease-in-out infinite,spin 3.6s linear infinite,blob 3.6s ease-in-out infinite}
+.lifebar span.orb{position:relative;width:35px;height:35px;padding:0;justify-content:center;gap:1px;background:none;border-radius:0;margin-left:-2px;text-shadow:none}
+.lifebar span.orb>em{position:absolute;inset:0;z-index:0;border-radius:52% 44% 56% 42%/46% 55% 45% 54%;background:var(--orange);animation:morph 9s ease-in-out infinite,blob 5.6s ease-in-out infinite,orbspin 14s linear infinite}
+@keyframes orbspin{to{rotate:360deg}}
 @keyframes orbflow{0%,100%{border-radius:52% 44% 56% 42%/46% 55% 45% 54%}25%,75%{border-radius:50%}50%{border-radius:42% 56% 44% 54%/55% 45% 54% 46%}}
 .lifebar span.orb>svg,.lifebar span.orb>b{position:relative;z-index:1}
 .lifebar span.orb>b{font-family:var(--display);font-weight:800;font-size:8.5px;letter-spacing:-.04em}
@@ -816,6 +818,34 @@ img,video{max-width:100%;display:block}
 .gx-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,194,61,.45),rgba(255,85,0,.2) 40%,transparent 70%);animation:gxtint 4.3s ease both}
 .gx-emb{position:absolute;bottom:-5%;width:var(--s);height:var(--s);border-radius:50%;background:#ffd27a;box-shadow:0 0 10px #ff8a2b;animation:gxemb 2.4s var(--d) ease-out both;opacity:0}
 @keyframes gxemb{0%{opacity:0;transform:translate(0,0)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-100vh)}}
+.gl-prev{position:fixed;inset:0;z-index:0;overflow:hidden;background:#000;pointer-events:none}
+.gl-prev .gl-prev-c{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.gl-prev-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.05) 30%,rgba(0,0,0,.15) 55%,rgba(0,0,0,.75))}
+.gl-lobby{position:relative;min-height:100dvh}.gl-lobby>*:not(.gl-prev){position:relative;z-index:1}
+.gl-lobby:has(.gl-prev-c) .gl-top h2,.gl-lobby:has(.gl-prev-c) .live-h,.gl-lobby:has(.gl-prev-c) .empty{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.gl-lobby:has(.gl-prev-c) .gl-start{background:rgba(10,10,10,.38);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(255,255,255,.14)}
+.fx-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:100%;padding:2px}.fx-chips::-webkit-scrollbar{display:none}
+.fx-chips button{flex:none;padding:8px 13px;--r:13px;border-radius:var(--r);background:rgba(255,255,255,.14);color:#fff;font-weight:800;font-size:13px;animation:squish 9s ease-in-out infinite}
+.fx-chips button[aria-pressed="true"]{background:#fff;color:#000}
+.reel-live{cursor:pointer;overflow:hidden;align-items:center}
+.rl-bg{position:absolute;inset:-40px;background:center/cover;filter:blur(38px) saturate(1.3) brightness(.65);transform:scale(1.2)}
+.rl-shade{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(255,85,0,.35),transparent 60%),linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.65))}
+.rl-mid{position:relative;display:grid;justify-items:center;gap:8px;text-align:center;padding:0 24px}
+.rl-ring{position:relative;display:grid;place-items:center;width:150px;height:150px}
+.rl-ring i{position:absolute;inset:0;border-radius:50%;border:3px solid #ff2d55;animation:rlp 2s ease-out infinite}.rl-ring i+i{animation-delay:1s}
+@keyframes rlp{from{transform:scale(.85);opacity:1}to{transform:scale(1.35);opacity:0}}
+.rl-ring .av{box-shadow:0 0 0 4px #ff2d55,0 0 30px rgba(255,45,85,.6)}
+.rl-name{font-family:var(--display);font-size:26px;letter-spacing:-.04em}
+.rl-title{font-size:15px;opacity:.9;max-width:280px}
+.rl-meta{display:inline-flex;align-items:center;gap:5px;font-weight:800;font-size:13px;opacity:.85}
+.rl-join{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(40px + env(safe-area-inset-bottom,0px));padding:14px 34px;font-size:16px}
+/* Blackout (free): every accent turns black — or white when the phone is in dark mode — logo included */
+html.blackout{--orange:#0a0a0a;--orange-2:#3a3a3a;--on-orange:#fff;--orb:#0a0a0a}
+@media (prefers-color-scheme:dark){html.blackout:not([data-theme="light"]){--orange:#fff;--orange-2:#cfcfcf;--on-orange:#000;--orb:#fff}}
+html.blackout[data-theme="dark"]{--orange:#fff;--orange-2:#cfcfcf;--on-orange:#000;--orb:#fff}
+html.blackout .btn.orange{color:var(--on-orange);text-shadow:none}
+html.blackout .lifebar span.orb>svg,html.blackout .lifebar span.orb>b{color:var(--on-orange);fill:var(--on-orange)}
+html.blackout .lifebar span.orb>b{color:var(--on-orange)}
 /* hidden left page on home */
 .gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
 .gl-side.open{transform:none}
@@ -1625,7 +1655,7 @@ const SHOP={
     {id:'thermo',name:'Thermometer',price:150,items:['T|212°F|f','T|ROOM TEMP IQ|i','T|LUKEWARM|w','T|ABSOLUTE ZERO|c','T|FREEZER BURN|c','T|TOO HOT 4 U|o']},
     {id:'receipts',name:'Receipts',price:150,items:['T|SCREENSHOTTED 📸|o','T|BRB FREEZING IT|i','T|SAY IT LOUDER|y','T|THIS AGED BADLY|w','T|BOLD OF YOU|p','T|RECEIPTS|o']},
     {id:'studio',name:'Sticker Studio',price:600,studio:true,items:[]}],
-  themes:[{id:'ember',name:'Ember',price:0,c:['#ff5500','#ff8a2b']},{id:'inferno',name:'Inferno',price:300,c:['#ff1f1f','#ff7a00']},{id:'solar',name:'Solar',price:300,c:['#ff9500','#ffc400']},
+  themes:[{id:'ember',name:'Ember',price:0,c:['#ff5500','#ff8a2b']},{id:'blackout',name:'Blackout',price:0,c:['#0a0a0a','#3a3a3a'],mono:true},{id:'inferno',name:'Inferno',price:300,c:['#ff1f1f','#ff7a00']},{id:'solar',name:'Solar',price:300,c:['#ff9500','#ffc400']},
     {id:'blush',name:'Blush',price:300,c:['#ff4d6d','#ff9f7a']},{id:'neon',name:'Neon',price:500,c:['#ff2bd6','#ff8a2b']},
     {id:'volcano',name:'Volcano',price:350,c:['#c1121f','#ff4d00']},{id:'toxic',name:'Toxic',price:400,c:['#5fd400','#d4ff3a']},
     {id:'ocean',name:'Deep Sea',price:400,c:['#0077ff','#00d4c8']},{id:'grape',name:'Grape Soda',price:400,c:['#7c3aed','#d946ef']},
@@ -2271,6 +2301,7 @@ function Reel({p,s,active,dispatch,open}){
   const restart=()=>{setEnded(false);paused.current=false;setPz(false);setRunKey(k=>k+1)};
   const g=useVidTaps(()=>p.clip.kind==='video'?vid():null,{onSingle:()=>{ended?restart():togglePause()},onCenterDouble:()=>{if(!p.myHeat)dispatch({type:'heat',id:p.id});setBurst(Date.now())}});
   useEffect(()=>{if(!active){paused.current=false;setPz(false);setEnded(false)}},[active]);
+  useEffect(()=>{if(active&&p.clip&&p.clip.kind==='video')dispatch({type:'view',id:p.id})},[active]);
   const counts=!s.settings.hideCounts||p.userId==='me';
   const running=active&&(s.settings.autoplay&&!s.settings.dataSaver||manual);
   return html`<section className=${'reel'+(p.status==='frozen'?' is-frozen':'')} data-reel=${p.id} data-id=${p.id}>
@@ -2301,21 +2332,39 @@ function Reel({p,s,active,dispatch,open}){
   </section>`;
 }
 
+// someone live, mixed into the Replay feed like TikTok: swipe past or tap to join
+function LiveReel({x,h,me}){
+  const [n,setN]=useState(null);
+  useEffect(()=>{const since=new Date(Date.now()-45e3).toISOString();sb.from('live_viewers').select('user_id',{count:'exact',head:true}).eq('stream_id',x.id).gte('last_seen',since).then(({count})=>setN(count||0))},[x.id]);
+  const join=()=>{if(window.__openLive)window.__openLive(x.id)};
+  return html`<section className="reel reel-live" data-id=${'live-'+x.id} onClick=${join}>
+    <div className="rl-bg" style=${{backgroundImage:h.avatar?'url('+h.avatar+')':null,backgroundColor:h.color}}></div><i className="rl-shade"></i>
+    <div className="rl-mid"><span className="rl-ring"><i></i><i></i><${Avatar} u=${h} size=${124} noRing=${true}/></span>
+      <span className="live-dot">LIVE</span><b className="rl-name">${h.name}</b>${x.title&&html`<span className="rl-title">${x.title}</span>`}
+      <span className="rl-meta"><${Icon} n="eye" s=${14}/>${n==null?'…':n} watching</span></div>
+    <button className="btn orange rl-join" onClick=${e=>{e.stopPropagation();join()}}>Watch LIVE</button>
+  </section>`;
+}
+// slot live creators in after the 2nd Replay, then every 5
+function mixLives(reels,lives){if(!lives.length)return reels.map(p=>({p}));const out=[];let li=0;
+  reels.forEach((p,i)=>{out.push({p});if(li<lives.length&&(i===1||(i>1&&(i-1)%5===0)))out.push({live:lives[li++]})});
+  if(!reels.length)lives.forEach(l=>out.push({live:l}));return out}
 function Replay({s,dispatch,open,startId}){
   const reels=s.posts.filter(p=>p.reel&&p.status!=='gone'&&visible(s,p));
+  const {list:lives,people:lp}=useStreams();const items=mixLives(reels,lives.filter(x=>!s.blocked[x.host_id]));
   const box=useRef();const [active,setActive]=useState(startId||(reels[0]&&reels[0].id));
   useEffect(()=>{
     const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.6)setActive(+e.target.dataset.id)}),{root:box.current,threshold:[.6]});
     box.current.querySelectorAll('.reel').forEach(el=>io.observe(el));
     if(startId){const el=box.current.querySelector(`[data-id="${startId}"]`);if(el)el.scrollIntoView()}
     return()=>io.disconnect();
-  },[reels.length]);
+  },[items.length]);
   const sw=useRef(null);
   return html`<div className="reels" ref=${box} onTouchStart=${e=>{const t=e.touches[0];sw.current={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=sw.current;sw.current=null;if(!a)return;const t=e.changedTouches[0];const dx=t.clientX-a.x,dy=t.clientY-a.y;if(dx>70&&Math.abs(dx)>Math.abs(dy)*2)open.leaveReplay()}}>
     <div className="reel-top" style=${{position:'fixed',maxWidth:520,margin:'0 auto',color:'#fff'}}><h2>Replay</h2>
       <button className="circle" style=${{background:'rgba(255,255,255,.14)',color:'#fff'}} aria-label="New Replay" onClick=${()=>open.compose(true)}><${Icon} n="camera"/></button></div>
-    ${reels.map(p=>html`<${Reel} key=${p.id} p=${p} s=${s} active=${active===p.id} dispatch=${dispatch} open=${open}/>`)}
-    ${!reels.length&&html`<div className="empty" style=${{color:'#fff',paddingTop:'40vh'}}>Nothing to replay</div>`}
+    ${items.map(it=>it.live?html`<${LiveReel} key=${'live-'+it.live.id} x=${it.live} h=${lp[it.live.host_id]||liveUser(null)}/>`:html`<${Reel} key=${it.p.id} p=${it.p} s=${s} active=${active===it.p.id} dispatch=${dispatch} open=${open}/>`)}
+    ${!items.length&&html`<div className="empty" style=${{color:'#fff',paddingTop:'40vh'}}>Nothing to replay</div>`}
   </div>`;
 }
 
@@ -3323,6 +3372,41 @@ function LiveEmbed(){
 
 /* ---------- Go Live: video streams (TikTok / Instagram style) ---------- */
 // peer to peer: whoever is on camera (host, plus one guest) sends to everyone watching
+// Live camera effects: the camera is drawn onto a canvas every frame with the chosen look, and that canvas is what
+// goes out to viewers. Works in every browser (no ctx.filter needed): softening is a scaled-down copy blended back on top.
+const CAM_FX=[['none','Normal'],['smooth','Smooth'],['beauty','Beautify'],['glow','Glow'],['warm','Warm'],['cool','Cool'],['mono','Mono'],['vintage','Vintage']];
+class CamFx{
+  constructor(){this.fx='none';this.v=document.createElement('video');this.v.muted=true;this.v.playsInline=true;this.v.setAttribute('playsinline','');this.v.setAttribute('autoplay','');
+    this.c=document.createElement('canvas');this.c.width=720;this.c.height=1280;this.g=this.c.getContext('2d');
+    this.s=document.createElement('canvas');this.s.width=180;this.s.height=320;this.sg=this.s.getContext('2d');this.raf=0;this.last=0;this.tick=this.tick.bind(this)}
+  setSource(stream){this.v.srcObject=stream;this.v.play().catch(()=>{});if(!this.raf)this.raf=requestAnimationFrame(this.tick)}
+  tick(now){this.raf=requestAnimationFrame(this.tick);if(now-this.last<30)return;this.last=now;const v=this.v;if(!v.videoWidth)return;
+    const W=720,H=1280,g=this.g,k=Math.max(W/v.videoWidth,H/v.videoHeight),dw=v.videoWidth*k,dh=v.videoHeight*k;
+    g.globalCompositeOperation='source-over';g.globalAlpha=1;g.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh);
+    const fx=this.fx;if(fx==='none')return;
+    const soft=(a,op)=>{this.sg.drawImage(this.c,0,0,180,320);g.globalCompositeOperation=op||'source-over';g.globalAlpha=a;g.imageSmoothingEnabled=true;g.drawImage(this.s,0,0,W,H);g.globalAlpha=1;g.globalCompositeOperation='source-over'};
+    const tint=(op,col)=>{g.globalCompositeOperation=op;g.fillStyle=col;g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'};
+    if(fx==='smooth')soft(.5);
+    else if(fx==='beauty'){soft(.42);tint('soft-light','rgba(255,196,170,.4)');tint('screen','rgba(255,240,235,.07)')}
+    else if(fx==='glow'){soft(.45,'screen');tint('soft-light','rgba(255,150,80,.18)')}
+    else if(fx==='warm')tint('soft-light','rgba(255,120,40,.45)');
+    else if(fx==='cool')tint('soft-light','rgba(60,140,255,.45)');
+    else if(fx==='mono'){tint('saturation','hsl(0,0%,50%)');tint('soft-light','rgba(255,255,255,.12)')}
+    else if(fx==='vintage'){tint('saturation','hsla(0,0%,50%,.45)');tint('soft-light','rgba(150,90,30,.55)');tint('screen','rgba(40,20,0,.12)')}
+  }
+  stream(fps=30){try{return this.c.captureStream(fps)}catch(e){return null}}
+  stop(){cancelAnimationFrame(this.raf);this.raf=0;try{this.v.pause()}catch(e){}this.v.srcObject=null}
+}
+const canCamFx=()=>{try{return !!HTMLCanvasElement.prototype.captureStream}catch(e){return false}};
+function FxChips({fx,setFx}){return html`<div className="fx-chips" role="group" aria-label="Camera effects">${CAM_FX.map(([k,l])=>html`<button key=${k} aria-pressed=${fx===k} onClick=${e=>{e.stopPropagation();setFx(k)}}>${l}</button>`)}</div>`}
+function CamPreview({fx}){
+  const box=useRef();const p=useRef(null);
+  useEffect(()=>{let st=null,dead=false;const f=new CamFx();p.current=f;
+    navigator.mediaDevices&&navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:720},height:{ideal:1280}},audio:false}).then(s=>{if(dead){s.getTracks().forEach(t=>t.stop());return}st=s;f.setSource(s);f.c.className='gl-prev-c';box.current&&box.current.appendChild(f.c)}).catch(()=>{});
+    return()=>{dead=true;f.stop();if(st)st.getTracks().forEach(t=>t.stop());if(f.c.parentNode)f.c.parentNode.removeChild(f.c)}},[]);
+  useEffect(()=>{if(p.current)p.current.fx=fx},[fx]);
+  return html`<div className="gl-prev" ref=${box} aria-hidden="true"><i className="gl-prev-shade"></i></div>`;
+}
 class StreamEngine{
   constructor(id,me,on){this.id=id;this.me=me;this.on=on;this.pcs={};this.remote={};this.local=null;this.facing='user'}
   async join(){
@@ -3353,17 +3437,22 @@ class StreamEngine{
       else if(cand){try{await pc.addIceCandidate(cand)}catch(e){if(!st.ignore)throw e}}}catch(e){console.warn('stream',e)}}
   drop(id){const st=this.pcs[id];if(st)try{st.pc.close()}catch(e){}delete this.pcs[id];delete this.remote[id];this.on({remote:{...this.remote}})}
   async camOn(){
-    this.local=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}},audio:{echoCancellation:true,noiseSuppression:true}});
-    Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));this.on({local:this.local});
+    const raw=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}},audio:{echoCancellation:true,noiseSuppression:true}});this.raw=raw;
+    let out=raw;
+    if(canCamFx()){const f=new CamFx();f.fx=this.fx||'none';f.setSource(new MediaStream(raw.getVideoTracks()));const cs=f.stream(30);if(cs){this.camfx=f;out=new MediaStream([...cs.getVideoTracks(),...raw.getAudioTracks()])}else f.stop()}
+    this.local=out;Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));this.on({local:this.local});
   }
+  setFx(fx){this.fx=fx;if(this.camfx)this.camfx.fx=fx}
   async flip(){if(!this.local)return;this.facing=this.facing==='user'?'environment':'user';
     const ns=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}}});const nt=ns.getVideoTracks()[0];
+    if(this.camfx){this.raw.getVideoTracks().forEach(t=>{t.stop();this.raw.removeTrack(t)});this.raw.addTrack(nt);this.camfx.setSource(new MediaStream([nt]));this.on({local:this.local,facing:this.facing});return}
     Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track&&sn.track.kind==='video')sn.replaceTrack(nt)}));
     this.local.getVideoTracks().forEach(t=>{t.stop();this.local.removeTrack(t)});this.local.addTrack(nt);this.on({local:this.local,facing:this.facing})}
   setMic(on){if(this.local)this.local.getAudioTracks().forEach(t=>t.enabled=on)}
   setCam(on){if(this.local)this.local.getVideoTracks().forEach(t=>t.enabled=on)}
-  camOff(){if(!this.local)return;Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track)try{st.pc.removeTrack(sn)}catch(e){}}));this.local.getTracks().forEach(t=>t.stop());this.local=null;this.on({local:null})}
-  leave(){this.left=true;Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}}
+  stopCam(){if(this.camfx){this.camfx.stop();this.camfx=null}if(this.raw){this.raw.getTracks().forEach(t=>t.stop());this.raw=null}if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null}
+  camOff(){if(!this.local)return;Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track)try{st.pc.removeTrack(sn)}catch(e){}}));this.stopCam();this.on({local:null})}
+  leave(){this.left=true;Object.keys(this.pcs).forEach(id=>this.drop(id));this.stopCam();if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}}
 }
 function Vid({stream,mirror,muted}){const r=useRef();
   useEffect(()=>{const v=r.current;if(!v)return;v.muted=!!muted;v.defaultMuted=!!muted;v.setAttribute('playsinline','');v.setAttribute('autoplay','');
@@ -3381,14 +3470,16 @@ function useStreams(){
     const t=setInterval(load,20000);return()=>{sb.removeChannel(ch);clearInterval(t)}},[]);
   return {list,people,reload:load,setPeople};
 }
-function GoLivePage({me,onClose}){
-  const {list,people,reload,setPeople}=useStreams();const [watch,setWatch]=useState(null);const [title,setTitle]=useState('');const [err,setErr]=useState('');const [busy,setBusy]=useState(false);
+function GoLivePage({me,onClose,startWatch}){
+  const {list,people,reload,setPeople}=useStreams();const [watch,setWatch]=useState(startWatch||null);const [fx,setFx]=useState(()=>store.get('temp-livefx')||'none');
+  useEffect(()=>{store.set('temp-livefx',fx)},[fx]);const [title,setTitle]=useState('');const [err,setErr]=useState('');const [busy,setBusy]=useState(false);
   async function start(){setBusy(true);setErr('');const {data,error}=await sb.from('live_streams').insert({title:title.trim()}).select().single();setBusy(false);if(error){setErr(friendly(error));return}setTitle('');setWatch(data.id)}
-  if(watch)return html`<${StreamRoom} key=${watch} id=${watch} me=${me} people=${people} setPeople=${setPeople} onExit=${()=>{setWatch(null);reload()}}/>`;
-  return html`<div className="gl-lobby">
+  if(watch)return html`<${StreamRoom} key=${watch} id=${watch} me=${me} people=${people} setPeople=${setPeople} fx0=${fx} onFx=${setFx} onExit=${()=>{setWatch(null);reload();if(startWatch&&onClose)onClose()}}/>`;
+  return html`<div className="gl-lobby">${canCamFx()&&html`<${CamPreview} fx=${fx}/>`}
     <div className="gl-top">${onClose&&html`<button className="circle" onClick=${onClose} aria-label="Close"><${Icon} n="back"/></button>`}<h2>Go Live</h2></div>
     <div className="gl-start"><span className="gl-cam"><${Icon} n="reels" s=${30}/></span>
       <input placeholder="Say what your live is about (optional)" maxLength=${80} value=${title} onInput=${e=>setTitle(e.target.value)} aria-label="Live title"/>
+      ${canCamFx()&&html`<${FxChips} fx=${fx} setFx=${setFx}/>`}
       <button className="btn orange wide" disabled=${busy} onClick=${start}>${busy?'Starting…':'Go live'}</button>${err&&html`<p className="mod-err">${err}</p>`}</div>
     <h3 className="live-h">Live now</h3>
     ${list.length?html`<div className="gl-grid">${list.map(x=>{const h=people[x.host_id]||liveUser(null);return html`<button key=${x.id} className="gl-card" onClick=${()=>setWatch(x.id)}>
@@ -3496,7 +3587,8 @@ function GiftPanel({wallet,setWallet,targets,onSend,onClose}){
   </div>`;
 }
 
-function StreamRoom({id,me,people,setPeople,onExit}){
+function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
+  const [fx,setFxS]=useState(fx0||'none');const setFx=v=>{setFxS(v);onFx&&onFx(v);eng.current&&eng.current.setFx(v)};
   const eng=useRef(null);const [row,setRow]=useState(null);const [local,setLocal]=useState(null);const [remote,setRemote]=useState({});const [viewers,setViewers]=useState([]);
   const [chat,setChat]=useState([]);const [hearts,setHearts]=useState([]);const [txt,setTxt]=useState('');const [panel,setPanel]=useState(null);const [reqs,setReqs]=useState({});
   const [mic,setMic]=useState(true);const [cam,setCam]=useState(true);const [err,setErr]=useState('');const [asked,setAsked]=useState(false);
@@ -3543,7 +3635,7 @@ function StreamRoom({id,me,people,setPeople,onExit}){
       if(ev.gift){heard.current[ev.gift.from+'|'+ev.gift.gift]=Date.now();showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
       if(ev.req)setReqs(r=>({...r,[ev.req.from]:Date.now()}));
       if(ev.guest)loadRow()});
-    e.status=setConn;eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
+    e.status=setConn;e.fx=fx0||'none';eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
     ping();const pt=setInterval(()=>{ping();loadGifts();sb.from('live_stats').select('likes').eq('stream_id',id).maybeSingle().then(({data})=>data&&setLikes(l=>Math.max(l,+data.likes||0)))},4000);
     const ch=sb.channel('stream-row-'+id+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'UPDATE',schema:'public',table:'live_streams',filter:'id=eq.'+id},()=>loadRow()).subscribe();
     const lt=setInterval(()=>{const n=pend.current.likes;if(!n)return;pend.current.likes=0;sb.rpc('live_like',{sid:id,n}).then(()=>{});eng.current&&eng.current.send('like',{n})},1500);
@@ -3632,12 +3724,15 @@ function StreamRoom({id,me,people,setPeople,onExit}){
       ${board.length?html`<div className="gp-list">${board.slice(0,30).map(([u,n],i)=>html`<div key=${u} className="gp-row"><em className=${'rk r'+i}>${i+1}</em><${Avatar} u=${people[u]||liveUser(null)} size=${36} noRing=${true}/><b>${name(u)}</b><${LvBadge} lv=${levels[u]}/><span><${SparkIco} s=${12}/>${fmtK(n)}</span></div>`)}</div>`:html`<p className="gp-empty">No gifts yet. Be the first.</p>`}</div>`}
     ${panel==='viewers'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>${watching} watching</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
       <div className="gp-list">${allViewers.filter(v=>row&&v!==row.host_id).map(v=>{if(!people[v])who(v);return html`<div key=${v} className="gp-row"><${Avatar} u=${people[v]||liveUser(null)} size=${36} noRing=${true}/><b>${name(v)}</b><${LvBadge} lv=${levels[v]}/></div>`})}</div></div>`}
+    ${panel==='fx'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Effects</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
+      ${eng.current&&eng.current.camfx?html`<${FxChips} fx=${fx} setFx=${setFx}/>`:html`<p className="gp-empty">Effects aren’t available in this browser.</p>`}</div>`}
     ${panel==='goal'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Live goal</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
       <${GoalForm} row=${row} onSave=${(goal,label)=>{hostUpd({goal,goal_label:label});setPanel(null)}}/></div>`}
     ${panel==='host'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Live tools</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
       <div className="gp-tools">
         <button onClick=${()=>setPanel('goal')}><${SparkIco} s=${22}/><b>Goal</b><span>${row&&row.goal?fmtK(row.goal)+' Sparks':'Set a Sparks goal'}</span></button>
         <button disabled=${!row||!row.guest_id||matchOn} onClick=${startMatch}><${Icon} n="bolt" s=${22}/><b>Match</b><span>${matchOn?'In progress':row&&row.guest_id?'3 min gift battle with your guest':'Add a guest first'}</span></button>
+        <button onClick=${()=>setPanel('fx')}><${Icon} n="star" s=${22}/><b>Effects</b><span>${(CAM_FX.find(x=>x[0]===fx)||CAM_FX[0])[1]}</span></button>
         <button onClick=${()=>setPanel('board')}><${Icon} n="crown" s=${22}/><b>Top gifters</b><span>${board.length} so far</span></button>
         <button onClick=${()=>setPanel('viewers')}><${Icon} n="eye" s=${22}/><b>Viewers</b><span>${watching} watching</span></button>
       </div></div>`}
@@ -3646,6 +3741,7 @@ function StreamRoom({id,me,people,setPeople,onExit}){
       ${onCam?html`${isHost&&html`<button onClick=${()=>setPanel(panel==='host'?null:'host')} aria-label="Live tools"><${Icon} n="more" s=${20}/></button>`}
         <button onClick=${()=>{const v=!mic;setMic(v);eng.current.setMic(v)}} aria-label=${mic?'Mute':'Unmute'}><${Icon} n=${mic?'mic':'mute'} s=${20}/></button>
         <button onClick=${()=>{const v=!cam;setCam(v);eng.current.setCam(v)}} aria-label=${cam?'Turn camera off':'Turn camera on'}><${Icon} n=${cam?'reels':'eye'} s=${20}/></button>
+        <button onClick=${()=>setPanel(panel==='fx'?null:'fx')} aria-label="Effects"><${Icon} n="star" s=${20}/></button>
         <button onClick=${()=>eng.current.flip().catch(()=>{})} aria-label="Flip camera"><${Icon} n="replay" s=${20}/></button>`
       :html`${!asked&&html`<button onClick=${()=>{eng.current.send('req',{});setAsked(true)}} aria-label="Ask to join"><${Icon} n="plus" s=${20}/></button>`}
         <button className="gl-giftbtn" onClick=${()=>{setPanel(panel==='gifts'?null:'gifts');loadWallet()}} aria-label="Send a gift"><${GiftArt} id="rose" size=${26}/></button>
@@ -3662,7 +3758,8 @@ function GoalForm({row,onSave}){
 function GoLiveEmbed(){
   const [tok,setTok]=useState(EMBED_TOKEN);useEffect(()=>{window.__tempToken=t=>{EMBED_TOKEN=t;try{sb.realtime.setAuth(t)}catch(e){}setTok(t)}},[]);
   const me=jwtSub(tok);if(!me)return html`<div className="empty">Sign in to go live.</div>`;
-  return html`<div className="gl-embed"><${GoLivePage} me=${me} onClose=${()=>{try{window.ReactNativeWebView.postMessage('close')}catch(e){}}}/></div>`;
+  const sw=+(new URLSearchParams(location.search).get('stream')||0)||null;
+  return html`<div className="gl-embed"><${GoLivePage} me=${me} startWatch=${sw} onClose=${()=>{try{window.ReactNativeWebView.postMessage('close')}catch(e){}}}/></div>`;
 }
 
 function App(){
@@ -3698,7 +3795,10 @@ function App(){
     if(!uidKey){myId=null;setReady(false);raw({type:'hydrate',st:emptyState()});return}
     myId=uidKey;let alive=true;
     loadAll().then(st=>{if(!alive)return;raw({type:'hydrate',st});setReady(true);
-      if(!store.get('temp-tour-'+myId)){store.set('temp-tour-'+myId,'1');setTimeout(()=>startTourRef.current&&startTourRef.current(),600)}})
+      // the tour is for brand-new accounts only, and once it's been shown it's remembered on the account (not just this browser)
+      const fresh=session.user.created_at&&Date.now()-new Date(session.user.created_at).getTime()<36*HOUR;
+      if(fresh&&!(st.settings&&st.settings.tourDone)&&!store.get('temp-tour-'+myId)){store.set('temp-tour-'+myId,'1');dispatch({type:'set',key:'tourDone',value:true});setTimeout(()=>startTourRef.current&&startTourRef.current(),600)}
+      else store.set('temp-tour-'+myId,'1')})
       .catch(e=>{console.error(e);raw({type:'toast',msg:'Couldn’t load Temp. Check your connection and refresh.'});setReady(true)});
     const db=sb.channel('db-'+myId).on('postgres_changes',{event:'*',schema:'public'},()=>reload()).subscribe();
     const live=sb.channel('live',{config:{presence:{key:myId}}});
@@ -3715,8 +3815,8 @@ function App(){
   useEffect(()=>{if(tour===null&&view.tab!=='replay')scrollTo(0,0)},[view.tab,view.profileId,view.threadId,setSub]);
   useEffect(()=>{const r=document.documentElement;if(s.settings.theme==='system')delete r.dataset.theme;else r.dataset.theme=s.settings.theme},[s.settings.theme]);
   useEffect(()=>{const t=SHOP.themes.find(x=>x.id===s.theme);const r=document.documentElement.style;
-    document.documentElement.classList.toggle('glowing',!!(t&&t.glow));
-    if(!t||t.id==='ember'){r.removeProperty('--orange');r.removeProperty('--orange-2')}else{r.setProperty('--orange',t.c[0]);r.setProperty('--orange-2',t.c[1])}},[s.theme]);
+    document.documentElement.classList.toggle('glowing',!!(t&&t.glow));document.documentElement.classList.toggle('blackout',!!(t&&t.mono));
+    if(!t||t.id==='ember'||t.mono){r.removeProperty('--orange');r.removeProperty('--orange-2')}else{r.setProperty('--orange',t.c[0]);r.setProperty('--orange-2',t.c[1])}},[s.theme]);
   useEffect(()=>{if(!s.settings.breakMins)return;const t=setTimeout(()=>setBreakOpen(true),s.settings.breakMins*60e3);return()=>clearTimeout(t)},[s.settings.breakMins,breakOpen]);
 
   const onTyping=useCallback(id=>{const now=Date.now();if(now-lastTyping.current<1500||!liveCh||id==='temp')return;lastTyping.current=now;
@@ -3762,7 +3862,8 @@ function App(){
   const unreadN=s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]).length;
 
   // hidden Go Live page: swipe in from the left edge on home (or tap the tab that peeks out now and then)
-  const [side,setSide]=useState(false);const [peek,setPeek]=useState(false);
+  const [side,setSide]=useState(false);const [peek,setPeek]=useState(false);const [sideWatch,setSideWatch]=useState(null);
+  useEffect(()=>{window.__openLive=id=>{setSideWatch(id);setSide(true)};return()=>{window.__openLive=null}},[]);
   useEffect(()=>{window.__openGoLive=view.tab==='home'?()=>setSide(true):null;return()=>{window.__openGoLive=null}},[view.tab]);
   useEffect(()=>{if(view.tab!=='home'||side)return;let t,h;const plan=()=>{t=setTimeout(()=>{if(Math.random()<.4){setPeek(true);h=setTimeout(()=>setPeek(false),2600)}plan()},(90+Math.random()*330)*1000)};plan();
     return()=>{clearTimeout(t);clearTimeout(h);setPeek(false)}},[view.tab,side]);
@@ -3776,7 +3877,7 @@ function App(){
   if(view.tab==='home'){
     body=html`<${Home} s=${s} dispatch=${dispatch} open=${openSafe} tourIds=${tourIds} addStory=${addStory}/>`;
     top=html`<div className="top"><div className="top-row">
-        <h1 className="logo">temp<i></i></h1>
+        <h1 className="logo"><button className="logo-btn" aria-label="Temp home — back to the top" onClick=${()=>{setView({tab:'home'});scrollTo({top:0,behavior:'smooth'})}}>temp<i></i></button></h1>
         <div className="top-actions">
           <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${Icon} n="heart"/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
           <button className="circle" aria-label="Messages" onClick=${guard(()=>setView({tab:'dms'}))}><${Icon} n="dm"/>${unread>0&&html`<span className="badge">${unread}</span>`}</button>
@@ -3821,7 +3922,7 @@ function App(){
     ${body}
 
     ${view.tab==='home'&&html`<button className=${'gl-peek'+(peek?' show':'')} onClick=${()=>{setPeek(false);setSide(true)}} aria-label="Open Go Live"><b>GO LIVE</b></button>`}
-    <div className=${'gl-side'+(side?' open':'')} aria-hidden=${!side} onTouchStart=${e=>{const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${side&&html`<${GoLivePage} me=${myId} onClose=${()=>setSide(false)}/>`}</div>
+    <div className=${'gl-side'+(side?' open':'')} aria-hidden=${!side} onTouchStart=${e=>{const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${side&&html`<${GoLivePage} key=${sideWatch||'lobby'} me=${myId} startWatch=${sideWatch} onClose=${()=>{setSide(false);setSideWatch(null)}}/>`}</div>
     <nav className=${'nav'+(isReplay?' dark':'')} aria-label="Main"><div className="nav-in">
       <button aria-label="Home" aria-current=${view.tab==='home'?'page':null} onClick=${guard(()=>setView({tab:'home'}))}><${Icon} n="home" s=${25}/></button>
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>

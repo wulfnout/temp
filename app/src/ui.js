@@ -43,18 +43,18 @@ export function FlowBox({ r = 15, style, children, ...rest }) {
 }
 export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon }) {
   const { C } = useApp(); const [pressed, setPressed] = useState(false);
-  const bg = kind === 'orange' ? '#ee5f1f' : kind === 'ghost' ? C.soft : C.ink;
+  const bg = kind === 'orange' ? (C.mono ? C.orange : '#ee5f1f') : kind === 'ghost' ? C.soft : C.ink;
   const glow = kind === 'orange' && C.glow && !disabled ? { shadowColor: C.orange, shadowOpacity: 0.85, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 8 } : null;
   const fg = kind === 'orange' ? C.onOrange : kind === 'ghost' ? C.ink : C.bg;
   const flow = React.useMemo(() => flowRadii(hashStr(title || '')), [title]);
   return (
     <Animated.View style={[glow, flow, { backgroundColor: bg, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
-      {kind === 'orange' ? <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }, flow]}>
+      {kind === 'orange' && !C.mono ? <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }, flow]}>
         <LinearGradient colors={['#ee5f1f', '#f58a3d', '#ffb36b', '#f7924a']} locations={[0, 0.42, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} /></Animated.View> : null}
       <Pressable onPress={onPress} disabled={disabled} onPressIn={() => setPressed(true)} onPressOut={() => setPressed(false)} accessibilityRole="button" accessibilityLabel={title}
         style={{ flexGrow: 1, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
         {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
-        <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14, textShadowColor: kind === 'orange' ? 'rgba(140,40,0,.35)' : 'transparent', textShadowRadius: 2 }}>{title}</Text>
+        <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14, textShadowColor: kind === 'orange' && !C.mono ? 'rgba(140,40,0,.35)' : 'transparent', textShadowRadius: 2 }}>{title}</Text>
       </Pressable>
     </Animated.View>
   );
@@ -163,7 +163,7 @@ function ThermoBar({ frac, tier }) {
   const fill = useRef(new Animated.Value(0)).current; const bub = useRef(new Animated.Value(0)).current;
   useEffect(() => { const t = setTimeout(() => Animated.timing(fill, { toValue: frac, duration: 1400, easing: Easing.bezier(0.2, 0.9, 0.3, 1), useNativeDriver: false }).start(), 80); return () => clearTimeout(t); }, [frac]);
   useEffect(() => { const l = Animated.loop(Animated.timing(bub, { toValue: 1, duration: 2600 * 3, easing: Easing.linear, useNativeDriver: true })); bub.setValue(0); l.start(); return () => l.stop(); }, []);
-  const G = (tier && tier[2]) || ['#ff2d00', '#ff6a1a', '#ffd27a']; const nova = tier && tier[1] === 'Supernova';
+  const G = (tier && tier[2]) || (C.mono ? [C.orange, C.orange2, C.orange2] : ['#ff2d00', '#ff6a1a', '#ffd27a']); const nova = tier && tier[1] === 'Supernova';
   const glow = useRef(new Animated.Value(0)).current;
   useEffect(() => { if (!nova) return; const l = Animated.loop(Animated.sequence([Animated.timing(glow, { toValue: 1, duration: 1200, useNativeDriver: true }), Animated.timing(glow, { toValue: 0, duration: 1200, useNativeDriver: true })])); l.start(); return () => l.stop(); }, [nova]);
   const box = (x, y, w, h, extra) => ({ position: 'absolute', left: x * k, top: y * k, width: w * k, height: h * k, ...extra });

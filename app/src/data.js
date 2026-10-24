@@ -88,7 +88,7 @@ export async function loadAll(myId) {
 /* ---------- writes (the database enforces every rule) ---------- */
 export const act = {
   react: (postId, kind) => ok(sb.from('reactions').insert({ post_id: postId, kind })),
-  view: (postId) => sb.rpc('add_view', { pid: postId }),
+  view: (postId) => sb.rpc('add_view', { pid: postId }).then(() => {}, () => {}), // builders only run once awaited/then'd
   repost: (postId, reposted, me) => (reposted ? ok(sb.from('reposts').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('reposts').insert({ post_id: postId }))),
   save: (postId, saved, me) => (saved ? ok(sb.from('saves').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('saves').insert({ post_id: postId }))),
   async post(me, { text, asset, reel, overlay }) {
@@ -108,7 +108,7 @@ export const act = {
   storyReact: (id, emoji, current, me) => (current === emoji
     ? ok(sb.from('story_reactions').delete().eq('story_id', id).eq('user_id', me))
     : ok(sb.from('story_reactions').upsert({ story_id: id, user_id: me, emoji }, { onConflict: 'story_id,user_id' }))),
-  seenStory: (id) => sb.from('story_views').upsert({ story_id: id }, { onConflict: 'story_id,user_id', ignoreDuplicates: true }),
+  seenStory: (id) => sb.from('story_views').upsert({ story_id: id }, { onConflict: 'story_id,user_id', ignoreDuplicates: true }).then(() => {}, () => {}),
   dm: (to, { text, sticker, post, note, audio, ms }) => {
     const snap = post ? { userId: post.userId, text: post.text, media: post.mediaUrl ? { type: post.mediaType || (post.reel ? 'video' : 'image'), url: post.mediaUrl } : null } : null;
     return ok(sb.from('messages').insert({ recipient: to, text: text || '', sticker: sticker || null, post_id: post ? post.id : null, snap, note: note || null, audio_url: audio || null, audio_ms: ms || null }));
@@ -136,3 +136,6 @@ export const act = {
     : ok(sb.from('profiles').update(kind === 'rings' ? { ring: id } : { header_fx: id }).eq('id', me))),
   profileStickers: (me, list) => ok(sb.from('profiles').update({ stickers: list }).eq('id', me)),
 };
+// Supabase queries only run once something awaits them, so fire-and-forget calls (views, seen,
+// read receipts) silently did nothing. Every action now starts its query right away.
+Object.keys(act).forEach((k) => { const f = act[k]; act[k] = (...a) => { const r = f(...a); return r && typeof r.then === 'function' && !(r instanceof Promise) ? Promise.resolve(r) : r; }; });

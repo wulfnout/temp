@@ -21,7 +21,7 @@ AppState.addEventListener('change', (st) => {
 const LIGHT = { bg: '#eeedeb', card: '#ffffff', soft: '#f4f3f1', ink: '#0a0a0a', muted: '#7c7671', line: '#e2dfdb', orange: '#ff5500', orange2: '#ff8a2b', onOrange: '#ffffff', scrim: 'rgba(10,10,10,.45)' };
 const DARK = { bg: '#000000', card: '#111111', soft: '#1c1c1c', ink: '#ffffff', muted: '#8d8883', line: '#252525', orange: '#ff5c0a', orange2: '#ff8f33', onOrange: '#ffffff', scrim: 'rgba(0,0,0,.66)' };
 export const THEMES = {
-  ember: ['#ff5500', '#ff8a2b'], inferno: ['#ff1f1f', '#ff7a00'], solar: ['#ff9500', '#ffc400'], blush: ['#ff4d6d', '#ff9f7a'], neon: ['#ff2bd6', '#ff8a2b'],
+  ember: ['#ff5500', '#ff8a2b'], blackout: ['#0a0a0a', '#3a3a3a'], inferno: ['#ff1f1f', '#ff7a00'], solar: ['#ff9500', '#ffc400'], blush: ['#ff4d6d', '#ff9f7a'], neon: ['#ff2bd6', '#ff8a2b'],
   volcano: ['#c1121f', '#ff4d00'], toxic: ['#5fd400', '#d4ff3a'], ocean: ['#0077ff', '#00d4c8'], grape: ['#7c3aed', '#d946ef'], sunset: ['#ff5e62', '#ffb347'],
   cyber: ['#00d9ff', '#ff00d4'], rust: ['#a63c06', '#e07a2f'], bubblegum: ['#ff5fa2', '#ffb3d9'],
   // glowing themes: accents light up
@@ -35,6 +35,8 @@ export function useColors(theme, mode) {
   const dark = mode === 'dark' ? true : mode === 'light' ? false : sys === 'dark';
   const base = dark ? DARK : LIGHT;
   const t = THEMES[theme] || THEMES.ember;
+  // Blackout (free): every accent is black, or white when the phone is in dark mode — logo included
+  if (theme === 'blackout') return { ...base, orange: dark ? '#ffffff' : '#0a0a0a', orange2: dark ? '#cfcfcf' : '#3a3a3a', onOrange: dark ? '#000000' : '#ffffff', dark, glow: false, mono: true };
   return { ...base, orange: t[0], orange2: t[1], dark, glow: !!GLOW[theme] };
 }
 export const F = { display: 'Unbounded_800ExtraBold', displayB: 'Unbounded_700Bold', body: 'Figtree_500Medium', bold: 'Figtree_700Bold', heavy: 'Figtree_800ExtraBold' };

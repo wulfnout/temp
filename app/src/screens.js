@@ -9,6 +9,7 @@ import { PostCard, Video, RichText, useVideoTaps } from './posts';
 import { VoiceBubble, useVoiceRecorder, fmtSec } from './voice';
 import { act } from './data';
 import { ReplayOverlay } from './recorder';
+import { useLiveNow } from './live';
 import { GifPicker } from './gif';
 import { GoLiveSide } from './live';
 import { sb, ago, kfmt, F, THEMES, tempOf, upload, friendly } from './lib';
@@ -88,6 +89,30 @@ export function HomeScreen() {
 }
 
 /* ---------------- replay ---------------- */
+// a live creator in the Replay feed: blurred backdrop, pulsing ring, tap anywhere to join
+function LiveCard({ x, h, onOpen }) {
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => { const l = Animated.loop(Animated.timing(pulse, { toValue: 1, duration: 2000, easing: Easing.out(Easing.quad), useNativeDriver: true })); l.start(); return () => l.stop(); }, []);
+  const host = x.host || {}; const u = { id: x.host_id, name: host.name || host.handle || 'Someone', handle: host.handle, avatar: host.avatar_url };
+  const ring = (d) => ({ position: 'absolute', width: 150, height: 150, borderRadius: 75, borderWidth: 3, borderColor: '#ff2d55',
+    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: d ? [0.5, 0] : [1, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: d ? [1.05, 1.5] : [0.85, 1.3] }) }] });
+  return (
+    <Pressable onPress={onOpen} style={{ height: h, backgroundColor: '#120604', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }} accessibilityLabel={'Watch ' + u.name + ' live'}>
+      {u.avatar ? <Image source={{ uri: u.avatar }} blurRadius={40} style={{ position: 'absolute', top: -40, left: -40, right: -40, bottom: -40, opacity: 0.6 }} /> : null}
+      <LinearGradient colors={['rgba(255,85,0,.28)', 'rgba(0,0,0,.25)', 'rgba(0,0,0,.75)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+      <View style={{ width: 150, height: 150, alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View style={ring(0)} /><Animated.View style={ring(1)} />
+        <View style={{ borderRadius: 70, borderWidth: 4, borderColor: '#ff2d55' }}><Avatar u={u} size={124} /></View>
+      </View>
+      <View style={{ backgroundColor: '#ff2d2d', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginTop: 12 }}><T h style={{ color: '#fff', fontSize: 11, letterSpacing: 1 }}>LIVE</T></View>
+      <T d style={{ color: '#fff', fontSize: 26, letterSpacing: -1, marginTop: 8 }}>{u.name}</T>
+      {x.title ? <T style={{ color: 'rgba(255,255,255,.9)', fontSize: 15, marginTop: 4, textAlign: 'center', paddingHorizontal: 30 }}>{x.title}</T> : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 }}><Ionicons name="eye-outline" size={14} color="rgba(255,255,255,.85)" /><T h style={{ color: 'rgba(255,255,255,.85)', fontSize: 13 }}>{x.watching} watching</T></View>
+      <View style={{ position: 'absolute', bottom: 60 }}><Btn kind="orange" title="Watch LIVE" onPress={onOpen} /></View>
+    </Pressable>
+  );
+}
+
 export function ReplayScreen({ startId }) {
   const { s, C, nav } = useApp(); const ins = useSafeAreaInsets();
   const [H, setH] = useState(0); // exact page height, measured, so the next Replay never peeks in
@@ -96,19 +121,24 @@ export function ReplayScreen({ startId }) {
     onPanResponderRelease: (e, d) => { if (d.dx > 70 || d.vx > 0.5) nav.leaveReplay(); },
     onPanResponderTerminationRequest: () => false,
   })).current;
-  const reels = s.posts.filter((p) => p.reel && !s.blocked[p.userId]);
+  const reels0 = s.posts.filter((p) => p.reel && !s.blocked[p.userId]);
+  // live creators slot in after the 2nd Replay, then every 5 — like TikTok
+  const lives = useLiveNow().filter((x) => !s.blocked[x.host_id]);
+  const reels = React.useMemo(() => { const out = []; let li = 0;
+    reels0.forEach((p, i) => { out.push(p); if (li < lives.length && (i === 1 || (i > 1 && (i - 1) % 5 === 0))) out.push({ id: 'live-' + lives[li].id, live: lives[li++] }); });
+    if (!reels0.length) lives.forEach((l) => out.push({ id: 'live-' + l.id, live: l })); return out; }, [reels0, lives]);
   const startIndex = Math.max(0, reels.findIndex((p) => p.id === startId));
   const [active, setActive] = useState(startId || (reels[0] && reels[0].id));
   useEffect(() => { if (!active && reels[0]) setActive(reels[0].id); }, [reels.length]);
   useEffect(() => { if (startId) setActive(startId); }, [startId]);
-  const onViewable = useRef(({ viewableItems }) => { const v = viewableItems[0]; if (v) { setActive(v.item.id); act.view(v.item.id); } }).current;
+  const onViewable = useRef(({ viewableItems }) => { const v = viewableItems[0]; if (v) { setActive(v.item.id); if (!v.item.live) act.view(v.item.id); } }).current;
   return (
     <View {...swipe.panHandlers} onLayout={(e) => { const h = Math.round(e.nativeEvent.layout.height); if (h && h !== H) setH(h); }} style={{ flex: 1, backgroundColor: '#000' }}>
       {H ? <FlatList key={'reels-' + (startId || 'top') + H} data={reels} keyExtractor={(p) => String(p.id)} pagingEnabled showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" snapToInterval={H} decelerationRate="fast"
         initialScrollIndex={reels.length ? startIndex : undefined} windowSize={3} maxToRenderPerBatch={2} initialNumToRender={2}
         getItemLayout={(_, i) => ({ length: H, offset: H * i, index: i })} onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
         ListEmptyComponent={<View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}><T b style={{ color: '#fff' }}>No Replays yet. Tap + to post one.</T></View>}
-        renderItem={({ item }) => <Reel p={item} h={H} active={item.id === active} />} /> : null}
+        renderItem={({ item }) => item.live ? <LiveCard x={item.live} h={H} onOpen={() => nav.push('golive', { stream: item.live.id })} /> : <Reel p={item} h={H} active={item.id === active} />} /> : null}
       <View pointerEvents="box-none" style={{ position: 'absolute', top: ins.top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
         <T d style={{ color: '#fff', fontSize: 22, letterSpacing: -1, flex: 1 }}>Replay</T>
         <IconBtn name="videocam-outline" color="#fff" label="New Replay" style={{ backgroundColor: 'rgba(255,255,255,.14)' }} onPress={() => nav.sheet('compose', { reel: true })} />

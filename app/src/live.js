@@ -43,10 +43,10 @@ export function LiveScreen() {
 
 // Go Live: a hidden page to the left of the home feed. Swipe in from the left edge to open it,
 // swipe back (or tap back) to close. Every so often a little "GO LIVE" tab peeks out as a hint.
-function GoLiveWeb({ onClose }) {
+function GoLiveWeb({ onClose, stream }) {
   const { C } = useApp(); const web = useRef(null); const [uri, setUri] = useState(null);
   useEffect(() => {
-    sb.auth.getSession().then(({ data }) => { const t = data.session && data.session.access_token; if (t) setUri(SITE + '?embed=golive&theme=' + (C.dark ? 'dark' : 'light') + '&accent=' + encodeURIComponent(C.orange) + '#t=' + encodeURIComponent(t)); });
+    sb.auth.getSession().then(({ data }) => { const t = data.session && data.session.access_token; if (t) setUri(SITE + '?embed=golive' + (stream ? '&stream=' + stream : '') + '&theme=' + (C.dark ? 'dark' : 'light') + '&accent=' + encodeURIComponent(C.orange) + '#t=' + encodeURIComponent(t)); });
     const { data: sub } = sb.auth.onAuthStateChange((ev, ses) => { if (ses && web.current) web.current.injectJavaScript('window.__tempToken&&window.__tempToken(' + JSON.stringify(ses.access_token) + ');true;'); });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -86,4 +86,29 @@ export function GoLiveSide() {
       <GoLiveWeb onClose={() => show(false)} />
     </Animated.View> : null}
   </>;
+}
+
+// a specific live, opened from the Replay feed (full screen, back closes it)
+export function GoLiveScreen({ stream }) {
+  const { C, nav } = useApp();
+  return <View style={{ flex: 1, backgroundColor: C.bg }}><GoLiveWeb stream={stream} onClose={() => nav.back()} /></View>;
+}
+
+// who's live right now, refreshed every 30s, for mixing into the Replay feed
+export function useLiveNow() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    let dead = false;
+    const load = async () => {
+      const since = new Date(Date.now() - 75e3).toISOString();
+      const { data } = await sb.from('live_streams').select('id,host_id,title,created_at').is('ended_at', null).gte('last_seen', since).order('created_at', { ascending: false }).limit(10);
+      if (!data || dead) return; const ids = [...new Set(data.map((x) => x.host_id))]; let prof = [];
+      if (ids.length) { const r = await sb.from('profiles').select('id,name,handle,avatar_url,ring').in('id', ids); prof = r.data || []; }
+      const pm = Object.fromEntries(prof.map((p) => [p.id, p]));
+      const out = await Promise.all(data.map(async (x) => { const r = await sb.from('live_viewers').select('user_id', { count: 'exact', head: true }).eq('stream_id', x.id).gte('last_seen', new Date(Date.now() - 45e3).toISOString()); return { ...x, host: pm[x.host_id] || null, watching: Math.max(0, (r.count || 0) - 1) }; }));
+      if (!dead) setList(out);
+    };
+    load(); const t = setInterval(load, 30000); return () => { dead = true; clearInterval(t); };
+  }, []);
+  return list;
 }

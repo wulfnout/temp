@@ -81,12 +81,12 @@ export function Avatar({ u, size = 40 }) {
     ? <Image source={{ uri: u.avatar }} style={{ width: s, height: s, borderRadius: s / 2 }} />
     : <View style={{ width: s, height: s, borderRadius: s / 2, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>;
   if (!u.ring) return inner(size);
-  if (u.ring === 'fire') return <FireRing size={size} bg={C.card}>{inner(size - 8)}</FireRing>;
+  if (u.ring === 'fire') return <FireRing size={size} bg={C.card}>{inner(size - 6)}</FireRing>;
   if (u.ring === 'morph') return <MorphRing size={size} bg={C.card}>{(s) => u.avatar ? <Image source={{ uri: u.avatar }} style={{ width: s, height: s }} />
     : <View style={{ width: s, height: s, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>}</MorphRing>;
-  if (u.ring === 'glitch') return <GlitchRing size={size} bg={C.card}>{inner(size - 8)}</GlitchRing>;
+  if (u.ring === 'glitch') return <GlitchRing size={size} bg={C.card}>{inner(size - 6)}</GlitchRing>;
   return (
-    <SpinRing size={size} ring={u.ring} bg={C.card} accent={[C.orange, C.orange2]}>{inner(size - 8)}</SpinRing>
+    <SpinRing size={size} ring={u.ring} bg={C.card} accent={[C.orange, C.orange2]}>{inner(size - 6)}</SpinRing>
   );
 }
 

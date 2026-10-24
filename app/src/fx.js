@@ -100,7 +100,7 @@ export function FireRing({ size, children, bg }) {
         transform: [{ rotate: slow.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
         <LinearGradient colors={['#ff2d00', '#ffd27a', '#ff8a2b', '#ff2d00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />
       </Animated.View>
-      <View style={{ padding: 2, borderRadius: size, backgroundColor: bg }}>{children}</View>
+      <View style={{ padding: 1, borderRadius: size, backgroundColor: bg }}>{children}</View>
     </View>
   );
 }
@@ -115,7 +115,7 @@ export function GlitchRing({ size, children, bg }) {
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <LinearGradient colors={['#ff2d55', '#0a0a0a', '#00e5ff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2 }} />
-      <View style={{ padding: 2, borderRadius: size, backgroundColor: bg }}>{children}</View>
+      <View style={{ padding: 1, borderRadius: size, backgroundColor: bg }}>{children}</View>
       {/* split color channels jumping around */}
       {ring('#00e5ff', jitter(c, 11, -size * 0.06, size * 0.06, 12, true), jitter(c, 12, -size * 0.03, size * 0.03, 12, true), jitter(c, 21, 0.4, 0.95, 12, true))}
       {ring('#ff2d55', jitter(c2, 31, -size * 0.06, size * 0.06, 12, true), jitter(c2, 32, -size * 0.03, size * 0.03, 12, true), jitter(c2, 41, 0.4, 0.95, 12, true))}
@@ -153,7 +153,7 @@ export function SpinRing({ size, ring, bg, accent, children }) {
       <Animated.View style={{ position: 'absolute', width: size * 1.45, height: size * 1.45, transform: [{ rotate: c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
         <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />
       </Animated.View>
-      <View style={{ padding: 2, borderRadius: size, backgroundColor: bg }}>{children}</View>
+      <View style={{ padding: 1, borderRadius: size, backgroundColor: bg }}>{children}</View>
     </View>
   );
 }
@@ -169,7 +169,7 @@ export function MorphRing({ size, bg, children }) {
   const c = clock(3600), r = jsClock(6000);
   const corner = (ph, k) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => size * k * (0.5 + 0.13 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
   const radii = (k) => ({ borderTopLeftRadius: corner(0, k), borderTopRightRadius: corner(0.27, k), borderBottomRightRadius: corner(0.55, k), borderBottomLeftRadius: corner(0.8, k) });
-  const inner = size - 8;
+  const inner = size - 6;
   return (
     <Animated.View style={{ width: size, height: size, transform: [
       { scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.06, 0.97, 1.03, 1] }) },

@@ -453,6 +453,11 @@ img,video{max-width:100%;display:block}
 .thermo{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--soft);border-radius:22px;padding:14px 16px;margin-top:14px}
 .t-main{flex:1 1 150px;min-width:130px;max-width:260px}
 .t-main svg{width:100%;height:auto;display:block;overflow:visible}
+.t-main svg.over{filter:drop-shadow(0 0 6px var(--tg))}
+.t-main svg.nova{animation:novag 2.4s ease-in-out infinite}
+@keyframes novag{0%,100%{filter:drop-shadow(0 0 6px #ff2bd6) drop-shadow(0 0 14px rgba(47,232,255,.5))}50%{filter:drop-shadow(0 0 12px #2fe8ff) drop-shadow(0 0 22px rgba(255,43,214,.7))}}
+.t-level.nova{background:linear-gradient(90deg,#ff2bd6,#fff,#2fe8ff,#ff2bd6);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;animation:novat 3s linear infinite}
+@keyframes novat{to{background-position:200% 0}}
 .t-stats{flex:0 0 auto;min-width:0}
 .t-stk{display:flex;gap:6px;align-items:center;margin-left:auto}
 .t-stk .sticker{font-size:40px;cursor:default}
@@ -698,6 +703,114 @@ img,video{max-width:100%;display:block}
 .gl-bar input{flex:1;min-width:0;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.35);border-radius:999px;padding:10px 14px;color:#fff;font-size:16px}
 .gl-bar input::placeholder{color:rgba(255,255,255,.75)}
 .gl-bar button{flex:none;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;font-size:20px}
+.gl-room{-webkit-user-select:none;user-select:none}
+.gl-head .gl-who span{display:inline-flex;align-items:center;gap:3px}
+.gl-top3{display:flex;flex:none;padding:0}.gl-top3 span{margin-left:-8px;border-radius:50%;border:2px solid #ffc23d;display:grid;line-height:0}.gl-top3 span.r1{border-color:#cfd8de}.gl-top3 span.r2{border-color:#d9824a}.gl-top3 span:first-child{margin-left:0}
+.gl-count{color:#fff}
+.gl-sub{position:absolute;left:12px;right:12px;top:calc(56px + env(safe-area-inset-top,0px));z-index:3;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gl-title{font-size:12px;font-weight:700;background:rgba(0,0,0,.35);border-radius:999px;padding:3px 9px;max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-earn{display:inline-flex;align-items:center;gap:3px;font-weight:800;font-size:12px;background:rgba(0,0,0,.35);border-radius:999px;padding:3px 9px}
+.gl-goal{position:absolute;left:12px;width:min(230px,62%);top:calc(84px + env(safe-area-inset-top,0px));z-index:3;background:rgba(0,0,0,.45);border-radius:14px;padding:7px 10px;display:grid;gap:5px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.gl-goal-t{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;font-weight:800}.gl-goal-t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gl-goal-t b{display:inline-flex;align-items:center;gap:2px;flex:none}
+.gl-goal-b{height:6px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}.gl-goal-b i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ff2d00,#ff8a2b,#ffd27a);transition:width .6s}
+.gl-goal em{font-style:normal;font-size:11px;font-weight:800;color:#ffd27a}
+.gl-match{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);z-index:3;display:grid;justify-items:center;gap:4px;pointer-events:none}
+.gl-mbar{width:100%;display:flex;height:22px}.gl-mbar i{display:flex;align-items:center;min-width:56px;transition:flex .6s;font-style:normal}
+.gl-mbar i:first-child{background:linear-gradient(90deg,#ff2d00,#ff8a2b);padding-left:10px}.gl-mbar i:last-child{background:linear-gradient(90deg,#2a7fff,#4fd2ff);justify-content:flex-end;padding-right:10px}
+.gl-mbar b{font-family:var(--display);font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.gl-mt{font-family:var(--display);font-weight:800;font-size:13px;background:rgba(0,0,0,.6);border-radius:999px;padding:3px 12px}
+.gl-res{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);font-family:var(--display);font-weight:800;font-size:clamp(36px,12vw,64px);letter-spacing:-.04em;z-index:2;animation:resin .5s cubic-bezier(.2,1.6,.4,1)}
+.gl-res.win{color:#ffd27a;text-shadow:0 0 24px rgba(255,138,43,.9),0 4px 0 #ff2d00}.gl-res.lose{color:#cfd8de;opacity:.85}.gl-res.draw{color:#fff}
+@keyframes resin{from{transform:translate(-50%,-50%) scale(2.2) rotate(-8deg);opacity:0}}
+.gl-pin{position:absolute;left:12px;right:12px;top:calc(140px + env(safe-area-inset-top,0px));z-index:3;display:flex;gap:8px;align-items:flex-start;background:rgba(0,0,0,.55);border-radius:14px;padding:8px 10px;font-size:13px}
+.gl-pin>div{flex:1;min-width:0;overflow-wrap:anywhere}.gl-pin button{color:#fff;opacity:.8}
+.gl-banners{position:absolute;left:10px;bottom:calc(250px + env(safe-area-inset-bottom,0px));z-index:4;display:grid;gap:8px;pointer-events:none}
+.gb{display:flex;align-items:center;gap:7px;padding:3px 62px 3px 3px;border-radius:999px;background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.25));position:relative;animation:gbin .32s cubic-bezier(.2,1.2,.4,1);max-width:78vw}
+.gb.hot{background:linear-gradient(90deg,rgba(255,85,0,.75),rgba(255,138,43,.25))}
+.gb-t{display:grid;min-width:0}.gb-t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gb-t span{font-size:11.5px;opacity:.85;white-space:nowrap}
+.gb .gart{position:absolute;right:6px;top:50%;transform:translateY(-50%) scale(1.15);filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+.gb-n{position:absolute;left:100%;margin-left:6px;font-style:normal;font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.04em;color:#ffd27a;text-shadow:0 2px 0 #ff2d00,0 0 12px rgba(255,85,0,.7);animation:gbn .35s cubic-bezier(.2,1.8,.4,1);white-space:nowrap}
+@keyframes gbin{from{transform:translateX(-110%);opacity:0}}
+@keyframes gbn{from{transform:scale(2);opacity:.2}}
+.gl-chat p{display:block}.gl-chat p.join{opacity:.8;font-size:13px}.gl-chat p .gart{vertical-align:-4px}
+.lv{display:inline-flex;align-items:center;gap:1px;font-size:10px;font-weight:900;border-radius:999px;padding:1px 6px 1px 4px;margin-right:4px;vertical-align:1px;background:linear-gradient(90deg,#ff5500,#ff8a2b);color:#fff;text-shadow:none}
+.lv.l2{background:linear-gradient(90deg,#c81d00,#ff2d55)}.lv.l3{background:linear-gradient(90deg,#7a2cff,#ffc23d)}
+.gl-menu{position:absolute;left:12px;right:12px;bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:6;background:rgba(18,18,18,.96);border-radius:18px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gl-menu p{flex:1 1 100%;margin:0 0 4px;font-size:14px}
+.gl-tap{position:absolute;z-index:4;font-size:44px;pointer-events:none;transform:translate(-50%,-50%) rotate(var(--r));animation:tapl .9s ease-out forwards}
+@keyframes tapl{0%{transform:translate(-50%,-50%) rotate(var(--r)) scale(.3);opacity:0}25%{transform:translate(-50%,-50%) rotate(var(--r)) scale(1.25);opacity:1}100%{transform:translate(-50%,-150%) rotate(var(--r)) scale(.9);opacity:0}}
+.gl-combo{position:absolute;right:14px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:6;width:82px;height:82px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff8a2b,#ff5500 60%,#c81d00);color:#fff;display:grid;place-items:center;align-content:center;gap:0;box-shadow:0 0 24px rgba(255,85,0,.6);animation:combop .25s cubic-bezier(.2,1.8,.4,1)}
+.gl-combo:active{transform:scale(.92)}
+.gl-combo .cring{position:absolute;inset:-4px;width:90px;height:90px;transform:rotate(-90deg)}.gl-combo .gart{margin-bottom:-2px}.gl-combo .cr{fill:none;stroke:#ffd27a;stroke-width:4;stroke-linecap:round;stroke-dasharray:233;animation:combor 3s linear forwards}
+.gl-combo b{font-family:var(--display);font-size:15px;line-height:1}.gl-combo span{font-size:9.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;opacity:.9}
+@keyframes combor{to{stroke-dashoffset:233}}@keyframes combop{from{transform:scale(.6)}}
+.gl-giftbtn{background:linear-gradient(135deg,#ff2d55,#ff8a2b)!important}
+.gp{position:absolute;left:0;right:0;bottom:0;z-index:7;background:rgba(14,14,14,.97);border-radius:24px 24px 0 0;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;max-height:72%;overflow-y:auto;animation:edup .25s cubic-bezier(.2,.9,.3,1)}
+.gp-head{display:flex;align-items:center;gap:8px}.gp-head h3{flex:1;margin:0;font-family:var(--display);font-size:17px;letter-spacing:-.03em}
+.gp-tabs{flex:1;display:flex;gap:16px}.gp-tabs button{color:rgba(255,255,255,.5);font-weight:800;font-size:15px;padding:4px 0;border-bottom:2px solid transparent}.gp-tabs button[aria-pressed="true"]{color:#fff;border-color:var(--orange)}
+.gp-bal{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border-radius:999px;padding:6px 6px 6px 10px;color:#fff;font-weight:800;font-size:14px}
+.gp-bal span{background:var(--orange);border-radius:999px;padding:2px 9px;font-size:12px;margin-left:2px}
+.gp-x{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.08)}
+.gp-to{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;font-weight:800;color:rgba(255,255,255,.6)}
+.gp-to button{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font-weight:800;font-size:13px}.gp-to button[aria-pressed="true"]{background:var(--orange)}
+.gp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.gp-item{position:relative;display:grid;justify-items:center;gap:2px;padding:8px 2px 6px;border-radius:16px;color:#fff;border:1.5px solid transparent;min-width:0}
+.gp-item b{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.gp-item>span{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:800;color:rgba(255,255,255,.7)}
+.gp-item.big .gart{filter:drop-shadow(0 0 8px rgba(255,138,43,.55))}
+.gp-item.on{background:rgba(255,85,0,.14);border-color:var(--orange)}.gp-item.on .gart{animation:gwig .9s ease-in-out infinite}
+.gp-send{position:absolute;left:4px;right:4px;bottom:4px;background:var(--orange);border-radius:10px;padding:6px 0;font-style:normal;font-weight:900;font-size:13px}
+@keyframes gwig{0%,100%{transform:scale(1.05) rotate(-5deg)}50%{transform:scale(1.15) rotate(5deg)}}
+.gp-msg{margin:0;font-size:13px;font-weight:700;color:#ffd27a;text-align:center}
+.gp-wallet{display:grid;gap:12px}
+.gp-big{display:grid;justify-items:center;gap:2px}.gp-big b{font-family:var(--display);font-size:38px;letter-spacing:-.04em;line-height:1}.gp-big span{font-size:13px;color:rgba(255,255,255,.6);font-weight:700}
+.gp-packs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gp-pack{position:relative;background:rgba(255,255,255,.07);border-radius:16px;padding:12px 6px;display:grid;justify-items:center;gap:2px;opacity:.75}
+.gp-pack b{font-family:var(--display);font-size:16px}.gp-pack span{font-size:12px;color:rgba(255,255,255,.6);font-weight:700}
+.gp-pack em{position:absolute;top:6px;right:6px;font-style:normal;font-size:9px;font-weight:900;background:rgba(255,255,255,.15);border-radius:999px;padding:1px 6px;letter-spacing:.04em}
+.gp-stats{display:flex;gap:8px}.gp-stats div{flex:1;background:rgba(255,255,255,.07);border-radius:14px;padding:10px;display:grid;justify-items:center}.gp-stats b{font-family:var(--display);font-size:18px}.gp-stats span{font-size:12px;color:rgba(255,255,255,.6);font-weight:700}
+.gp-list{display:grid;gap:4px}.gp-row{display:flex;align-items:center;gap:10px;padding:6px 4px}.gp-row b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gp-row>span{display:inline-flex;align-items:center;gap:3px;font-weight:800;font-size:13px}
+.rk{width:22px;text-align:center;font-style:normal;font-family:var(--display);font-weight:800;color:rgba(255,255,255,.55)}.rk.r0{color:#ffc23d}.rk.r1{color:#cfd8de}.rk.r2{color:#d9824a}
+.gp-empty{margin:0;color:rgba(255,255,255,.6);text-align:center;padding:10px}
+.gp-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gp-tools button{background:rgba(255,255,255,.07);border-radius:16px;padding:12px;display:grid;justify-items:start;gap:4px;color:#fff;text-align:left}.gp-tools button:disabled{opacity:.45}
+.gp-tools b{font-size:14px}.gp-tools span{font-size:11.5px;color:rgba(255,255,255,.6);font-weight:600}
+.gp-goal{display:grid;gap:10px}.gp-chips{display:flex;flex-wrap:wrap;gap:6px}.gp-chips button{display:inline-flex;align-items:center;gap:3px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font-weight:800;font-size:13px}.gp-chips button[aria-pressed="true"]{background:var(--orange)}
+.gp-goal input{background:rgba(255,255,255,.1);border:0;border-radius:14px;padding:12px 14px;color:#fff}
+.gp-row2{display:flex;gap:8px}.gp-row2 .btn{flex:1}
+.gl-sum{display:flex;gap:10px}.gl-sum div{background:rgba(255,255,255,.08);border-radius:16px;padding:12px 18px;display:grid;justify-items:center}.gl-sum b{font-family:var(--display);font-size:22px}.gl-sum span{font-size:12px;color:#aaa;font-weight:700}
+.gx{position:absolute;inset:0;z-index:8;pointer-events:none;display:grid;place-items:center;overflow:hidden}
+.gx-art{position:relative;z-index:2;width:min(62vmin,300px);height:min(62vmin,300px)}.gx-art svg{width:100%;height:100%;filter:drop-shadow(0 0 30px rgba(255,120,0,.65))}
+.gx-cap{position:absolute;left:0;right:0;top:calc(20% + env(safe-area-inset-top,0px));text-align:center;z-index:3;font-weight:800;font-size:16px;text-shadow:0 2px 10px rgba(0,0,0,.8);animation:gxcap 2s ease both}
+.gx-cap b{color:#ffd27a}
+@keyframes gxcap{0%{opacity:0;transform:translateY(14px)}15%,85%{opacity:1;transform:none}100%{opacity:0}}
+.gx-pop .gx-art{animation:gxpop 2.1s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes gxpop{0%{transform:scale(0) rotate(-20deg);opacity:0}22%{transform:scale(1.12) rotate(6deg);opacity:1}35%{transform:scale(1) rotate(0)}75%{transform:scale(1.04);opacity:1}100%{transform:translateY(-30vh) scale(.4);opacity:0}}
+.gx-ring{position:absolute;width:40vmin;height:40vmin;border-radius:50%;border:4px solid #ffd27a;box-shadow:0 0 30px #ff5500,inset 0 0 30px #ff5500;animation:gxring 1.2s .2s ease-out both}
+@keyframes gxring{from{transform:scale(.2);opacity:1}to{transform:scale(2.6);opacity:0}}
+.gx-volcano .gx-art{width:min(86vmin,420px);height:min(86vmin,420px);align-self:end;margin-bottom:-6vmin;animation:gxrise 3.4s cubic-bezier(.2,.9,.3,1) both}
+@keyframes gxrise{0%{transform:translateY(70%)}18%,80%{transform:translateY(0)}100%{transform:translateY(70%)}}
+.gx-tint{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,60,0,.55),rgba(120,10,0,.25) 50%,transparent 75%);animation:gxtint 3.4s ease both}
+@keyframes gxtint{0%,100%{opacity:0}20%,80%{opacity:1}}
+.gx-lava{position:absolute;left:50%;bottom:34%;width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle,#fff3c4,#ff8a2b 50%,#ff2d00);box-shadow:0 0 10px #ff5500;z-index:3;opacity:0;animation:gxlava 1.6s var(--d) cubic-bezier(.2,.7,.5,1) both}
+@keyframes gxlava{0%{opacity:1;transform:translate(0,0)}55%{transform:translate(calc(var(--dx)*.6),calc(var(--h)*-1))}100%{opacity:0;transform:translate(var(--dx),calc(var(--h)*-.4))}}
+.gx-meteor .gx-art{width:min(46vmin,220px);height:min(46vmin,220px);animation:gxmet 3.2s cubic-bezier(.5,0,.8,.6) both}
+@keyframes gxmet{0%{transform:translate(70vw,-70vh) scale(.6)}38%{transform:translate(0,0) scale(1.1)}42%{transform:scale(1.3);opacity:1}60%{opacity:0;transform:scale(2)}100%{opacity:0}}
+.gx-flash{position:absolute;inset:0;background:radial-gradient(circle,#fff6d6,#ffb347 40%,transparent 75%);opacity:0;animation:gxflash 3.2s ease both}
+@keyframes gxflash{0%,36%{opacity:0}42%{opacity:1}70%,100%{opacity:0}}
+.gx-wave{position:absolute;width:30vmin;height:30vmin;border-radius:50%;border:6px solid #ffd27a;box-shadow:0 0 40px #ff5500;opacity:0;animation:gxwave 3.2s ease-out both}
+@keyframes gxwave{0%,38%{opacity:0;transform:scale(.2)}42%{opacity:1}80%,100%{opacity:0;transform:scale(4)}}
+.gx-deb{position:absolute;width:var(--s);height:var(--s);border-radius:2px;background:#ff8a2b;box-shadow:0 0 8px #ff5500;opacity:0;animation:gxdeb 3.2s ease-out both}
+@keyframes gxdeb{0%,40%{opacity:0;transform:rotate(var(--a)) translateX(0)}44%{opacity:1}85%,100%{opacity:0;transform:rotate(var(--a)) translateX(var(--r))}}
+.gx-meteor .gx-cap{animation-delay:1.2s}
+.gx-phoenix .gx-art{width:min(92vmin,440px);height:min(92vmin,440px);animation:gxph 4.3s cubic-bezier(.3,.8,.4,1) both}
+.gx-phoenix .gx-art svg{animation:gxflap .5s ease-in-out infinite alternate;transform-origin:50% 50%}
+@keyframes gxph{0%{transform:translateY(80vh) scale(.5);opacity:0}25%{transform:translateY(0) scale(1);opacity:1}75%{transform:translateY(-4vh) scale(1.05);opacity:1}100%{transform:translateY(-90vh) scale(.7);opacity:0}}
+@keyframes gxflap{from{transform:scaleX(1) scaleY(1)}to{transform:scaleX(.82) scaleY(1.06)}}
+.gx-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,194,61,.45),rgba(255,85,0,.2) 40%,transparent 70%);animation:gxtint 4.3s ease both}
+.gx-emb{position:absolute;bottom:-5%;width:var(--s);height:var(--s);border-radius:50%;background:#ffd27a;box-shadow:0 0 10px #ff8a2b;animation:gxemb 2.4s var(--d) ease-out both;opacity:0}
+@keyframes gxemb{0%{opacity:0;transform:translate(0,0)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-100vh)}}
 /* hidden left page on home */
 .gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
 .gl-side.open{transform:none}
@@ -1486,11 +1599,16 @@ const visible=(s,p)=>vis(s,p)!=='hide';
 const hashStr=str=>[...str].reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,7);
 function tempOf(s,u){
   const w=u.id==='me'?s.week:(s.temps[u.uid||u.id]||{heat:0,viral:0});
-  return Math.min(240,32+(w.heat||0)*6+(w.viral||0)*20);
+  return 32+(w.heat||0)*6+(w.viral||0)*20;
 }
 
-const LEVELS=[[50,'Frozen'],[80,'Cool'],[110,'Warm'],[150,'Hot'],[190,'Scorching'],[1e9,'Molten']];
-const levelOf=d=>LEVELS.find(([m])=>d<m)[1];
+// past Molten the thermometer stays full and changes colour as the heat keeps climbing, all the way to Supernova
+const LEVELS=[[50,'Frozen',null],[80,'Cool',null],[110,'Warm',null],[150,'Hot',null],[190,'Scorching',null],[400,'Molten',null],
+  [700,'Inferno',['#7a0000','#d10f0f','#ff3b2f'],'#ff3b2f'],[1100,'Plasma',['#b0105e','#ff2d8a','#ff9ccf'],'#ff4fa0'],
+  [1700,'Ultraviolet',['#4a0fa8','#8a2bff','#d29bff'],'#b06bff'],[2500,'Blue Flame',['#0b3dbf','#2f7bff','#8ae6ff'],'#4fa8ff'],
+  [4000,'White Dwarf',['#9fc4ff','#e6f0ff','#ffffff'],'#dbe8ff'],[1e12,'Supernova',['#ff2bd6','#ffffff','#2fe8ff'],'#ff7af0']];
+const tierOf=d=>LEVELS.find(([m])=>d<m);
+const levelOf=d=>tierOf(d)[1];
 const SHOP={
   stickers:[{id:'basic',name:'Basics',price:0,items:['🔥','🧊','😂','💀','👀','🙏']},{id:'spicy',name:'Spicy',price:150,items:['🌶️','🥵','🧯','🫠','🚒','♨️']},
     {id:'cold',name:'Cold',price:150,items:['🥶','❄️','⛄','🌨️','🫥','🧤']},{id:'chaos',name:'Chaos',price:250,items:['🤡','💅','🗿','🫡','😤','🧨']},
@@ -2499,12 +2617,12 @@ function ModError({err,open}){
 }
 
 function Thermo({deg}){
-  const frac=Math.max(0,Math.min(1,(deg-32)/(212-32)));
+  const frac=Math.max(0,Math.min(1,(deg-32)/(212-32)));const tier=tierOf(deg);const G=tier[2]||['#ff2d00','#ff6a1a','#ffd27a'];
   const gid=useRef('tg'+Math.random().toString(36).slice(2)).current;
   const [f,setF]=useState(0);useEffect(()=>{const t=setTimeout(()=>setF(frac),80);return()=>clearTimeout(t)},[frac]);
   const len=160,w=10+len*f;
-  return html`<svg viewBox="0 0 224 64" role="img" aria-label=${deg+' degrees'}>
-    <defs><linearGradient id=${gid} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".55" stop-color="#ff6a1a"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs>
+  return html`<svg viewBox="0 0 224 64" role="img" aria-label=${deg+' degrees'} className=${tier[1]==='Supernova'?'nova':tier[2]?'over':''} style=${{'--tg':G[1]}}>
+    <defs><linearGradient id=${gid} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color=${G[0]}/><stop offset=".55" stop-color=${G[1]}/><stop offset="1" stop-color=${G[2]}/></linearGradient></defs>
     <rect x="38" y="17" width="180" height="30" rx="15" style=${{fill:'var(--card)',stroke:'var(--line)',strokeWidth:2}}/>
     <circle cx="30" cy="32" r="24" style=${{fill:'var(--card)',stroke:'var(--line)',strokeWidth:2}}/>
     ${[0,1,2,3,4,5,6,7].map(i=>html`<line key=${i} x1=${66+i*20} x2=${66+i*20} y1=${i%2?11:7} y2="13" style=${{stroke:'var(--muted)',strokeWidth:2,strokeLinecap:'round'}}/>`)}
@@ -2526,7 +2644,7 @@ function ThermoCard({s,u,dispatch,open}){
     <div className="t-stats">
       <div className="t-week">This week</div>
       <div className="t-deg">${deg}°</div>
-      <div className="t-level">${levelOf(deg)}</div>
+      <div className=${'t-level'+(levelOf(deg)==='Supernova'?' nova':'')} style=${{color:tierOf(deg)[3]||null}}>${levelOf(deg)}</div>
       <div className="t-meta"><span>Resets in ${d}d ${h}h</span>
         ${isMe&&html`<span>${s.week.viral} viral · +${kfmt(s.week.earned)} pts</span>`}</div>
     </div>
@@ -3226,7 +3344,10 @@ class StreamEngine{
   camOff(){if(!this.local)return;Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track)try{st.pc.removeTrack(sn)}catch(e){}}));this.local.getTracks().forEach(t=>t.stop());this.local=null;this.on({local:null})}
   leave(){Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}}
 }
-function Vid({stream,mirror,muted}){const r=useRef();useEffect(()=>{if(r.current&&r.current.srcObject!==stream){r.current.srcObject=stream||null;if(stream)r.current.play().catch(()=>{})}},[stream]);
+function Vid({stream,mirror,muted}){const r=useRef();
+  useEffect(()=>{const v=r.current;if(!v)return;v.muted=!!muted;v.defaultMuted=!!muted;v.setAttribute('playsinline','');v.setAttribute('autoplay','');
+    if(v.srcObject!==stream){v.srcObject=stream||null}
+    const go=()=>v.play().catch(()=>{});if(stream){go();v.onloadedmetadata=go;const t=setTimeout(go,800);return()=>clearTimeout(t)}},[stream,muted]);
   return html`<video ref=${r} autoPlay playsInline muted=${!!muted} className=${'gl-vid'+(mirror?' mirror':'')}></video>`}
 function useStreams(){
   const [list,setList]=useState([]);const [people,setPeople]=useState({});
@@ -3254,65 +3375,258 @@ function GoLivePage({me,onClose}){
     :html`<div className="empty">Nobody's live right now. Be the first.</div>`}
   </div>`;
 }
+// Temp's own live gifts, drawn as SVG (64x64). Prices live in the database; this is just the look.
+const GIFT_ART={
+spark:`<defs><radialGradient id="ga-sp"><stop offset="0" stop-color="#fff6d6"/><stop offset=".45" stop-color="#ffb347" stop-opacity=".7"/><stop offset="1" stop-color="#ff5500" stop-opacity="0"/></radialGradient><linearGradient id="ga-sp2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#ffd27a"/><stop offset="1" stop-color="#ff7a1a"/></linearGradient></defs>
+<circle cx="32" cy="32" r="28" fill="url(#ga-sp)"/><path d="M32 5C33.6 22 38 28.6 59 32 38 35.4 33.6 42 32 59 30.4 42 26 35.4 5 32 26 28.6 30.4 22 32 5Z" fill="url(#ga-sp2)"/>
+<path d="M32 19c.8 8 2.6 10.6 11 13-8.4 2.4-10.2 5-11 13-.8-8-2.6-10.6-11-13 8.4-2.4 10.2-5 11-13Z" fill="#fff" opacity=".85"/><circle cx="48" cy="14" r="2.2" fill="#ffd27a"/><circle cx="15" cy="49" r="1.6" fill="#ffd27a"/>`,
+ember:`<defs><radialGradient id="ga-em" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#ffd27a"/><stop offset=".35" stop-color="#ff5500"/><stop offset=".75" stop-color="#7a1a04"/><stop offset="1" stop-color="#2a0a02"/></radialGradient><linearGradient id="ga-em2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5500"/><stop offset=".6" stop-color="#ffb347"/><stop offset="1" stop-color="#fff3c4"/></linearGradient></defs>
+<ellipse cx="32" cy="56" rx="20" ry="3" fill="#000" opacity=".25"/><path d="M12 44c0-9 9-15 20-15s20 6 20 15-9 12-20 12-20-3-20-12Z" fill="url(#ga-em)"/>
+<path d="M20 43l6-4 4 5 6-6 5 4M24 50l5-3 5 3 6-4" stroke="#ffd27a" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".9"/>
+<path d="M32 8c2 7 10 11 10 20a10 10 0 0 1-20 0c0-4 2-7 4.5-9 .2 3 2 5 4.4 5.6C29 19.5 29.7 13 32 8Z" fill="url(#ga-em2)"/><path d="M32 22c1.2 3 4 4.5 4 8a4 4 0 0 1-8 0c0-2.2 1.6-3.6 2.4-4.2.1 1.2.8 1.9 1.6 2.1-.3-2-.4-3.8 0-5.9Z" fill="#fff6d6"/>`,
+icecube:`<defs><linearGradient id="ga-ic1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4fbff"/><stop offset="1" stop-color="#9fdcff"/></linearGradient><linearGradient id="ga-ic2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc8f5"/><stop offset="1" stop-color="#3d8fd1"/></linearGradient><linearGradient id="ga-ic3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5bb1ea"/><stop offset="1" stop-color="#2a6fb3"/></linearGradient></defs>
+<path d="M32 8 54 19 32 30 10 19Z" fill="url(#ga-ic1)"/><path d="M10 19 32 30v26L10 45Z" fill="url(#ga-ic2)"/><path d="M54 19 32 30v26l22-11Z" fill="url(#ga-ic3)"/>
+<path d="M16 21l14 7M15 27v13" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".65"/><path d="M32 30v26" stroke="#e8f7ff" stroke-width="1" opacity=".6"/>
+<path d="M50 6v8M46 10h8M47.2 7.2l5.6 5.6M52.8 7.2l-5.6 5.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`,
+hotsauce:`<defs><linearGradient id="ga-hs" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a3120a"/><stop offset=".45" stop-color="#ff3b1f"/><stop offset="1" stop-color="#b3160c"/></linearGradient></defs>
+<rect x="27" y="4" width="10" height="7" rx="2" fill="#1c1c1c"/><path d="M28 11h8v8c4 2 8 6 8 13v20a6 6 0 0 1-6 6H26a6 6 0 0 1-6-6V32c0-7 4-11 8-13Z" fill="url(#ga-hs)"/>
+<rect x="23" y="32" width="18" height="16" rx="4" fill="#fff6e8"/><path d="M32 34.5c.7 2.4 4 3.6 4 7a4 4 0 0 1-8 0c0-1.6.8-2.6 1.7-3.2.1 1 .6 1.6 1.3 1.8-.2-1.8 0-3.7 1-5.6Z" fill="#ff5500"/>
+<path d="M24 24c-1 3-1.5 6-1.5 9" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".45"/>`,
+rose:`<defs><radialGradient id="ga-ro" cx=".5" cy=".4" r=".65"><stop offset="0" stop-color="#ffd27a"/><stop offset=".45" stop-color="#ff5500"/><stop offset="1" stop-color="#b3140a"/></radialGradient><linearGradient id="ga-ro2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fd07a"/><stop offset="1" stop-color="#1f7a3a"/></linearGradient></defs>
+<path d="M32 34c-1 8 0 16 1 26" stroke="#2f8f4a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M32 46c-6-5-13-4-16-1 5 3 11 4 16 1Z" fill="url(#ga-ro2)"/><path d="M33 52c5-5 12-5 15-2-5 3-10 4-15 2Z" fill="url(#ga-ro2)"/>
+<path d="M32 36c-11 0-16-8-15-17 4 3 7 3 9 1-1-5 2-10 6-12 4 2 7 7 6 12 2 2 5 2 9-1 1 9-4 17-15 17Z" fill="url(#ga-ro)"/>
+<path d="M32 30c-5 0-8-4-7.5-8.5 2 1.5 4 1.4 5-.5.6-2.5 1.4-4.5 2.5-5.5 1.1 1 1.9 3 2.5 5.5 1 1.9 3 2 5 .5.5 4.5-2.5 8.5-7.5 8.5Z" fill="#ff8a2b"/><path d="M29 23c1.5 2 4.5 2 6 0" stroke="#7a1a04" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+thermo:`<defs><linearGradient id="ga-th" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2d00"/><stop offset=".6" stop-color="#ff6a1a"/><stop offset="1" stop-color="#ffd27a"/></linearGradient><radialGradient id="ga-th2"><stop offset="0" stop-color="#ff5500" stop-opacity=".55"/><stop offset="1" stop-color="#ff5500" stop-opacity="0"/></radialGradient></defs>
+<circle cx="32" cy="48" r="16" fill="url(#ga-th2)"/><path d="M26 10a6 6 0 0 1 12 0v27a10 10 0 1 1-12 0Z" fill="#fff" stroke="#e7e2dc" stroke-width="1.5"/>
+<path d="M29 14a3 3 0 0 1 6 0v25.5a7 7 0 1 1-6 0Z" fill="url(#ga-th)"/><path d="M41 14h5M41 20h3M41 26h5M41 32h3" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+<circle cx="29.5" cy="44" r="2" fill="#fff" opacity=".6"/><path d="M31 12v20" stroke="#fff" stroke-width="1.4" opacity=".5" stroke-linecap="round"/>`,
+heart:`<defs><radialGradient id="ga-he" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#fff3c4"/><stop offset=".25" stop-color="#ffd27a"/><stop offset=".55" stop-color="#ff5500"/><stop offset="1" stop-color="#8a1404"/></radialGradient></defs>
+<path d="M32 54C14 42 6 32 6 22a12 12 0 0 1 26-6 12 12 0 0 1 26 6c0 10-8 20-26 32Z" fill="url(#ga-he)"/>
+<path d="M22 46c0 4 0 8 2.5 8S27 50 27 47M39 48c0 3 .3 9 2.6 9s2.4-5 2.4-8M31 54c0 2 .3 5 1.5 5s1.5-3 1.5-5" fill="#ff5500"/>
+<path d="M14 21c0-4 3-7 7-7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/><path d="M20 34c4 3 8 3 12 0 4 3 8 3 12 0" stroke="#ffd27a" stroke-width="1.6" fill="none" opacity=".7"/>`,
+mic:`<defs><linearGradient id="ga-mi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f4f4"/><stop offset=".5" stop-color="#b8b8b8"/><stop offset="1" stop-color="#6e6e6e"/></linearGradient><linearGradient id="ga-mi2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1c1c1c"/><stop offset=".5" stop-color="#3a3a3a"/><stop offset="1" stop-color="#111"/></linearGradient></defs>
+<g transform="rotate(-24 32 32)"><circle cx="32" cy="17" r="12" fill="url(#ga-mi)"/><path d="M23 13h18M21 17h22M23 21h18M28 6v22M32 5v24M36 6v22" stroke="#888" stroke-width=".9" opacity=".7"/>
+<rect x="25" y="28" width="14" height="5" rx="1.5" fill="#ff5500"/><path d="M26.5 33h11l-2 24a3.5 3.5 0 0 1-7 0Z" fill="url(#ga-mi2)"/></g>
+<path d="M50 40l7 3M48 47l6 6M44 52l2 7M8 14l6 2M10 8l5 5" stroke="#ff8a2b" stroke-width="2.4" stroke-linecap="round"/>`,
+crown:`<defs><linearGradient id="ga-cr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#ffc23d"/><stop offset="1" stop-color="#d9820a"/></linearGradient><linearGradient id="ga-cr2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5500"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs>
+<path d="M12 20c1 3 2 5 2 5M22 12c.6 3 1 5 1 5M32 6v6M42 12c-.6 3-1 5-1 5M52 20c-1 3-2 5-2 5" stroke="url(#ga-cr2)" stroke-width="4" stroke-linecap="round"/>
+<path d="M8 24l10 8 7-14 7 12 7-12 7 14 10-8-5 26H13Z" fill="url(#ga-cr)" stroke="#b86a06" stroke-width="1.2" stroke-linejoin="round"/>
+<rect x="13" y="47" width="38" height="7" rx="2" fill="#e09612"/><circle cx="32" cy="38" r="4" fill="#ff2d00"/><circle cx="21" cy="40" r="2.6" fill="#4fd2ff"/><circle cx="43" cy="40" r="2.6" fill="#4fd2ff"/><path d="M16 28l3 6" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/>`,
+volcano:`<defs><linearGradient id="ga-vo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a2a18"/><stop offset="1" stop-color="#1f0d06"/></linearGradient><linearGradient id="ga-vo2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset=".4" stop-color="#ff5500"/><stop offset="1" stop-color="#c81d00"/></linearGradient><radialGradient id="ga-vo3" cy=".9"><stop offset="0" stop-color="#ff8a2b" stop-opacity=".8"/><stop offset="1" stop-color="#ff2d00" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="32" cy="20" rx="22" ry="16" fill="url(#ga-vo3)"/><path d="M4 58 24 22h16l20 36Z" fill="url(#ga-vo)"/><path d="M24 22c3 3 13 3 16 0l-2 4c-4 2-8 2-12 0Z" fill="#ff5500"/>
+<path d="M28 24c-2 8-6 12-5 20 1 5-2 8-3 14M36 24c1 6 5 10 4 16-1 4 2 8 4 18" stroke="url(#ga-vo2)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M32 22c-3-5-1-10-4-15 4 2 5 6 4 9 2-4 5-6 8-6-3 3-3 7-4 12Z" fill="url(#ga-vo2)"/><circle cx="20" cy="10" r="2.2" fill="#ffb347"/><circle cx="45" cy="6" r="2.6" fill="#ff8a2b"/><circle cx="40" cy="14" r="1.6" fill="#ffd27a"/>`,
+meteor:`<defs><linearGradient id="ga-me" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff2d00" stop-opacity="0"/><stop offset=".55" stop-color="#ff8a2b" stop-opacity=".85"/><stop offset="1" stop-color="#fff3c4"/></linearGradient><radialGradient id="ga-me2" cx=".4" cy=".35"><stop offset="0" stop-color="#9b8676"/><stop offset=".7" stop-color="#4a3a30"/><stop offset="1" stop-color="#241a14"/></radialGradient></defs>
+<path d="M62 2 20 30l14 14Z" fill="url(#ga-me)"/><path d="M54 4 24 28l6 6Z" fill="#fff6d6" opacity=".7"/>
+<circle cx="22" cy="42" r="15" fill="#ff5500" opacity=".45"/><circle cx="22" cy="42" r="12.5" fill="url(#ga-me2)"/><circle cx="17" cy="39" r="3" fill="#2a1e17"/><circle cx="26" cy="47" r="2.2" fill="#2a1e17"/><circle cx="27" cy="37" r="1.5" fill="#2a1e17"/>
+<path d="M30 33c3 1 5 4 5 7" stroke="#ffd27a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+phoenix:`<defs><linearGradient id="ga-ph" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c81d00"/><stop offset=".45" stop-color="#ff5500"/><stop offset=".8" stop-color="#ffb347"/><stop offset="1" stop-color="#fff3c4"/></linearGradient><linearGradient id="ga-ph2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ff2d00"/></linearGradient></defs>
+<path d="M32 30C24 20 14 18 2 20c6 3 9 6 10 10-4-1-7 0-9 2 6 1 10 3 13 7-3 0-5 1-6 3 8 0 14-2 18-7Z" fill="url(#ga-ph)"/><path d="M32 30c8-10 18-12 30-10-6 3-9 6-10 10 4-1 7 0 9 2-6 1-10 3-13 7 3 0 5 1 6 3-8 0-14-2-18-7Z" fill="url(#ga-ph)"/>
+<path d="M32 26c-3 0-5 3-5 8 0 6 2 10 5 14 3-4 5-8 5-14 0-5-2-8-5-8Z" fill="url(#ga-ph2)"/><circle cx="32" cy="20" r="5" fill="#ffb347"/><path d="M35 19l5 2-5 1.5Z" fill="#ffd27a"/><circle cx="33.5" cy="19" r="1" fill="#2a0a02"/>
+<path d="M32 15c-1-4 1-7 3-9 0 3 1 4 3 5-2 0-4 2-6 4Z" fill="#ff5500"/><path d="M32 46c-3 5-8 9-12 12 4 0 6-1 8-2-1 3-1 5-3 7 4-2 6-5 7-8 1 3 3 6 7 8-2-2-2-4-3-7 2 1 4 2 8 2-4-3-9-7-12-12Z" fill="url(#ga-ph)"/>`
+};
+function GiftArt({id,size=44}){return html`<svg className="gart" width=${size} height=${size} viewBox="0 0 64 64" aria-hidden="true" dangerouslySetInnerHTML=${{__html:GIFT_ART[id]||GIFT_ART.spark}}></svg>`}
+const SparkIco=({s=14})=>html`<svg width=${s} height=${s} viewBox="0 0 24 24" aria-hidden="true" className="spark-ico"><path d="M12 1.5c.7 6.3 2.4 8.7 10.5 10.5-8.1 1.8-9.8 4.2-10.5 10.5-.7-6.3-2.4-8.7-10.5-10.5C9.6 10.2 11.3 7.8 12 1.5Z" fill="#ffb347"/><path d="M12 7.5c.3 2.6 1 3.6 4.5 4.5-3.5.9-4.2 1.9-4.5 4.5-.3-2.6-1-3.6-4.5-4.5 3.5-.9 4.2-1.9 4.5-4.5Z" fill="#fff6d6"/></svg>`;
+const GIFTS_LOCAL=[['spark','Spark',1,'small'],['ember','Ember',5,'small'],['icecube','Ice Cube',10,'small'],['hotsauce','Hot Sauce',19,'small'],['rose','Ember Rose',29,'small'],['thermo','Heat Check',49,'small'],
+  ['heart','Molten Heart',99,'medium'],['mic','Mic Drop',149,'medium'],['crown','Fire Crown',299,'medium'],['volcano','Volcano',499,'big'],['meteor','Meteor',999,'big'],['phoenix','Phoenix',2999,'big']].map(([id,name,cost,tier])=>({id,name,cost,tier}));
+const giftById=id=>GIFTS_LOCAL.find(g=>g.id===id)||GIFTS_LOCAL[0];
+const SPARK_PACKS=[[70,'$0.99'],[350,'$4.99'],[700,'$9.99'],[1400,'$19.99'],[3500,'$49.99'],[7000,'$99.99']];
+const fmtK=n=>n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e4?Math.round(n/1e3)+'K':n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'K':String(n);
+function LvBadge({lv}){if(!lv)return null;return html`<span className=${'lv '+(lv>=20?'l3':lv>=10?'l2':'l1')}><${SparkIco} s=${9}/>${lv}</span>`}
+
+// big gift animations that take over the screen
+function GiftShow({g,onDone}){
+  useEffect(()=>{const t=setTimeout(onDone,g.tier==='big'?(g.id==='phoenix'?4300:3400):2100);return()=>clearTimeout(t)},[]);
+  const r=rnd(g.k*1000|0);const n=(k,f)=>Array.from({length:k},(_,i)=>f(i));
+  return html`<div className=${'gx gx-'+(g.tier==='big'?g.id:'pop')} aria-hidden="true">
+    ${g.id==='volcano'&&html`<i className="gx-tint"></i>${n(26,i=>html`<i key=${i} className="gx-lava" style=${{'--dx':(r()*80-40)+'vw','--h':(30+r()*45)+'vh','--d':(0.5+r()*1.2)+'s','--s':(6+r()*12)+'px'}}></i>`)}`}
+    ${g.id==='meteor'&&html`<i className="gx-flash"></i><i className="gx-wave"></i>${n(18,i=>html`<i key=${i} className="gx-deb" style=${{'--a':(i*20)+'deg','--r':(18+r()*22)+'vmin','--s':(4+r()*8)+'px'}}></i>`)}`}
+    ${g.id==='phoenix'&&html`<i className="gx-glow"></i>${n(30,i=>html`<i key=${i} className="gx-emb" style=${{left:(30+r()*40)+'%','--d':(r()*2.6)+'s','--dx':(r()*30-15)+'vw','--s':(3+r()*6)+'px'}}></i>`)}`}
+    ${g.tier!=='big'&&html`<i className="gx-ring"></i>`}
+    <div className="gx-art"><${GiftArt} id=${g.id} size=${256}/></div>
+    <div className="gx-cap"><b>${g.name}</b> sent ${g.gname}${g.qty>1?' ×'+g.qty:''}</div>
+  </div>`;
+}
+
+// gift panel + Sparks wallet
+function GiftPanel({wallet,setWallet,targets,onSend,onClose}){
+  const [sel,setSel]=useState(null);const [view,setView]=useState('gifts');const [to,setTo]=useState(targets[0]&&targets[0].id);const [msg,setMsg]=useState('');
+  const claim=async()=>{const {data,error}=await sb.rpc('claim_daily_sparks');if(error){setMsg(friendly(error));return}setWallet(w=>({...w,sparks:data,can_claim:false}));setMsg('+100 Sparks added')};
+  const g=sel&&giftById(sel);
+  return html`<div className="gp" onClick=${e=>e.stopPropagation()}>
+    <div className="gp-head">
+      <div className="gp-tabs"><button aria-pressed=${view==='gifts'} onClick=${()=>setView('gifts')}>Gifts</button><button aria-pressed=${view==='wallet'} onClick=${()=>setView('wallet')}>Sparks</button></div>
+      <button className="gp-bal" onClick=${()=>setView('wallet')}><${SparkIco} s=${15}/>${wallet?wallet.sparks.toLocaleString():'…'}<span>Get</span></button>
+      <button className="gp-x" onClick=${onClose} aria-label="Close gifts"><${Icon} n="x" s=${18}/></button>
+    </div>
+    ${view==='gifts'?html`
+      ${targets.length>1&&html`<div className="gp-to"><span>Send to</span>${targets.map(t=>html`<button key=${t.id} aria-pressed=${to===t.id} onClick=${()=>setTo(t.id)}><${Avatar} u=${t.u} size=${22} noRing=${true}/>${t.u.name}</button>`)}</div>`}
+      <div className="gp-grid">${GIFTS_LOCAL.map(x=>html`<button key=${x.id} className=${'gp-item'+(sel===x.id?' on':'')+(x.tier==='big'?' big':'')} onClick=${()=>setSel(sel===x.id?null:x.id)}>
+        <${GiftArt} id=${x.id} size=${46}/><b>${x.name}</b><span><${SparkIco} s=${10}/>${x.cost.toLocaleString()}</span>
+        ${sel===x.id&&html`<i className="gp-send" onClick=${e=>{e.stopPropagation();onSend(x,to)}}>Send</i>`}</button>`)}</div>
+      ${msg&&html`<p className="gp-msg">${msg}</p>`}`
+    :html`<div className="gp-wallet">
+      <div className="gp-big"><${SparkIco} s=${34}/><b>${wallet?wallet.sparks.toLocaleString():'…'}</b><span>Sparks</span></div>
+      <button className="btn orange wide" disabled=${!wallet||!wallet.can_claim} onClick=${claim}>${wallet&&!wallet.can_claim?'Daily Sparks claimed · back tomorrow':'Claim 100 free Sparks today'}</button>
+      <div className="gp-packs">${SPARK_PACKS.map(([n,p])=>html`<div key=${n} className="gp-pack"><${SparkIco} s=${20}/><b>${n.toLocaleString()}</b><span>${p}</span><em>Soon</em></div>`)}</div>
+      <div className="gp-stats"><div><b>${wallet?fmtK(wallet.sent):'–'}</b><span>Sent</span></div><div><b>${wallet?fmtK(wallet.received):'–'}</b><span>Received</span></div></div>
+      ${msg&&html`<p className="gp-msg">${msg}</p>`}
+    </div>`}
+  </div>`;
+}
+
 function StreamRoom({id,me,people,setPeople,onExit}){
   const eng=useRef(null);const [row,setRow]=useState(null);const [local,setLocal]=useState(null);const [remote,setRemote]=useState({});const [viewers,setViewers]=useState([]);
-  const [chat,setChat]=useState([]);const [hearts,setHearts]=useState([]);const [txt,setTxt]=useState('');const [gifts,setGifts]=useState(false);const [reqs,setReqs]=useState({});
+  const [chat,setChat]=useState([]);const [hearts,setHearts]=useState([]);const [txt,setTxt]=useState('');const [panel,setPanel]=useState(null);const [reqs,setReqs]=useState({});
   const [mic,setMic]=useState(true);const [cam,setCam]=useState(true);const [err,setErr]=useState('');const [asked,setAsked]=useState(false);
+  const [wallet,setWallet]=useState(null);const [events,setEvents]=useState([]);const [likes,setLikes]=useState(0);const [banners,setBanners]=useState([]);const [shows,setShows]=useState([]);
+  const [levels,setLevels]=useState({});const [combo,setCombo]=useState(null);const [score,setScore]=useState({h:0,g:0});const [now,setNow]=useState(Date.now());const [menu,setMenu]=useState(null);
+  const pend=useRef({likes:0,t:null});const comboRef=useRef(null);const seenIds=useRef(null);
   const isHost=row&&row.host_id===me;const isGuest=row&&row.guest_id===me;const onCam=isHost||isGuest;
-  const loadRow=async()=>{const {data}=await sb.from('live_streams').select('*').eq('id',id).single();if(data){setRow(data);const need=[data.host_id,data.guest_id].filter(x=>x&&!people[x]);
+  const loadRow=async(n=0)=>{const {data,error}=await sb.from('live_streams').select('*').eq('id',id).maybeSingle();
+    if(!data){if(n<8)setTimeout(()=>loadRow(n+1),1500);else setErr(error?friendly(error):'Couldn’t load this live.');return}
+    if(data){setRow(data);const need=[data.host_id,data.guest_id].filter(x=>x&&!people[x]);
     if(need.length){const {data:p}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').in('id',need);setPeople(x=>{const n={...x};(p||[]).forEach(q=>n[q.id]=liveUser(q));return n})}}};
+  const loadGifts=async()=>{const {data}=await sb.from('live_gift_events').select('from_id,to_id,sparks,created_at').eq('stream_id',id).limit(2000);setEvents(data||[])};
+  const loadWallet=async()=>{const {data}=await sb.rpc('my_sparks');const w=Array.isArray(data)?data[0]:data;if(w)setWallet(w)};
+  const loadScore=async()=>{const {data}=await sb.rpc('live_match_score',{sid:id});const x=Array.isArray(data)?data[0]:data;if(x)setScore({h:+x.host_score||0,g:+x.guest_score||0})};
   const who=async uid=>{if(people[uid])return people[uid];const {data}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').eq('id',uid).single();if(data){const u=liveUser(data);setPeople(x=>({...x,[uid]:u}));return u}return liveUser(null)};
-  useEffect(()=>{loadRow();const e=new StreamEngine(id,me,ev=>{
-      if(ev.remote)setRemote(ev.remote);if('local' in ev)setLocal(ev.local);if(ev.viewers)setViewers(ev.viewers);
-      if(ev.chat)setChat(c=>[...c.slice(-40),{...ev.chat,k:Math.random()}]);
+  const lvFor=useRef(new Set());
+  const needLv=ids=>{const ask=ids.filter(x=>x&&!lvFor.current.has(x));if(!ask.length)return;ask.forEach(x=>lvFor.current.add(x));
+    sb.rpc('gifter_levels',{ids:ask}).then(({data})=>{if(data)setLevels(l=>{const n={...l};data.forEach(d=>n[d.id]=d.level);return n})})};
+  function pop(e,big,x){const h={k:Math.random(),e,x:x!=null?x:70+Math.random()*25,big};setHearts(v=>[...v.slice(-30),h]);setTimeout(()=>setHearts(v=>v.filter(y=>y!==h)),2400)}
+  // a gift arrived (from anyone, including me): banner lane with combo count, and a full-screen show for big ones
+  function showGift(p){
+    const g=giftById(p.gift);const key=p.from+'|'+p.gift+'|'+(p.to||'');who(p.from);who(p.to||'');needLv([p.from]);
+    setBanners(bs=>{const ex=bs.find(b=>b.key===key);const until=Date.now()+3200;
+      if(ex)return bs.map(b=>b===ex?{...b,count:(p.combo||b.count+(p.qty||1)),until,bump:Math.random()}:b);
+      return [...bs.filter(b=>b.until>Date.now()).slice(-3),{key,from:p.from,to:p.to,gift:p.gift,count:p.combo||p.qty||1,until,bump:0}]});
+    if(g.tier!=='small'&&(!p.combo||p.combo===(p.qty||1)))setShows(v=>[...v,{k:Math.random(),id:g.id,tier:g.tier,gname:g.name,from:p.from,qty:p.qty||1}]);
+    if(g.tier==='small')pop('',true);
+  }
+  useEffect(()=>{const t=setInterval(()=>{setNow(Date.now());setBanners(bs=>bs.some(b=>b.until<Date.now())?bs.filter(b=>b.until>=Date.now()):bs)},500);return()=>clearInterval(t)},[]);
+  useEffect(()=>{loadRow();loadGifts();loadWallet();sb.from('live_stats').select('likes').eq('stream_id',id).maybeSingle().then(({data})=>data&&setLikes(+data.likes||0));
+    const e=new StreamEngine(id,me,ev=>{
+      if(ev.remote)setRemote(ev.remote);if('local' in ev)setLocal(ev.local);
+      if(ev.viewers){setViewers(ev.viewers);const prev=seenIds.current;if(prev){ev.viewers.filter(v=>!prev.has(v)&&v!==me).slice(0,3).forEach(v=>{who(v);setChat(c=>[...c.slice(-40),{from:v,join:true,k:Math.random()}])})}seenIds.current=new Set(ev.viewers);needLv(ev.viewers)}
+      if(ev.chat){setChat(c=>[...c.slice(-40),{...ev.chat,k:Math.random()}]);needLv([ev.chat.from])}
       if(ev.heart)pop(ev.heart.e||'🧡');
-      if(ev.gift){setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.amount,k:Math.random()}]);pop(ev.gift.amount>=100?'👑':ev.gift.amount>=50?'💎':'🔥',true)}
+      if(ev.like){setLikes(l=>l+(ev.like.n||1));for(let i=0;i<Math.min(4,ev.like.n||1);i++)setTimeout(()=>pop('🧡'),i*120)}
+      if(ev.gift){showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
       if(ev.req)setReqs(r=>({...r,[ev.req.from]:Date.now()}));
       if(ev.guest)loadRow()});
     eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
     const ch=sb.channel('stream-row-'+id+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'UPDATE',schema:'public',table:'live_streams',filter:'id=eq.'+id},()=>loadRow()).subscribe();
-    return()=>{e.leave();sb.removeChannel(ch)}},[id]);
-  // camera on for the host and the invited guest; heartbeat keeps the live listed
+    const lt=setInterval(()=>{const n=pend.current.likes;if(!n)return;pend.current.likes=0;sb.rpc('live_like',{sid:id,n}).then(()=>{});eng.current&&eng.current.send('like',{n})},1500);
+    return()=>{e.leave();sb.removeChannel(ch);clearInterval(lt)}},[id]);
   useEffect(()=>{if(!row||!eng.current)return;if(onCam&&!local)eng.current.camOn().catch(()=>setErr('Temp needs your camera and microphone to go live.'));if(!onCam&&local)eng.current.camOff()},[row&&row.host_id,row&&row.guest_id]);
   useEffect(()=>{if(!isHost)return;const t=setInterval(()=>sb.from('live_streams').update({last_seen:new Date().toISOString()}).eq('id',id),20000);return()=>clearInterval(t)},[isHost]);
   useEffect(()=>{chat.slice(-1).forEach(c=>c.from&&who(c.from))},[chat.length]);
-  function pop(e,big){const h={k:Math.random(),e,x:70+Math.random()*25,big};setHearts(x=>[...x.slice(-24),h]);setTimeout(()=>setHearts(x=>x.filter(y=>y!==h)),2400)}
-  const send=()=>{const t=txt.trim();if(!t)return;const why=MOD&&MOD.rules?MOD.rules(MOD.classify(t),false,true):null;if(why){setErr(why);return}eng.current.send('chat',{text:t});setChat(c=>[...c.slice(-40),{from:me,text:t,k:Math.random()}]);setTxt('')};
-  const heart=()=>{eng.current.send('heart',{e:'🧡'});pop('🧡')};
-  const gift=async amount=>{setGifts(false);const {error}=await sb.rpc('live_gift',{sid:id,amount});if(error){setErr(friendly(error));return}eng.current.send('gift',{amount});setChat(c=>[...c.slice(-40),{from:me,gift:amount,k:Math.random()}]);pop(amount>=100?'👑':amount>=50?'💎':'🔥',true)};
+  const matchOn=row&&row.match_until&&row.guest_id&&new Date(row.match_until).getTime()>now;
+  const matchDone=row&&row.match_until&&!matchOn&&now-new Date(row.match_until).getTime()<12000;
+  useEffect(()=>{if(!row||!row.match_started)return;loadScore();if(!matchOn)return;const t=setInterval(loadScore,3000);return()=>clearInterval(t)},[row&&row.match_started,matchOn,events.length]);
+
+  const send=()=>{const t=txt.trim();if(!t)return;const why=MOD&&MOD.rules?MOD.rules(MOD.classify(t),false,true):null;if(why){setErr(why.msg||why);return}eng.current.send('chat',{text:t});setChat(c=>[...c.slice(-40),{from:me,text:t,k:Math.random()}]);setTxt('')};
+  const heart=()=>{pend.current.likes++;setLikes(l=>l+1);pop('🧡')};
+  const tapLike=e=>{if(e.target.closest('button,input,.gp,.gl-chat p,.gl-menu'))return;if(panel){setPanel(null);return}const r=e.currentTarget.getBoundingClientRect();pend.current.likes++;setLikes(l=>l+1);
+    const h={k:Math.random(),x:e.clientX-r.left,y:e.clientY-r.top,rot:Math.random()*40-20};setHearts(v=>[...v.slice(-30),{...h,tap:true}]);setTimeout(()=>setHearts(v=>v.filter(y=>y.k!==h.k)),900)};
+  // sending: small gifts start a combo — keep tapping the round button within 3s; taps are batched
+  const flush=async()=>{const c=comboRef.current;if(!c||!c.pending)return;const q=c.pending;c.pending=0;
+    const {data,error}=await sb.rpc('live_send_gift',{sid:id,gift:c.g.id,qty:q,to_uid:c.to||null});
+    if(error){setErr(friendly(error));c.total-=q;setCombo(null);comboRef.current=null;return}
+    setWallet(w=>w?{...w,sparks:data,sent:(w.sent||0)+c.g.cost*q}:w);
+    const p={gift:c.g.id,qty:q,combo:c.total,to:c.to,from:me};eng.current.send('gift',p);
+    showGift(p);setChat(x=>[...x.slice(-40),{from:me,gift:c.g.id,qty:q,k:Math.random()}]);setEvents(x=>[...x,{from_id:me,to_id:c.to,sparks:c.g.cost*q,created_at:new Date().toISOString()}])};
+  const sendGift=(g,to)=>{
+    if(wallet&&wallet.sparks<g.cost){setErr('Not enough Sparks. Claim your free daily Sparks in the Sparks tab.');return}
+    let c=comboRef.current;if(!c||c.g.id!==g.id||c.to!==to){if(c)flush();c={g,to,pending:0,total:0};comboRef.current=c}
+    c.pending++;c.total++;setWallet(w=>w?{...w,sparks:w.sparks-g.cost}:w);clearTimeout(c.ft);c.ft=setTimeout(flush,450);
+    clearTimeout(c.end);c.end=setTimeout(()=>{flush();if(comboRef.current===c){comboRef.current=null;setCombo(null)}},3000);
+    if(g.tier==='small'){setPanel(null);setCombo({g,to,n:c.total,k:Math.random()})}else{setCombo(null);setPanel(null)}};
   const end=async()=>{if(isHost){if(!confirm('End your live?'))return;await sb.from('live_streams').update({ended_at:new Date().toISOString()}).eq('id',id)}
     else if(isGuest){await sb.from('live_streams').update({guest_id:null}).eq('id',id).then(()=>{});eng.current.send('guest',{})}onExit()};
   const invite=async uid=>{const {error}=await sb.from('live_streams').update({guest_id:uid}).eq('id',id);if(error){setErr(friendly(error));return}setReqs(r=>{const n={...r};delete n[uid];return n});eng.current.send('guest',{uid})};
-  const dropGuest=async()=>{await sb.from('live_streams').update({guest_id:null}).eq('id',id);eng.current.send('guest',{})};
-  if(row&&row.ended_at)return html`<div className="gl-room ended"><div className="empty" style=${{color:'#fff'}}>This live has ended.</div><button className="btn orange" onClick=${onExit}>Back</button></div>`;
+  const dropGuest=async()=>{await sb.from('live_streams').update({guest_id:null,match_started:null,match_until:null}).eq('id',id);eng.current.send('guest',{})};
+  const hostUpd=async patch=>{const {error}=await sb.from('live_streams').update(patch).eq('id',id);if(error){setErr(friendly(error));return}eng.current.send('guest',{});loadRow()};
+  const startMatch=()=>{const t=Date.now();hostUpd({match_started:new Date(t).toISOString(),match_until:new Date(t+180e3).toISOString()});setScore({h:0,g:0});setPanel(null)};
+  if(row&&row.ended_at){
+    const got=events.filter(e=>e.to_id===row.host_id).reduce((a,e)=>a+e.sparks,0);
+    return html`<div className="gl-room ended"><div className="empty" style=${{color:'#fff'}}>This live has ended.</div>
+      <div className="gl-sum"><div><b>${fmtK(likes)}</b><span>Likes</span></div><div><b>${fmtK(got)}</b><span>Sparks</span></div><div><b>${new Set(events.map(e=>e.from_id)).size}</b><span>Gifters</span></div></div>
+      <button className="btn orange" onClick=${onExit}>Back</button></div>`}
   const host=row&&(people[row.host_id]||liveUser(null));const guest=row&&row.guest_id&&(people[row.guest_id]||liveUser(null));
   const hostStream=isHost?local:row&&remote[row.host_id];const guestStream=isGuest?local:row&&row.guest_id&&remote[row.guest_id];
   const reqList=Object.keys(reqs).filter(u=>u!==(row&&row.guest_id));
-  return html`<div className="gl-room">
+  const board=(()=>{const m={};events.forEach(e=>{m[e.from_id]=(m[e.from_id]||0)+e.sparks});return Object.entries(m).sort((a,b)=>b[1]-a[1])})();
+  const received=row?events.filter(e=>e.to_id===row.host_id).reduce((a,e)=>a+e.sparks,0):0;
+  const targets=row?[{id:row.host_id,u:host},...(row.guest_id&&row.guest_id!==me?[{id:row.guest_id,u:guest}]:[])].filter(t=>t.id!==me):[];
+  const left=matchOn?Math.max(0,Math.ceil((new Date(row.match_until).getTime()-now)/1000)):0;
+  const res=matchDone?(score.h===score.g?['DRAW','DRAW']:score.h>score.g?['WIN','LOSE']:['LOSE','WIN']):null;
+  const name=uid=>(people[uid]||{name:'…'}).name;
+  return html`<div className="gl-room" onClick=${tapLike}>
     <div className=${'gl-stage'+(row&&row.guest_id?' split':'')}>
-      <div className="gl-tile">${hostStream?html`<${Vid} stream=${hostStream} mirror=${isHost&&eng.current&&eng.current.facing==='user'} muted=${isHost}/>`:html`<div className="gl-wait"><${Avatar} u=${host||liveUser(null)} size=${84} noRing=${true}/><p>${row?'Connecting…':'Joining…'}</p></div>`}</div>
+      <div className="gl-tile">${hostStream?html`<${Vid} stream=${hostStream} mirror=${isHost&&eng.current&&eng.current.facing==='user'} muted=${isHost}/>`:html`<div className="gl-wait"><${Avatar} u=${host||liveUser(null)} size=${84} noRing=${true}/><p>${row?'Connecting…':'Joining…'}</p></div>`}
+        ${res&&html`<span className=${'gl-res '+res[0].toLowerCase()}>${res[0]}</span>`}</div>
       ${row&&row.guest_id&&html`<div className="gl-tile">${guestStream?html`<${Vid} stream=${guestStream} mirror=${isGuest} muted=${isGuest}/>`:html`<div className="gl-wait"><${Avatar} u=${guest} size=${64} noRing=${true}/><p>Joining…</p></div>`}<span className="gl-name">${guest.name}</span>
+        ${res&&html`<span className=${'gl-res '+res[1].toLowerCase()}>${res[1]}</span>`}
         ${isHost&&html`<button className="gl-kick" onClick=${dropGuest} aria-label="Remove guest"><${Icon} n="x" s=${14}/></button>`}</div>`}
     </div>
     <div className="gl-shade"></div>
-    <div className="gl-head">${host&&html`<${Avatar} u=${host} size=${34} noRing=${true}/><div className="gl-who"><b>${host.name}</b><span>${row.title||'@'+host.handle}</span></div>`}
-      <span className="live-dot">LIVE</span><span className="gl-count"><${Icon} n="eye" s=${14}/>${Math.max(0,viewers.length-1)}</span>
+    <div className="gl-head">${host&&html`<${Avatar} u=${host} size=${34} noRing=${true}/><div className="gl-who"><b>${host.name}</b><span><${Icon} n="heart" s=${11} fill="currentColor"/> ${fmtK(likes)} likes</span></div>`}
+      <button className="gl-top3" onClick=${e=>{e.stopPropagation();setPanel('board')}} aria-label="Top gifters">${board.slice(0,3).map(([u],i)=>html`<span key=${u} className=${'r'+i}><${Avatar} u=${people[u]||liveUser(null)} size=${26} noRing=${true}/></span>`)}</button>
+      <button className="gl-count" onClick=${e=>{e.stopPropagation();setPanel('viewers')}}><${Icon} n="eye" s=${14}/>${Math.max(0,viewers.length-1)}</button>
       <button className="gl-x" onClick=${end} aria-label=${isHost?'End live':'Leave'}><${Icon} n="x" s=${20}/></button></div>
+    <div className="gl-sub">
+      <span className="live-dot">LIVE</span>${row&&row.title&&html`<span className="gl-title">${row.title}</span>`}
+      ${(isHost||received>0)&&html`<span className="gl-earn"><${SparkIco} s=${12}/>${fmtK(received)}</span>`}
+    </div>
+    ${row&&row.goal>0&&html`<div className="gl-goal"><div className="gl-goal-t"><span>${row.goal_label||'Live goal'}</span><b><${SparkIco} s=${11}/>${fmtK(Math.min(received,row.goal))} / ${fmtK(row.goal)}</b></div><div className="gl-goal-b"><i style=${{width:Math.min(100,received/row.goal*100)+'%'}}></i></div>${received>=row.goal&&html`<em>Goal reached 🎉</em>`}</div>`}
+    ${(matchOn||matchDone)&&html`<div className="gl-match"><div className="gl-mbar"><i style=${{flex:Math.max(1,score.h)}}><b>${fmtK(score.h)}</b></i><i style=${{flex:Math.max(1,score.g)}}><b>${fmtK(score.g)}</b></i></div><span className="gl-mt">${matchOn?Math.floor(left/60)+':'+String(left%60).padStart(2,'0'):'Final'}</span></div>`}
+    ${row&&row.pinned&&html`<div className="gl-pin"><${Icon} n="pin" s=${13}/><div><b>${name(row.pinned.from)}</b> ${row.pinned.text}</div>${isHost&&html`<button onClick=${e=>{e.stopPropagation();hostUpd({pinned:null})}} aria-label="Unpin"><${Icon} n="x" s=${13}/></button>`}</div>`}
     ${isHost&&reqList.length>0&&html`<div className="gl-reqs">${reqList.map(u=>{const p=people[u];if(!p){who(u);return null}return html`<div key=${u} className="gl-req"><${Avatar} u=${p} size=${28} noRing=${true}/><b>${p.name}</b><span className="sub">wants to join</span><button className="btn orange sm" onClick=${()=>invite(u)}>Add</button><button className="btn ghost sm" onClick=${()=>setReqs(r=>{const n={...r};delete n[u];return n})}>No</button></div>`})}</div>`}
-    <div className="gl-chat">${chat.slice(-8).map(c=>{const u=people[c.from]||{name:'…'};return html`<p key=${c.k} className=${c.gift?'gift':''}><b>${u.name}</b> ${c.gift?`sent a ${c.gift>=100?'👑':c.gift>=50?'💎':'🔥'} gift · ${c.gift} pts`:c.text}</p>`})}</div>
-    <div className="gl-hearts" aria-hidden="true">${hearts.map(h=>html`<span key=${h.k} className=${h.big?'big':''} style=${{left:h.x+'%'}}>${h.e}</span>`)}</div>
-    ${err&&html`<p className="gl-err">${err}</p>`}
-    ${gifts&&html`<div className="gl-gifts">${[[10,'🔥'],[50,'💎'],[100,'👑']].map(([a,e])=>html`<button key=${a} onClick=${()=>gift(a)}><span>${e}</span><b>${a} pts</b></button>`)}</div>`}
-    <div className="gl-bar">
+    <div className="gl-banners">${banners.map(b=>{const g=giftById(b.gift);return html`<div key=${b.key} className=${'gb'+(g.tier!=='small'?' hot':'')}>
+      <${Avatar} u=${people[b.from]||liveUser(null)} size=${34} noRing=${true}/><div className="gb-t"><b>${name(b.from)}</b><span>sent ${g.name}${b.to&&row&&b.to===row.guest_id?' to '+name(b.to):''}</span></div>
+      <${GiftArt} id=${g.id} size=${46}/>${b.count>1&&html`<em key=${b.count} className="gb-n">×${b.count}</em>`}</div>`})}</div>
+    <div className="gl-chat">${chat.slice(-8).map(c=>{const u=people[c.from]||{name:'…'};return html`<p key=${c.k} className=${c.gift?'gift':c.join?'join':''} onClick=${e=>{if(isHost&&c.text){e.stopPropagation();setMenu(c)}}}>
+      <${LvBadge} lv=${levels[c.from]}/><b>${u.name}</b> ${c.join?'joined 👋':c.gift?html`sent ${giftById(c.gift).name}${c.qty>1?' ×'+c.qty:''} <${GiftArt} id=${c.gift} size=${18}/>`:c.text}</p>`})}</div>
+    ${menu&&html`<div className="gl-menu" onClick=${e=>e.stopPropagation()}><p><b>${name(menu.from)}</b> ${menu.text}</p><button className="btn orange sm" onClick=${()=>{hostUpd({pinned:{from:menu.from,text:menu.text}});setMenu(null)}}>Pin comment</button><button className="btn ghost sm" onClick=${()=>setMenu(null)}>Cancel</button></div>`}
+    <div className="gl-hearts" aria-hidden="true">${hearts.filter(h=>!h.tap).map(h=>html`<span key=${h.k} className=${h.big?'big':''} style=${{left:h.x+'%'}}>${h.e||html`<${SparkIco} s=${30}/>`}</span>`)}</div>
+    ${hearts.filter(h=>h.tap).map(h=>html`<span key=${h.k} className="gl-tap" style=${{left:h.x,top:h.y,'--r':h.rot+'deg'}} aria-hidden="true">🧡</span>`)}
+    ${shows.length>0&&html`<${GiftShow} key=${shows[0].k} g=${{...shows[0],name:name(shows[0].from),k:shows[0].k}} onDone=${()=>setShows(v=>v.slice(1))}/>`}
+    ${err&&html`<p className="gl-err" onClick=${e=>{e.stopPropagation();setErr('')}}>${err}</p>`}
+    ${combo&&html`<button key=${combo.k} className="gl-combo" onClick=${e=>{e.stopPropagation();sendGift(combo.g,combo.to)}} aria-label=${'Send another '+combo.g.name}>
+      <svg className="cring" viewBox="0 0 80 80"><circle cx="40" cy="40" r="37" className="cr"/></svg><${GiftArt} id=${combo.g.id} size=${36}/><b>×${combo.n}</b><span>Combo</span></button>`}
+    ${panel==='gifts'&&html`<${GiftPanel} wallet=${wallet} setWallet=${setWallet} targets=${targets} onSend=${sendGift} onClose=${()=>setPanel(null)}/>`}
+    ${panel==='board'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Top gifters</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
+      ${board.length?html`<div className="gp-list">${board.slice(0,30).map(([u,n],i)=>html`<div key=${u} className="gp-row"><em className=${'rk r'+i}>${i+1}</em><${Avatar} u=${people[u]||liveUser(null)} size=${36} noRing=${true}/><b>${name(u)}</b><${LvBadge} lv=${levels[u]}/><span><${SparkIco} s=${12}/>${fmtK(n)}</span></div>`)}</div>`:html`<p className="gp-empty">No gifts yet. Be the first.</p>`}</div>`}
+    ${panel==='viewers'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>${Math.max(0,viewers.length-1)} watching</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
+      <div className="gp-list">${viewers.filter(v=>row&&v!==row.host_id).map(v=>{if(!people[v])who(v);return html`<div key=${v} className="gp-row"><${Avatar} u=${people[v]||liveUser(null)} size=${36} noRing=${true}/><b>${name(v)}</b><${LvBadge} lv=${levels[v]}/></div>`})}</div></div>`}
+    ${panel==='goal'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Live goal</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
+      <${GoalForm} row=${row} onSave=${(goal,label)=>{hostUpd({goal,goal_label:label});setPanel(null)}}/></div>`}
+    ${panel==='host'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Live tools</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
+      <div className="gp-tools">
+        <button onClick=${()=>setPanel('goal')}><${SparkIco} s=${22}/><b>Goal</b><span>${row&&row.goal?fmtK(row.goal)+' Sparks':'Set a Sparks goal'}</span></button>
+        <button disabled=${!row||!row.guest_id||matchOn} onClick=${startMatch}><${Icon} n="bolt" s=${22}/><b>Match</b><span>${matchOn?'In progress':row&&row.guest_id?'3 min gift battle with your guest':'Add a guest first'}</span></button>
+        <button onClick=${()=>setPanel('board')}><${Icon} n="crown" s=${22}/><b>Top gifters</b><span>${board.length} so far</span></button>
+        <button onClick=${()=>setPanel('viewers')}><${Icon} n="eye" s=${22}/><b>Viewers</b><span>${Math.max(0,viewers.length-1)} watching</span></button>
+      </div></div>`}
+    <div className="gl-bar" onClick=${e=>e.stopPropagation()}>
       <input placeholder="Add a comment…" maxLength=${150} value=${txt} onInput=${e=>{setTxt(e.target.value);setErr('')}} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Comment"/>
-      ${onCam?html`<button onClick=${()=>{const v=!mic;setMic(v);eng.current.setMic(v)}} aria-label=${mic?'Mute':'Unmute'}><${Icon} n=${mic?'mic':'mute'} s=${20}/></button>
+      ${onCam?html`${isHost&&html`<button onClick=${()=>setPanel(panel==='host'?null:'host')} aria-label="Live tools"><${Icon} n="more" s=${20}/></button>`}
+        <button onClick=${()=>{const v=!mic;setMic(v);eng.current.setMic(v)}} aria-label=${mic?'Mute':'Unmute'}><${Icon} n=${mic?'mic':'mute'} s=${20}/></button>
         <button onClick=${()=>{const v=!cam;setCam(v);eng.current.setCam(v)}} aria-label=${cam?'Turn camera off':'Turn camera on'}><${Icon} n=${cam?'reels':'eye'} s=${20}/></button>
         <button onClick=${()=>eng.current.flip().catch(()=>{})} aria-label="Flip camera"><${Icon} n="replay" s=${20}/></button>`
       :html`${!asked&&html`<button onClick=${()=>{eng.current.send('req',{});setAsked(true)}} aria-label="Ask to join"><${Icon} n="plus" s=${20}/></button>`}
-        <button onClick=${()=>setGifts(!gifts)} aria-label="Send a gift">🎁</button>
+        <button className="gl-giftbtn" onClick=${()=>{setPanel(panel==='gifts'?null:'gifts');loadWallet()}} aria-label="Send a gift"><${GiftArt} id="rose" size=${26}/></button>
         <button onClick=${heart} aria-label="Send love">🧡</button>`}
     </div>
   </div>`;
+}
+function GoalForm({row,onSave}){
+  const [g,setG]=useState(row&&row.goal||500);const [l,setL]=useState(row&&row.goal_label||'');
+  return html`<div className="gp-goal"><div className="gp-chips">${[100,500,1000,2500,5000,10000].map(v=>html`<button key=${v} aria-pressed=${g===v} onClick=${()=>setG(v)}><${SparkIco} s=${11}/>${fmtK(v)}</button>`)}</div>
+    <input placeholder="What's it for? (optional)" maxLength=${40} value=${l} onInput=${e=>setL(e.target.value)} aria-label="Goal label"/>
+    <div className="gp-row2"><button className="btn ghost" onClick=${()=>onSave(null,'')}>Remove goal</button><button className="btn orange" onClick=${()=>onSave(g,l.trim())}>Set goal</button></div></div>`;
 }
 function GoLiveEmbed(){
   const [tok,setTok]=useState(EMBED_TOKEN);useEffect(()=>{window.__tempToken=t=>{EMBED_TOKEN=t;try{sb.realtime.setAuth(t)}catch(e){}setTok(t)}},[]);

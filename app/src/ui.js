@@ -3,7 +3,7 @@ import { View, Text, Pressable, Image, Animated, Easing, Modal, StyleSheet, Keyb
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { F, hms, ago, kfmt, hashStr, STICKER_PACKS, STICKER_COLORS, tempOf, levelOf, nextWeekStart, DAY, HOUR } from './lib';
+import { F, hms, ago, kfmt, hashStr, STICKER_PACKS, STICKER_COLORS, tempOf, levelOf, tierOf, nextWeekStart, DAY, HOUR } from './lib';
 
 export const Ctx = React.createContext(null);
 export const useApp = () => React.useContext(Ctx);
@@ -132,15 +132,23 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
 }
 
 // same drawing as the website's thermometer (224x64 artboard, scaled to fit): tick marks, glass tube + bulb, glossy shine, rising bubbles
-function ThermoBar({ frac }) {
+function ThermoBar({ frac, tier }) {
   const { C } = useApp(); const [W, setW] = useState(0); const k = W / 224;
   const fill = useRef(new Animated.Value(0)).current; const bub = useRef(new Animated.Value(0)).current;
   useEffect(() => { const t = setTimeout(() => Animated.timing(fill, { toValue: frac, duration: 1400, easing: Easing.bezier(0.2, 0.9, 0.3, 1), useNativeDriver: false }).start(), 80); return () => clearTimeout(t); }, [frac]);
   useEffect(() => { const l = Animated.loop(Animated.timing(bub, { toValue: 1, duration: 2600 * 3, easing: Easing.linear, useNativeDriver: true })); bub.setValue(0); l.start(); return () => l.stop(); }, []);
-  const G = ['#ff2d00', '#ff6a1a', '#ffd27a'];
+  const G = (tier && tier[2]) || ['#ff2d00', '#ff6a1a', '#ffd27a']; const nova = tier && tier[1] === 'Supernova';
+  const glow = useRef(new Animated.Value(0)).current;
+  useEffect(() => { if (!nova) return; const l = Animated.loop(Animated.sequence([Animated.timing(glow, { toValue: 1, duration: 1200, useNativeDriver: true }), Animated.timing(glow, { toValue: 0, duration: 1200, useNativeDriver: true })])); l.start(); return () => l.stop(); }, [nova]);
   const box = (x, y, w, h, extra) => ({ position: 'absolute', left: x * k, top: y * k, width: w * k, height: h * k, ...extra });
   return (
     <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ flexGrow: 1, flexShrink: 1, flexBasis: 150, minWidth: 130, maxWidth: 260, aspectRatio: 224 / 64 }}>
+      {W && tier && tier[2] ? <>
+        {/* past Molten: the whole thermometer glows in its tier colour (Supernova pulses pink to cyan) */}
+        <View style={{ position: 'absolute', left: 6 * k, top: 8 * k, width: 48 * k, height: 48 * k, borderRadius: 24 * k, backgroundColor: G[1], shadowColor: G[1], shadowOpacity: 0.9, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } }} />
+        <View style={{ position: 'absolute', left: 38 * k, top: 17 * k, width: 180 * k, height: 30 * k, borderRadius: 15 * k, backgroundColor: G[1], shadowColor: G[1], shadowOpacity: 0.8, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } }} />
+        {nova ? <Animated.View style={{ position: 'absolute', left: 6 * k, top: 8 * k, width: 48 * k, height: 48 * k, borderRadius: 24 * k, backgroundColor: G[2], shadowColor: G[2], shadowOpacity: 1, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, opacity: glow }} /> : null}
+      </> : null}
       {W ? <>
         {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => { const y1 = i % 2 ? 11 : 7; return <View key={i} style={box(65 + i * 20, y1, 2, 13 - y1, { borderRadius: k, backgroundColor: C.muted })} />; })}
         <View style={box(38, 17, 180, 30, { borderRadius: 15 * k, backgroundColor: C.card, borderWidth: 2 * k, borderColor: C.line })} />
@@ -167,11 +175,11 @@ export function Thermo({ w, isMe, stickers, onAddSticker, onRemoveSticker }) {
   const left = nextWeekStart() - Date.now(); const d = Math.floor(left / DAY), h = Math.floor((left % DAY) / HOUR);
   return (
     <View style={{ backgroundColor: C.soft, borderRadius: 22, padding: 14, marginTop: 14, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
-      <ThermoBar frac={frac} />
+      <ThermoBar frac={frac} tier={tierOf(deg)} />
       <View>
         <T b muted style={{ fontSize: 12.5 }}>This week</T>
         <T d style={{ fontSize: 30, letterSpacing: -1.5 }}>{deg}°</T>
-        <T h style={{ color: C.orange }}>{levelOf(deg)}</T>
+        <T h style={{ color: tierOf(deg)[3] || C.orange }}>{levelOf(deg)}</T>
         <T muted style={{ fontSize: 12.5, marginTop: 4 }}>Resets in {d}d {h}h</T>
         {isMe ? <T muted style={{ fontSize: 12.5 }}>{(w && w.viral) || 0} viral · +{kfmt((w && w.earned) || 0)} pts</T> : null}
       </View>

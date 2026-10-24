@@ -56,14 +56,14 @@ function GoLiveWeb({ onClose }) {
 }
 
 export function GoLiveSide() {
-  const { C } = useApp(); const { width: W } = require('react-native').Dimensions.get('window');
+  const { C, setBars } = useApp(); const { width: W } = require('react-native').Dimensions.get('window');
   const x = useRef(new Animated.Value(-W)).current; const [open, setOpen] = useState(false); const [mounted, setMounted] = useState(false);
   const peek = useRef(new Animated.Value(0)).current; const openRef = useRef(false); openRef.current = open;
-  const show = (o) => { if (o) setMounted(true); setOpen(o); Animated.spring(x, { toValue: o ? 0 : -W, damping: 22, stiffness: 200, useNativeDriver: true }).start(() => { if (!o) setMounted(false); }); };
+  const show = (o) => { if (o) setMounted(true); setOpen(o); setBars && setBars(o); /* the live page covers the tab bar */ Animated.spring(x, { toValue: o ? 0 : -W, damping: 22, stiffness: 200, useNativeDriver: true }).start(() => { if (!o) setMounted(false); }); };
   const edge = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => false,
     onMoveShouldSetPanResponder: (e, d) => d.dx > 8 && Math.abs(d.dx) > Math.abs(d.dy) * 1.4,
-    onPanResponderGrant: () => setMounted(true),
+    onPanResponderGrant: () => { setMounted(true); setBars && setBars(true); },
     onPanResponderMove: (e, d) => x.setValue(Math.min(0, -W + Math.max(0, d.dx))),
     onPanResponderRelease: (e, d) => show(d.dx > W * 0.3 || d.vx > 0.5),
     onPanResponderTerminate: () => show(false),

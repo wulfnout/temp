@@ -315,6 +315,9 @@ function BurnBar({ p }) {
   const label = h ? h + 'h' : '<1h';
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }} accessibilityLabel={'Heated, ' + label + ' left'}>
+      {/* greyed-out trail: the full 24h path the orb has already travelled, with a faint imprint where it started */}
+      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, height: 3, borderRadius: 2, backgroundColor: C.line }} />
+      <View pointerEvents="none" style={{ position: 'absolute', right: 0, width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: C.line, opacity: 0.9 }} />
       <View style={{ flex: pct, height: 3, borderRadius: 2, backgroundColor: C.orange, marginRight: -2 }} />
       <TimeOrb label={label} />
       <View style={{ flex: 1 - pct }} />

@@ -131,24 +131,43 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
   );
 }
 
+// same drawing as the website's thermometer (224x64 artboard, scaled to fit): tick marks, glass tube + bulb, glossy shine, rising bubbles
+function ThermoBar({ frac }) {
+  const { C } = useApp(); const [W, setW] = useState(0); const k = W / 224;
+  const fill = useRef(new Animated.Value(0)).current; const bub = useRef(new Animated.Value(0)).current;
+  useEffect(() => { const t = setTimeout(() => Animated.timing(fill, { toValue: frac, duration: 1400, easing: Easing.bezier(0.2, 0.9, 0.3, 1), useNativeDriver: false }).start(), 80); return () => clearTimeout(t); }, [frac]);
+  useEffect(() => { const l = Animated.loop(Animated.timing(bub, { toValue: 1, duration: 2600 * 3, easing: Easing.linear, useNativeDriver: true })); bub.setValue(0); l.start(); return () => l.stop(); }, []);
+  const G = ['#ff2d00', '#ff6a1a', '#ffd27a'];
+  const box = (x, y, w, h, extra) => ({ position: 'absolute', left: x * k, top: y * k, width: w * k, height: h * k, ...extra });
+  return (
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ flexGrow: 1, flexShrink: 1, flexBasis: 150, minWidth: 130, maxWidth: 260, aspectRatio: 224 / 64 }}>
+      {W ? <>
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => { const y1 = i % 2 ? 11 : 7; return <View key={i} style={box(65 + i * 20, y1, 2, 13 - y1, { borderRadius: k, backgroundColor: C.muted })} />; })}
+        <View style={box(38, 17, 180, 30, { borderRadius: 15 * k, backgroundColor: C.card, borderWidth: 2 * k, borderColor: C.line })} />
+        <View style={box(6, 8, 48, 48, { borderRadius: 24 * k, backgroundColor: C.card, borderWidth: 2 * k, borderColor: C.line })} />
+        <Animated.View style={[box(42, 24, 0, 16, { borderRadius: 8 * k, overflow: 'hidden' }), { width: fill.interpolate({ inputRange: [0, 1], outputRange: [10 * k, 170 * k] }) }]}>
+          <LinearGradient colors={G} locations={[0, 0.55, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ width: 170 * k, height: 16 * k }} />
+          {frac > 0.12 ? [0, 1, 2].map((i) => { const r = 1.4 + i * 0.4, a = i / 3, b = a + 1 / 3;
+            return <Animated.View key={i} style={{ position: 'absolute', left: (2 - r) * k, top: (5 + i * 3 - r) * k, width: 2 * r * k, height: 2 * r * k, borderRadius: r * k, backgroundColor: '#fff',
+              opacity: bub.interpolate({ inputRange: [0, a, a + 0.05, b, 1], outputRange: [0, 0, 0.85, 0, 0], extrapolate: 'clamp' }),
+              transform: [{ translateX: bub.interpolate({ inputRange: [0, a, b, 1], outputRange: [0, 0, 140 * k * frac, 140 * k * frac], extrapolate: 'clamp' }) }] }} />; }) : null}
+        </Animated.View>
+        <View style={box(12, 14, 36, 36, { borderRadius: 18 * k, overflow: 'hidden' })}>
+          <LinearGradient colors={G} locations={[0, 0.55, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} /></View>
+        <View style={box(46, 20.5, 164, 3.5, { borderRadius: 1.75 * k, backgroundColor: '#fff', opacity: 0.35 })} />
+        <View style={box(19.5, 21.5, 9, 9, { borderRadius: 4.5 * k, backgroundColor: '#fff', opacity: 0.4 })} />
+      </> : null}
+    </View>
+  );
+}
+
 export function Thermo({ w, isMe, stickers, onAddSticker, onRemoveSticker }) {
   const { C } = useApp();
   const deg = tempOf(w); const frac = Math.max(0, Math.min(1, (deg - 32) / 180));
-  const fill = useRef(new Animated.Value(0)).current;
-  useEffect(() => { Animated.timing(fill, { toValue: frac, duration: 1300, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [frac]);
   const left = nextWeekStart() - Date.now(); const d = Math.floor(left / DAY), h = Math.floor((left % DAY) / HOUR);
   return (
     <View style={{ backgroundColor: C.soft, borderRadius: 22, padding: 14, marginTop: 14, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', flexGrow: 1, flexBasis: 140, maxWidth: 230 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.card, borderWidth: 2, borderColor: C.line, alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-          <LinearGradient colors={['#ff2d00', '#ff6a1a']} style={{ width: 28, height: 28, borderRadius: 14 }} />
-        </View>
-        <View style={{ flex: 1, height: 22, marginLeft: -6, borderRadius: 11, backgroundColor: C.card, borderWidth: 2, borderColor: C.line, overflow: 'hidden', justifyContent: 'center' }}>
-          <Animated.View style={{ height: 12, marginLeft: 4, borderRadius: 6, overflow: 'hidden', width: fill.interpolate({ inputRange: [0, 1], outputRange: ['4%', '96%'] }) }}>
-            <LinearGradient colors={['#ff2d00', '#ff6a1a', '#ffd27a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
-          </Animated.View>
-        </View>
-      </View>
+      <ThermoBar frac={frac} />
       <View>
         <T b muted style={{ fontSize: 12.5 }}>This week</T>
         <T d style={{ fontSize: 30, letterSpacing: -1.5 }}>{deg}°</T>

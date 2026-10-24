@@ -45,28 +45,46 @@ const fill = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 };
 const clamp01 = (v) => v.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' });
 
 /* ---------------- rings ---------------- */
+// value of fn(u) where u runs 0..1 once per clock cycle, shifted by phase ph (sampled, so any shape works)
+function phased(c, ph, fn, steps = 16, unit) {
+  const inp = [], out = [];
+  for (let i = 0; i <= steps; i++) { const t = i / steps; inp.push(t); const v = fn((t + ph) % 1); out.push(unit ? v + unit : v); }
+  return c.interpolate({ inputRange: inp, outputRange: out });
+}
+const lerp3 = (u, a, m, b, k = 0.55) => (u < k ? a + (m - a) * (u / k) : m + (b - m) * ((u - k) / (1 - k)));
+// fire ring: soft glowing tongues of flame rise off the rim, burn out and are reborn, each on its own beat
 export function FireRing({ size, children, bg }) {
   useClockKick();
-  const c = clock(900), slow = clock(2400);
-  const n = size < 40 ? 7 : size < 70 ? 10 : 14;
-  const fs = Math.max(8, size * 0.26), r = size / 2 - fs * 0.32;
-  const cols = ['#ff2d00', '#ff8a2b', '#ffd27a', '#ff5500'];
+  const cA = clock(1100), cB = clock(800), pulse = clock(1700), slow = clock(2400);
+  const n = size < 40 ? 11 : size < 70 ? 15 : 20;
+  const fs = Math.max(7, size * 0.27), r = size / 2 - fs * 0.12;
+  const tongue = (k, i) => {
+    const hot = k === 1; const c = hot ? cB : cA; const ph = ((i * 37 + k * 13) % 17) / 17;
+    const ang = (360 / n) * (i + (hot ? 0.5 : 0)) + ((i * 53) % 7) - 3;
+    const w = fs * (hot ? 0.8 : 1.2) * (0.8 + ((i * 29) % 10) / 25), h = w * 2.1; const sw = (((i * 11) % 5) - 2) * 2;
+    const cols = hot ? ['rgba(255,45,0,0)', 'rgba(255,60,0,.8)', '#ff8a2b', '#ffd27a', '#fff6d6'] : ['rgba(150,10,0,0)', 'rgba(220,30,0,.8)', '#ff4a0a', '#ff6a1a', '#ffb347'];
+    return (
+      <View key={k + '-' + i} pointerEvents="none" style={{ position: 'absolute', left: size / 2 - w / 2, top: size / 2 - h / 2, width: w, height: h, transform: [{ rotate: ang + 'deg' }, { translateY: -(r + w * 1.15 - h / 2) }] }}>
+        <Animated.View style={{ flex: 1, opacity: phased(c, ph, (u) => (u < 0.18 ? u / 0.18 : u < 0.55 ? 1 - (u - 0.18) * 0.13 : 0.95 * (1 - (u - 0.55) / 0.45))),
+          transform: [{ translateY: phased(c, ph, (u) => lerp3(u, h * 0.25, -h * 0.08, -h * 0.42)) },
+            { scaleX: phased(c, ph, (u) => lerp3(u, 0.5, 1, 0.35)) }, { scaleY: phased(c, ph, (u) => lerp3(u, 0.35, 1, 0.75)) },
+            { rotate: phased(c, ph, (u) => lerp3(u, 0, sw, -sw * 2), 16, 'deg') }] }}>
+          <View style={{ flex: 1, borderTopLeftRadius: w / 2, borderTopRightRadius: w / 2, borderBottomLeftRadius: w * 0.3, borderBottomRightRadius: w * 0.3, overflow: 'hidden', opacity: hot ? 0.95 : 0.85 }}>
+            <LinearGradient colors={cols} locations={[0, 0.3, 0.55, 0.8, 1]} style={{ flex: 1 }} />
+          </View>
+        </Animated.View>
+      </View>
+    );
+  };
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* glow */}
+      {/* soft breathing glow */}
       <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, backgroundColor: '#ff3d00',
-        shadowColor: '#ff5500', shadowOpacity: 0.9, shadowRadius: size * 0.16, shadowOffset: { width: 0, height: 0 },
-        opacity: jitter(c, 3, 0.55, 1, 8) }} />
-      {/* licking flames around the edge */}
-      {Array.from({ length: n }).map((_, i) => {
-        const ang = (360 / n) * i; const rad = (ang - 90) * Math.PI / 180;
-        return <Animated.View key={i} pointerEvents="none" style={{ position: 'absolute', left: size / 2 + Math.cos(rad) * r - fs / 2, top: size / 2 + Math.sin(rad) * r - fs / 2, width: fs, height: fs,
-          opacity: jitter(c, i * 7 + 1, 0.55, 1, 6),
-          transform: [{ rotate: ang + 'deg' }, { translateY: jitter(c, i * 13 + 5, -fs * 0.28, 0, 6) }, { scaleY: jitter(c, i * 5 + 2, 0.75, 1.35, 6) }, { scaleX: jitter(c, i * 3 + 9, 0.85, 1.1, 6) }] }}>
-          <Ionicons name="flame" size={fs} color={cols[i % cols.length]} />
-        </Animated.View>;
-      })}
-      {/* hot spinning core */}
+        shadowColor: '#ff4a00', shadowOpacity: 0.85, shadowRadius: size * 0.18, shadowOffset: { width: 0, height: 0 },
+        opacity: phased(pulse, 0, (u) => 0.7 + 0.3 * Math.sin(u * Math.PI * 2) ** 2), transform: [{ scale: phased(pulse, 0, (u) => 1 + 0.04 * Math.sin(u * Math.PI * 2)) }] }} />
+      {Array.from({ length: n }).map((_, i) => tongue(0, i))}
+      {Array.from({ length: n }).map((_, i) => tongue(1, i))}
+      {/* hot rim */}
       <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, overflow: 'hidden',
         transform: [{ rotate: slow.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
         <LinearGradient colors={['#ff2d00', '#ffd27a', '#ff8a2b', '#ff2d00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />

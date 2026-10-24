@@ -861,6 +861,16 @@ html.blackout .lifebar span.orb>b{color:var(--on-orange)}
 .gl-sent b{font-family:var(--display);color:#ffd27a}
 @keyframes glsent{0%{opacity:0;transform:translate(-50%,12px) scale(.9)}12%,80%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-14px)}}
 .gl-lobby:has(.gl-prev-c),.gl-embed:has(.gl-prev-c){background:#000}
+.msg.ptsmsg{background:none!important;padding:0!important}
+.pts-card{display:grid;gap:2px;min-width:150px;padding:12px 16px;--r:20px;border-radius:var(--r);background:var(--card);border:2px solid var(--orange);color:var(--ink);animation:squish 9s ease-in-out infinite}
+.pts-card.mine{background:var(--orange);border-color:transparent;color:var(--on-orange)}
+.pts-amt{display:flex;align-items:center;gap:6px}.pts-amt svg{color:var(--orange)}.pts-card.mine .pts-amt svg{color:currentColor}
+.pts-amt b{font-family:var(--display);font-size:24px;letter-spacing:-.04em}.pts-amt span{font-weight:800;font-size:13px;opacity:.75;margin-top:6px}
+.pts-card small{font-weight:800;font-size:12px;opacity:.75}.pts-card p{margin:4px 0 0}
+.sp-body{display:grid;gap:12px}.sp-body .sub{margin:0;display:flex;align-items:center;gap:6px;font-weight:700}
+.sp-chips{display:flex;flex-wrap:wrap;gap:8px}.sp-chips button{padding:10px 16px;--r:15px;border-radius:var(--r);background:var(--soft);font-weight:800;animation:squish 9s ease-in-out infinite}
+.sp-chips button[aria-pressed="true"]{background:var(--orange);color:var(--on-orange)}.sp-chips button:disabled{opacity:.4}
+.sp-in{background:var(--soft);border:0;--r:15px;border-radius:var(--r);padding:12px 14px;color:var(--ink);font-weight:600}
 /* hidden left page on home */
 .gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
 .gl-side.open{transform:none}
@@ -1400,7 +1410,7 @@ async function loadAll(){
   const threads={},unread={},seenBy={};
   msgs.forEach(m=>{const other=L(m.sender===myId?m.recipient:m.sender);if(!users[other])return;
     const snap=m.snap?{...m.snap,userId:L(m.snap.userId)}:null;
-    (threads[other]=threads[other]||[]).push({id:m.id,from:L(m.sender),text:m.text||'',sticker:m.sticker,postId:m.post_id,snap,note:m.note,react:m.react,audio:m.audio_url,ms:m.audio_ms,at:+new Date(m.created_at),readAt:m.read_at?+new Date(m.read_at):0});
+    (threads[other]=threads[other]||[]).push({id:m.id,from:L(m.sender),text:m.text||'',sticker:m.sticker,postId:m.post_id,snap,note:m.note,react:m.react,audio:m.audio_url,ms:m.audio_ms,points:m.points||0,at:+new Date(m.created_at),readAt:m.read_at?+new Date(m.read_at):0});
     if(m.recipient===myId&&!m.read_at)unread[other]=true;
     if(m.sender===myId&&m.read_at)seenBy[other]=Math.max(seenBy[other]||0,+new Date(m.read_at))});
   const N=notifs.filter(n=>users[L(n.actor_id||n.user_id)]).map(n=>({id:n.id,type:n.type,userId:L(n.actor_id||n.user_id),text:n.text||'',at:+new Date(n.created_at),read:n.read,postId:n.post_id}));
@@ -1458,6 +1468,7 @@ async function remote(a,b){
     case 'deleteReplay':{if(a.id<0)return;const {error}=await sb.rpc('delete_replay',{pid:a.id});if(error)throw new Error(friendly(error));return 'reload'}
     case 'burnStory':{if(a.id<0)return;const {error}=await sb.rpc('burn_story',{sid:a.id});if(error)throw new Error(friendly(error));return 'reload'}
     case 'ashDone':{if(a.id<0)return;const {error}=await sb.rpc('ash_post',{pid:a.id});if(error)throw new Error(friendly(error));return 'reload'}
+    case 'sendPoints':{const {error}=await sb.rpc('send_points',{to_uid:R(a.to),amount:a.n,note:a.note||''});if(error)throw new Error(friendly(error));return 'reload'}
     case 'buy':{const {error}=await sb.rpc('buy',{k:a.kind,item:a.id});if(error)throw new Error(friendly(error));
       if(a.kind!=='stickers'&&a.id!=='gif')await remote({type:'equip',kind:a.kind,id:a.id},b);return 'reload'}
     case 'equip':
@@ -1611,6 +1622,7 @@ function reducer(s,a){
     case 'subscribe': return {...s,users:{...s.users,me:{...me,plus:a.on,ring:a.on?(me.ring||'plus'):(me.ring==='plus'?null:me.ring)}},
       settings:a.on?s.settings:{...s.settings,hideHate:false},
       posts:a.on?s.posts:s.posts.map(p=>p.userId==='me'&&p.status==='kept'?{...p,status:'burning',burnEnds:s.now+DAY}:p),toast:T(a.on?'Welcome to Temp+':'Temp+ canceled')};
+    case 'sendPoints': return {...s,points:Math.max(0,s.points-a.n),toast:'Sent '+kfmt(a.n)+' points'};
     case 'buy':{
       if(s.points<a.price)return {...s,toast:T('Not enough points')};
       const n={...s,points:s.points-a.price,owned:{...s.owned,[a.kind]:{...s.owned[a.kind],[a.id]:1}},toast:T('Unlocked')};
@@ -2956,7 +2968,7 @@ function DMList({s,open}){
   const lastOf=id=>s.threads[id][s.threads[id].length-1];
   const ids=Object.keys(s.threads).filter(id=>!s.blocked[id]&&s.threads[id].length).sort((a,b)=>lastOf(b).at-lastOf(a).at);
   const others=Object.values(s.users).filter(u=>u.id!=='me'&&!s.blocked[u.id]&&!ids.includes(u.id));
-  const last=m=>m.postId?(m.from==='me'?'You sent a post':'Sent a post'):(m.from==='me'?'You: ':'')+(m.sticker?stickerLabel(m.sticker):m.text);
+  const last=m=>m.points?(m.from==='me'?'You sent '+kfmt(m.points)+' pts':'Sent you '+kfmt(m.points)+' pts 🔥'):m.postId?(m.from==='me'?'You sent a post':'Sent a post'):(m.from==='me'?'You: ':'')+(m.sticker?stickerLabel(m.sticker):m.text);
   const act=s.settings.activity;
   return html`<div>
     ${ids.length>0&&html`<div className="list-card">${ids.map(id=>{const u=s.users[id];const m=lastOf(id);return html`<button className="thread-row" key=${id} onClick=${()=>open.thread(id)}>
@@ -2967,8 +2979,19 @@ function DMList({s,open}){
   </div>`;
 }
 
+// send points to someone in a chat: preset amounts or your own, plus an optional note
+function SendPoints({s,to,dispatch,onClose}){
+  const u=s.users[to]||{};const [amt,setAmt]=useState(25);const [custom,setCustom]=useState('');const [note,setNote]=useState('');
+  const bal=s.points||0;const n=custom?Math.floor(+custom||0):amt;const bad=n<1||n>bal;
+  return html`<${Sheet} onClose=${onClose} label="Send points"><div className="sheet-head"><h3>Send points</h3></div>
+    <div className="sp-body"><p className="sub"><${Icon} n="flame" s=${14} fill="var(--orange)"/> You have ${kfmt(bal)} pts</p>
+      <div className="sp-chips">${[10,25,50,100,250,500].map(v=>html`<button key=${v} aria-pressed=${!custom&&amt===v} disabled=${v>bal} onClick=${()=>{setAmt(v);setCustom('')}}>${v}</button>`)}</div>
+      <input className="sp-in" inputMode="numeric" placeholder="Other amount" value=${custom} onInput=${e=>setCustom(e.target.value.replace(/[^0-9]/g,'').slice(0,6))} aria-label="Other amount"/>
+      <input className="sp-in" maxLength=${140} placeholder="Add a note (optional)" value=${note} onInput=${e=>setNote(e.target.value)} aria-label="Note"/>
+      <button className="btn orange wide" disabled=${bad} onClick=${()=>{dispatch({type:'sendPoints',to,n,note:note.trim()});onClose()}}>${n>bal?'Not enough points':'Send '+kfmt(n||0)+' pts to @'+(u.handle||'')}</button></div><//>`;
+}
 function Thread({s,id,dispatch,simulateReply,onTyping,open}){
-  const [t,setT]=useState('');const end=useRef();const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);
+  const [t,setT]=useState('');const [pts,setPts]=useState(false);const end=useRef();const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);
   const msgs=s.threads[id]||[];
   const [vsend,setVsend]=useState(false);
   const vr=useVoiceRecorder(async(file,ms)=>{setVsend(true);try{const url=await upload(file);dispatch({type:'dm',to:id,audio:url,ms})}catch(e){setErr(friendly(e))}setVsend(false)});
@@ -2997,7 +3020,7 @@ function Thread({s,id,dispatch,simulateReply,onTyping,open}){
             <div className="sh-body"><span className="sh-by">@${s.users[p.userId].handle}${!live?' · gone from the timeline':''}</span>${p.text&&html`<span>${p.text}</span>`}</div></div></div>`}
         return html`<div className="mrow" key=${m.id}><span className="mt">${clock(m.at)}</span>
           ${m.note&&html`<div className=${'msg-note'+(mine?' mine':'')}>${m.note}</div>`}
-          <div className=${'msg'+(mine?' mine':'')+(m.audio?' vmsg':m.sticker?' stk':onlyEmoji(m.text)?' big':'')+(m.react?' has-react':'')} onDoubleClick=${()=>dispatch({type:'reactMsg',to:id,mid:m.id})}>${m.audio?html`<${VoiceMsg} url=${m.audio} ms=${m.ms} mine=${mine}/>`:m.sticker?html`<${Sticker} v=${m.sticker} size=${58}/>`:m.text}${m.react&&html`<span className="msg-react">${m.react}</span>`}</div></div>`})}
+          <div className=${'msg'+(mine?' mine':'')+(m.points?' ptsmsg':m.audio?' vmsg':m.sticker?' stk':onlyEmoji(m.text)?' big':'')+(m.react?' has-react':'')} onDoubleClick=${()=>dispatch({type:'reactMsg',to:id,mid:m.id})}>${m.points?html`<div className=${'pts-card'+(mine?' mine':'')}><div className="pts-amt"><${Icon} n="flame" s=${20} fill="currentColor"/><b>${kfmt(m.points)}</b><span>pts</span></div><small>${mine?'You sent points':'Sent you points'}</small>${m.text&&html`<p>${m.text}</p>`}</div>`:m.audio?html`<${VoiceMsg} url=${m.audio} ms=${m.ms} mine=${mine}/>`:m.sticker?html`<${Sticker} v=${m.sticker} size=${58}/>`:m.text}${m.react&&html`<span className="msg-react">${m.react}</span>`}</div></div>`})}
       ${!s.typing[id]&&lastMine&&msgs[msgs.length-1]===lastMine&&html`<div className="seen">${seen||lastMine.readAt?'Seen'+((lastMine.readAt||s.seenBy[id])?' '+clock(Math.max(lastMine.readAt||0,s.seenBy[id]||0)):''):(lastMine.id>0?'Delivered':'Sending…')}</div>`}
       ${s.typing[id]&&html`<div className="typing" aria-label="typing"><span></span><span></span><span></span></div>`}
       <div ref=${end}></div>
@@ -3008,7 +3031,9 @@ function Thread({s,id,dispatch,simulateReply,onTyping,open}){
       <input id="dm-in" placeholder="Message…" value=${t} onChange=${e=>{setT(e.target.value);setErr(null);onTyping&&onTyping(id)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
       <button className="stk-btn gif-btn" aria-label="GIFs" aria-pressed=${gif} onClick=${()=>{setGif(!gif);setPick(false)}}>GIF</button>
       <button className="stk-btn" aria-label="Stickers" aria-pressed=${pick} onClick=${()=>setPick(!pick)}><${Icon} n="smile" s=${22}/></button>
+      ${id!=='temp'&&html`<button className="stk-btn" aria-label="Send points" onClick=${()=>setPts(true)}><${Icon} n="flame" s=${21}/></button>`}
       ${t.trim()?html`<button className="send" onClick=${send} aria-label="Send"><${Icon} n="share" s=${18}/></button>`:html`<button className="send mic" onClick=${vr.start} aria-label="Record a voice message"><${Icon} n="mic" s=${19}/></button>`}</div></div></div>
+    ${pts&&html`<${SendPoints} s=${s} to=${id} dispatch=${dispatch} onClose=${()=>setPts(false)}/>`}
   </div>`;
 }
 

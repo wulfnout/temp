@@ -333,7 +333,7 @@ export function DMListScreen() {
   const { s, C, nav } = useApp();
   const ids = Object.keys(s.threads).filter((id) => !s.blocked[id] && s.threads[id].length).sort((a, b) => s.threads[b].slice(-1)[0].at - s.threads[a].slice(-1)[0].at);
   const others = Object.values(s.users).filter((u) => u.id !== s.me && !s.blocked[u.id] && !ids.includes(u.id)).slice(0, 30);
-  const last = (m) => m.postId || m.snap ? (m.from === s.me ? 'You sent a post' : 'Sent a post') : (m.from === s.me ? 'You: ' : '') + (m.sticker ? stickerLabel(m.sticker) : m.text);
+  const last = (m) => m.points ? (m.from === s.me ? 'You sent ' + kfmt(m.points) + ' pts' : 'Sent you ' + kfmt(m.points) + ' pts 🔥') : m.postId || m.snap ? (m.from === s.me ? 'You sent a post' : 'Sent a post') : (m.from === s.me ? 'You: ' : '') + (m.sticker ? stickerLabel(m.sticker) : m.text);
   const Row = ({ u, sub, unread }) => (
     <Pressable onPress={() => nav.push('thread', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 }}>
       <Avatar u={u} size={52} /><View style={{ flex: 1 }}><T h numberOfLines={1}>{u.name}</T><T numberOfLines={1} muted={!unread} b={unread} style={{ fontSize: 14 }}>{sub}</T></View>
@@ -361,7 +361,48 @@ function TypingDots() {
       transform: [{ translateY: a.interpolate({ inputRange: [0, o, o + 0.15, o + 0.3, 1], outputRange: [0, 0, -5, 0, 0] }) }] }} />; })}</View>;
 }
 
+// points sent in a chat: an orange card with the amount and an optional note
+function PointsCard({ m, mine }) {
+  const { C } = useApp();
+  return (
+    <FlowBox r={20} style={{ backgroundColor: mine ? C.orange : C.card, borderWidth: mine ? 0 : 2, borderColor: C.orange, paddingVertical: 12, paddingHorizontal: 16, minWidth: 150, gap: 2 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Ionicons name="flame" size={20} color={mine ? C.onOrange : C.orange} />
+        <T d style={{ fontSize: 24, letterSpacing: -1, color: mine ? C.onOrange : C.ink }}>{kfmt(m.points)}</T>
+        <T h style={{ color: mine ? C.onOrange : C.muted, fontSize: 13, marginTop: 6 }}>pts</T>
+      </View>
+      <T h style={{ fontSize: 12, color: mine ? C.onOrange : C.muted, opacity: 0.85 }}>{mine ? 'You sent points' : 'Sent you points'}</T>
+      {m.text ? <T style={{ color: mine ? C.onOrange : C.ink, marginTop: 4 }}>{m.text}</T> : null}
+    </FlowBox>
+  );
+}
+function SendPointsSheet({ to, onClose }) {
+  const { s, C, run, reload } = useApp(); const u = s.users[to] || {};
+  const [amt, setAmt] = useState(25); const [custom, setCustom] = useState(''); const [note, setNote] = useState(''); const [busy, setBusy] = useState(false);
+  const bal = s.priv.points || 0; const n = custom ? Math.floor(+custom || 0) : amt;
+  const send = async () => { if (busy || n < 1 || n > bal) return; setBusy(true);
+    const ok = await run(() => act.sendPoints(to, n, note.trim()), { toast: 'Sent ' + kfmt(n) + ' points to @' + (u.handle || 'them') }); setBusy(false); if (ok) { reload && reload(); onClose(); } };
+  return (
+    <Sheet visible onClose={onClose} title="Send points">
+      <View style={{ gap: 14, paddingTop: 6 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Ionicons name="flame" size={16} color={C.orange} /><T b muted>You have {kfmt(bal)} pts</T></View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {[10, 25, 50, 100, 250, 500].map((v) => <Pressable key={v} onPress={() => { setAmt(v); setCustom(''); }} accessibilityLabel={v + ' points'}
+            style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 15, backgroundColor: !custom && amt === v ? C.orange : C.soft, opacity: v > bal ? 0.4 : 1 }}>
+            <T h style={{ color: !custom && amt === v ? C.onOrange : C.ink }}>{v}</T></Pressable>)}
+        </View>
+        <TextInput value={custom} onChangeText={(v) => setCustom(v.replace(/[^0-9]/g, '').slice(0, 6))} keyboardType="number-pad" placeholder="Other amount" placeholderTextColor={C.muted}
+          style={{ backgroundColor: C.soft, borderRadius: 15, paddingHorizontal: 14, paddingVertical: 12, color: C.ink, fontFamily: F.bold, fontSize: 16 }} />
+        <TextInput value={note} onChangeText={setNote} maxLength={140} placeholder="Add a note (optional)" placeholderTextColor={C.muted}
+          style={{ backgroundColor: C.soft, borderRadius: 15, paddingHorizontal: 14, paddingVertical: 12, color: C.ink, fontFamily: F.body, fontSize: 15 }} />
+        <Btn kind="orange" title={busy ? 'Sending…' : n > bal ? 'Not enough points' : 'Send ' + kfmt(n || 0) + ' pts to @' + (u.handle || '')} disabled={busy || n < 1 || n > bal} onPress={send} />
+      </View>
+    </Sheet>
+  );
+}
+
 export function ThreadScreen({ id }) {
+  const [pts, setPts] = useState(false);
   const { s, C, nav, run, reload, typing, sendTyping } = useApp(); const u = s.users[id] || {}; const ins = useSafeAreaInsets();
   const isTyping = !!(typing && typing[id]);
   const [t, setT] = useState(''); const [pick, setPick] = useState(false); const [gif, setGif] = useState(false); const list = useRef(null);
@@ -409,7 +450,7 @@ export function ThreadScreen({ id }) {
           return <Animated.View style={{ transform: [{ translateX: shift }] }}><TimeTag at={m.at} />
             {m.note ? <T b muted style={{ fontSize: 12, alignSelf: mine ? 'flex-end' : 'flex-start', marginHorizontal: 6 }}>{m.note}</T> : null}
             <Pressable onPress={dbl} style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '78%', marginBottom: m.react ? 12 : 0 }}>
-              {m.audio ? <VoiceBubble url={m.audio} ms={m.ms} mine={mine} />
+              {m.points ? <PointsCard m={m} mine={mine} /> : m.audio ? <VoiceBubble url={m.audio} ms={m.ms} mine={mine} />
                 : m.sticker ? <View style={{ padding: 4 }}><Sticker v={m.sticker} size={58} /></View>
                 : <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 15 }}><T style={{ color: mine ? C.onOrange : C.ink }}>{m.text}</T></View>}
               {m.react ? <T style={{ position: 'absolute', bottom: -12, [mine ? 'left' : 'right']: 8, backgroundColor: C.card, borderRadius: 15, paddingHorizontal: 5, fontSize: 13, overflow: 'hidden' }}>{m.react}</T> : null}
@@ -429,10 +470,12 @@ export function ThreadScreen({ id }) {
           <TextInput value={t} onChangeText={(v) => { setT(v); if (v) sendTyping(id); }} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
+          {id !== 'temp' ? <Pressable onPress={() => setPts(true)} accessibilityLabel="Send points" style={{ padding: 6 }}><Ionicons name="flame-outline" size={22} color={C.muted} /></Pressable> : null}
           <Pressable onPress={t.trim() ? send : vr.start} accessibilityLabel={t.trim() ? 'Send' : 'Record a voice message'} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={t.trim() ? 'paper-plane' : 'mic'} size={t.trim() ? 17 : 19} color={C.onOrange} /></Pressable>
         </FlowBox>}
       </View>
+      {pts ? <SendPointsSheet to={id} onClose={() => setPts(false)} /> : null}
     </KeyboardAvoidingView>
   );
 }

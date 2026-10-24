@@ -5,7 +5,8 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AshBurn } from './ash';
-import { useApp, flowRadii, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
+import { clock, jsClock, useClockKick } from './fx';
+import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
 import { GifPicker } from './gif';
@@ -63,7 +64,7 @@ export function useVideoTaps(getPlayer, { onSingle, onCenterDouble } = {}) {
   const onLongPress = () => { const pl = getPlayer(); if (!pl) return; try { pl.playbackRate = 2; pl.play(); } catch (e) {} setFast(true); };
   const onPressOut = () => { if (!fast) return; const pl = getPlayer(); try { pl && (pl.playbackRate = baseRate.get(pl) || 1); } catch (e) {} setFast(false); };
   const press = { onPress, onLongPress, delayLongPress: 350, onPressOut, onLayout: (e) => setW(e.nativeEvent.layout.width || 1) };
-  const pill = { backgroundColor: 'rgba(0,0,0,.55)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6 };
+  const pill = { backgroundColor: 'rgba(0,0,0,.55)', borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6 };
   const Overlay = ({ top = 70 }) => <>
     {fast ? <View pointerEvents="none" style={[pill, { position: 'absolute', top, alignSelf: 'center' }]}><T h style={{ color: '#fff', fontSize: 13 }}>2x</T><Ionicons name="play-forward" size={14} color="#fff" /></View> : null}
     {flash ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, [flash.side === 'L' ? 'left' : 'right']: 0, width: '33%', alignItems: 'center', justifyContent: 'center',
@@ -94,7 +95,7 @@ export function FeedVideo({ uri, active = false, onHeat, postId }) {
     taps.current.t = now;
     taps.current.timer = setTimeout(() => { let at = 0; try { at = player.currentTime || 0; } catch (e) {} setFull({ at }); }, 280);
   };
-  const chip = { backgroundColor: 'rgba(0,0,0,.6)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, alignItems: 'center', justifyContent: 'center' };
+  const chip = { backgroundColor: 'rgba(0,0,0,.6)', borderRadius: 15, alignItems: 'center', justifyContent: 'center' };
   return (
     <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}>
       <Pressable onPress={tap} style={{ flex: 1 }} accessibilityLabel="Open video full screen">
@@ -217,7 +218,7 @@ function FullVideo({ postId, uri, start, onClose }) {
             renderItem={({ item: c }) => { const cu = s.users[c.userId] || {}; return <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 6 }}><Avatar u={cu} size={26} />
               <View style={{ flex: 1 }}><T h style={{ color: '#fff', fontSize: 13 }}>{cu.handle} <T style={{ color: '#8d8883', fontSize: 12 }}>{ago(Date.now() - c.at)}</T></T>
                 {c.sticker ? <Sticker v={c.sticker} size={40} /> : <T style={{ color: '#fff', fontSize: 14 }}>{c.text}</T>}</View></View>; }} /> : <View style={{ flex: 1 }} />}
-          {!frozen ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingLeft: 14, padding: 4, marginTop: 8 }}>
+          {!frozen ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderRadius: 15, paddingLeft: 14, padding: 4, marginTop: 8 }}>
             <TextInput value={text} onChangeText={setText} placeholder="Add a comment…" placeholderTextColor="#8d8883" maxLength={280} onSubmitEditing={send} returnKeyType="send"
               style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, paddingVertical: 8 }} />
             {text.trim() ? <Pressable onPress={send} accessibilityLabel="Post comment" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#ff5500', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color="#fff" /></Pressable> : null}
@@ -265,10 +266,10 @@ export function PostCard({ p, active = false }) {
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
         <Pressable onPress={heat} accessibilityLabel="Heat" accessibilityState={{ selected: p.myHeat }}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: p.myHeat ? C.orange : C.soft }}>
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 15, backgroundColor: p.myHeat ? C.orange : C.soft }}>
           <Ionicons name={p.myHeat ? 'flame' : 'flame-outline'} size={19} color={p.myHeat ? '#fff' : C.ink} /><T h style={{ color: p.myHeat ? '#fff' : C.ink }}>{kfmt(p.heat)}</T></Pressable>
         <Pressable onPress={() => { if (!p.myFreeze) run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }); }} accessibilityLabel="Freeze" accessibilityState={{ selected: p.myFreeze }}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: p.myFreeze ? C.ink : C.soft }}>
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 13, borderRadius: 15, backgroundColor: p.myFreeze ? C.ink : C.soft }}>
           <Ionicons name="snow" size={19} color={p.myFreeze ? C.bg : C.ink} /><T h style={{ color: p.myFreeze ? C.bg : C.ink }}>{kfmt(p.freeze)}</T></Pressable>
         <View style={{ flex: 1 }} />
         <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, opacity: frozen ? 0.3 : 1 }}>
@@ -287,21 +288,21 @@ export function PostCard({ p, active = false }) {
 }
 // heat countdown: the orange line shrinks toward its end with a small time pill riding on the tip
 // time-left orb: a soft, lumpy orange orb that ticks round once every real second while the time stays upright
+// time-left orb: moves like the Morph ring — a liquid orange orb that wobbles and reshapes, the time stays put
 function TimeOrb({ label }) {
-  const rot = useRef(new Animated.Value(Math.floor(Date.now() / 1000) * 30)).current;
-  React.useEffect(() => {
-    let t; const step = () => { const sec = Math.floor(Date.now() / 1000);
-      Animated.timing(rot, { toValue: sec * 30, duration: 420, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }).start();
-      t = setTimeout(step, 1000 - (Date.now() % 1000) + 5); };
-    t = setTimeout(step, 1000 - (Date.now() % 1000) + 5); return () => clearTimeout(t);
-  }, []);
-  const spin = rot.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'], extrapolate: 'extend' });
-  const S = 35; const orbFlow = React.useMemo(() => { const f = flowRadii(Math.floor(Math.random() * 100)); const o = {}; Object.keys(f).forEach((k) => { o[k] = Animated.multiply(f[k], S / 2 / 40); }); return o; }, []);
+  useClockKick(); const S = 35; const c = clock(3600), r = jsClock(6000);
+  const corner = (ph) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => S * (0.5 + 0.13 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
+  const radii = { borderTopLeftRadius: corner(0), borderTopRightRadius: corner(0.27), borderBottomRightRadius: corner(0.55), borderBottomLeftRadius: corner(0.8) };
   return (
     <View style={{ width: S, height: S, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View style={{ position: 'absolute', width: S, height: S, transform: [{ rotate: spin }] }}>
-        <Animated.View style={{ flex: 1, ...orbFlow, overflow: 'hidden' }}>
-          <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+      <Animated.View style={{ position: 'absolute', width: S, height: S, transform: [
+        { scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.06, 0.97, 1.03, 1] }) },
+        { scaleY: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.95, 1.05, 0.98, 1] }) },
+        { rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }] }}>
+        <Animated.View style={[{ flex: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii]}>
+          <Animated.View style={{ position: 'absolute', width: S * 1.5, height: S * 1.5, transform: [{ rotate: c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+            <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+          </Animated.View>
         </Animated.View>
       </Animated.View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
@@ -359,7 +360,7 @@ export function CommentsSheet({ id, onClose }) {
           <Image source={{ uri: pending }} style={{ width: 120, height: 90, borderRadius: 14, backgroundColor: C.soft }} />
           <Pressable onPress={() => setPending(null)} accessibilityLabel="Remove GIF" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="close" size={16} color={C.ink} /></Pressable>
         </View> : null}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: C.soft, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingLeft: 16, padding: 4 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: C.soft, borderRadius: 15, paddingLeft: 16, padding: 4 }}>
           <TextInput ref={inp} value={t} onChangeText={setT} placeholder={pending ? 'Say something with your GIF…' : 'Add a comment…'} placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send"
             style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>

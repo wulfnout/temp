@@ -179,7 +179,7 @@ function Reel({ p, h, active }) {
       <View style={{ position: 'absolute', left: 16, right: 78, bottom: 22, gap: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Avatar u={u} size={36} /><T h style={{ color: '#fff' }}>{u.handle}</T></Pressable>
-          {!mine && !u.following ? <Pressable onPress={() => run(() => act.follow(u.id, false, s.me))} style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,.7)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 12, paddingVertical: 5 }}>
+          {!mine && !u.following ? <Pressable onPress={() => run(() => act.follow(u.id, false, s.me))} style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,.7)', borderRadius: 15, paddingHorizontal: 12, paddingVertical: 5 }}>
             <T h style={{ color: '#fff', fontSize: 12.5 }}>Follow</T></Pressable> : null}
         </View>
         {p.text && p.mediaUrl ? <RichText text={p.text} style={{ color: '#fff', fontFamily: F.bold }} onTag={(t) => nav.tab('search', { q: t })} /> : null}
@@ -223,7 +223,7 @@ export function SearchScreen({ q: q0 }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 16, height: 46 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.card, borderRadius: 15, paddingHorizontal: 16, height: 46 }}>
           <Ionicons name="search" size={18} color={C.muted} />
           <TextInput value={q} onChangeText={setQ} placeholder="Search Temp" placeholderTextColor={C.muted} autoCapitalize="none" style={{ flex: 1, color: C.ink, fontFamily: F.bold, fontSize: 15 }} />
           {q ? <Pressable onPress={() => setQ('')} accessibilityLabel="Clear"><Ionicons name="close" size={18} color={C.muted} /></Pressable> : null}
@@ -241,7 +241,7 @@ export function SearchScreen({ q: q0 }) {
                 <T d style={{ fontSize: 14 }}>{d}°</T></Pressable>))}
           </View>
           {trending.length ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
-            {trending.map(([t, n]) => <Pressable key={t} onPress={() => setQ(t)} style={{ backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingVertical: 9, paddingHorizontal: 14 }}>
+            {trending.map(([t, n]) => <Pressable key={t} onPress={() => setQ(t)} style={{ backgroundColor: C.card, borderRadius: 15, paddingVertical: 9, paddingHorizontal: 14 }}>
               <T h>{t} <T muted style={{ fontSize: 12 }}>{n}</T></T></Pressable>)}</View> : null}
         </> : <>
           {users.length ? <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 10 }}>
@@ -277,14 +277,14 @@ export function ActivityScreen() {
     storyComment: 'commented on your story: ' + n.text, repost: 'reposted your post: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
   const icon = { repost: 'repeat', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
   const Seg = ({ k, label }) => (
-    <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+    <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 15, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>
       {unread(k) ? <View style={{ backgroundColor: C.orange, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 }}><T h style={{ color: '#fff', fontSize: 11 }}>{unread(k)}</T></View> : null}
     </Pressable>);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Activity" back />
-      <View style={{ paddingHorizontal: 16 }}><View style={{ flexDirection: 'row', backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></View></View>
+      <View style={{ paddingHorizontal: 16 }}><View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 15, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></View></View>
       <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
         renderItem={({ item: n }) => { const u = s.users[n.userId] || {}; return (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, borderRadius: 20, marginBottom: 6 }}>
@@ -382,20 +382,20 @@ export function ThreadScreen({ id }) {
               {m.audio ? <VoiceBubble url={m.audio} ms={m.ms} mine={mine} />
                 : m.sticker ? <View style={{ padding: 4 }}><Sticker v={m.sticker} size={58} /></View>
                 : <View style={{ backgroundColor: mine ? C.orange : C.card, borderRadius: 22, paddingVertical: 10, paddingHorizontal: 15 }}><T style={{ color: mine ? '#fff' : C.ink }}>{m.text}</T></View>}
-              {m.react ? <T style={{ position: 'absolute', bottom: -12, [mine ? 'left' : 'right']: 8, backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 5, fontSize: 13, overflow: 'hidden' }}>{m.react}</T> : null}
+              {m.react ? <T style={{ position: 'absolute', bottom: -12, [mine ? 'left' : 'right']: 8, backgroundColor: C.card, borderRadius: 15, paddingHorizontal: 5, fontSize: 13, overflow: 'hidden' }}>{m.react}</T> : null}
             </Pressable></Animated.View>;
         }} />
       </View>
       <View style={{ paddingHorizontal: 16, paddingBottom: ins.bottom + 8, paddingTop: 6 }}>
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.dm(id, { sticker: e })); }} /> : null}
         {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.dm(id, { sticker: 'G|' + g.url })); }} /> : null}
-        {vr.on || vsend ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingLeft: 16, padding: 4, height: 48 }}>
+        {vr.on || vsend ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, backgroundColor: C.card, borderRadius: 15, paddingLeft: 16, padding: 4, height: 48 }}>
           <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#ff2d2d' }} />
           <T h style={{ fontVariant: ['tabular-nums'] }}>{vsend ? 'Sending…' : fmtSec(vr.on.ms)}</T><T muted b style={{ flex: 1 }}>{vsend ? '' : 'Recording'}</T>
           {!vsend ? <><Pressable onPress={() => vr.stop(false)} accessibilityLabel="Cancel voice message" style={{ padding: 8 }}><Ionicons name="close" size={22} color={C.muted} /></Pressable>
             <Pressable onPress={() => vr.stop(true)} accessibilityLabel="Send voice message" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={17} color="#fff" /></Pressable></> : null}
         </View> :
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingLeft: 16, padding: 4 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, borderRadius: 15, paddingLeft: 16, padding: 4 }}>
           <TextInput value={t} onChangeText={(v) => { setT(v); if (v) sendTyping(id); }} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>

@@ -26,7 +26,7 @@ class AndroidBoundary extends React.Component {
     return <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 28, gap: 14 }}>
       <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>Temp hit a snag</Text>
       <Text selectable style={{ color: 'rgba(255,255,255,.7)', textAlign: 'center' }}>{String((this.state.err && this.state.err.message) || this.state.err)}</Text>
-      <Pressable onPress={() => this.setState({ err: null })} style={{ backgroundColor: '#ff5500', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
+      <Pressable onPress={() => this.setState({ err: null })} style={{ backgroundColor: '#ff5500', borderRadius: 15, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
     </View>;
   }
 }
@@ -180,7 +180,7 @@ function Root() {
     {bootErr ? <>
       <Text style={{ color: C.ink, fontSize: 16, textAlign: 'center' }}>{bootErr}</Text>
       <Pressable onPress={() => { setBootErr(null); sb.auth.getSession().then(({ data }) => setSession(data.session || null)).catch((e) => setBootErr((e && e.message) || 'Couldn’t start.')); }}
-        style={{ backgroundColor: C.orange, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
+        style={{ backgroundColor: C.orange, borderRadius: 15, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
       <Pressable onPress={() => setSession(null)}><Text style={{ color: C.muted }}>Sign in again</Text></Pressable>
     </> : <ActivityIndicator color={C.orange} />}</View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;
@@ -255,7 +255,7 @@ function Toast({ text }) {
   const a = useRef(new Animated.Value(0)).current;
   useEffect(() => { Animated.spring(a, { toValue: 1, useNativeDriver: true }).start(); }, [text]);
   return (
-    <Animated.View pointerEvents="none" style={{ position: 'absolute', bottom: ins.bottom + 80, alignSelf: 'center', maxWidth: '88%', backgroundColor: C.ink, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingVertical: 11, paddingHorizontal: 18, opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }}>
+    <Animated.View pointerEvents="none" style={{ position: 'absolute', bottom: ins.bottom + 80, alignSelf: 'center', maxWidth: '88%', backgroundColor: C.ink, borderRadius: 15, paddingVertical: 11, paddingHorizontal: 18, opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }}>
       <Text style={{ color: C.bg, fontFamily: F.heavy, fontSize: 14, textAlign: 'center' }}>{text}</Text>
     </Animated.View>
   );

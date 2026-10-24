@@ -20,14 +20,13 @@ export function T({ style, b, h, d, muted, children, ...rest }) {
   return <Text {...rest} style={[{ color: muted ? C.muted : C.ink, fontFamily: fam, fontSize: 15 }, style]}>{children}</Text>;
 }
 
-// shared slow clock for the flowing orb buttons: each one stretches out of shape, settles into a
-// perfect round, then stretches the other way (JS driver — corner radii can't run on the native driver)
+// shared slow clock for the buttons: a rounded-square squircle whose corners breathe ever so slightly (JS driver — corner radii can't run on the native driver)
 let flowV = null;
 function flowClock() {
   if (!flowV) { flowV = new Animated.Value(0); Animated.loop(Animated.timing(flowV, { toValue: 1, duration: 10000, easing: Easing.linear, useNativeDriver: false })).start(); }
   return flowV;
 }
-const FLOW_KEYS = [[26, 17, 28, 15], [40, 40, 40, 40], [15, 28, 16, 27], [40, 40, 40, 40], [26, 17, 28, 15]];
+const FLOW_KEYS = [[15, 15, 15, 15], [17.4, 13.2, 16.5, 13.5], [15, 15, 15, 15], [13.2, 17.1, 13.5, 16.8], [15, 15, 15, 15]]; // squircle, barely breathing
 const FLOW_NAMES = ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius', 'borderBottomLeftRadius'];
 export function flowRadii(seed = 0) {
   const v = flowClock(); const ph = (Math.abs(seed) % 100) / 100; const out = {};
@@ -121,7 +120,7 @@ export function Timer({ p }) {
   return null;
 }
 function Pill({ bg, fg, icon, text }) {
-  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: bg, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingVertical: 5, paddingHorizontal: 10 }}>
+  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: bg, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10 }}>
     <Ionicons name={icon} size={13} color={fg} /><Text style={{ color: fg, fontFamily: F.heavy, fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{text}</Text></View>;
 }
 
@@ -289,8 +288,8 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
   const on = hover != null ? hover : idx;
   return (
     <View ref={bar} {...pan.panHandlers} onLayout={(e) => setW(e.nativeEvent.layout.width)} accessibilityRole="tablist"
-      style={[{ flexDirection: 'row', backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 4 }, style]}>
-      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
+      style={[{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 15, padding: 4 }, style]}>
+      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 15, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
       {items.map(([k, l], i) => (
         <View key={k} accessible accessibilityRole="tab" accessibilityLabel={l} accessibilityState={{ selected: i === idx }} style={{ flex: 1, paddingVertical: 9, alignItems: 'center' }}>
           <T h style={{ color: i === on ? C.bg : C.muted, fontSize: size }}>{l}</T></View>))}

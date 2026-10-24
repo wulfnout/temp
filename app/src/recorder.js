@@ -124,7 +124,7 @@ function Timeline({ dur, start, end, thumbs, onChange, onScrub, onScrubEnd, getT
     <View style={{ gap: 10 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <T h style={{ color: 'rgba(255,255,255,.7)', fontSize: 12 }}>{fmtT(start)}</T>
-        <View style={{ backgroundColor: 'rgba(255,85,0,.18)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 12, paddingVertical: 4 }}><T h style={{ color: '#ff8a2b', fontSize: 13 }}>{(end - start).toFixed(1)}s</T></View>
+        <View style={{ backgroundColor: 'rgba(255,85,0,.18)', borderRadius: 15, paddingHorizontal: 12, paddingVertical: 4 }}><T h style={{ color: '#ff8a2b', fontSize: 13 }}>{(end - start).toFixed(1)}s</T></View>
         <T h style={{ color: 'rgba(255,255,255,.7)', fontSize: 12 }}>{fmtT(end)}</T>
       </View>
       <View style={{ marginHorizontal: HW }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
@@ -243,14 +243,14 @@ function Editor({ clip, onRetake, onClose }) {
             onScrub={(t) => { scrubbing.current = true; seek(t); }} onScrubEnd={() => { scrubbing.current = false; setTimeout(resume, 30); }}
             getTime={() => { try { return pl() ? pl().currentTime : null; } catch (e) { return null; } }} /></>) : null}
         {tool === 'speed' ? panel('Speed', <>
-          <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,.1)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 4 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 15, padding: 4 }}>
             {SPEEDS.map((v) => <Pressable key={v} onPress={() => setSpeed(v)} accessibilityLabel={v + 'x speed'}
-              style={{ flex: 1, paddingVertical: 10, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, alignItems: 'center', backgroundColor: speed === v ? '#fff' : 'transparent' }}>
+              style={{ flex: 1, paddingVertical: 10, borderRadius: 15, alignItems: 'center', backgroundColor: speed === v ? '#fff' : 'transparent' }}>
               <T h style={{ color: speed === v ? '#000' : '#fff', fontSize: 14 }}>{v}x</T></Pressable>)}
           </View></>) : null}
         {!tool ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingTop: 10, paddingBottom: kb ? 10 : ins.bottom + 12 }}>
           <TextInput value={caption} onChangeText={setCaption} placeholder="Caption… #hashtags" placeholderTextColor="rgba(255,255,255,.65)" maxLength={280}
-            style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, backgroundColor: 'rgba(0,0,0,.38)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.45)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 14, paddingVertical: 10 }} />
+            style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, backgroundColor: 'rgba(0,0,0,.38)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.45)', borderRadius: 15, paddingHorizontal: 14, paddingVertical: 10 }} />
           <Btn kind="orange" title={busy ? 'Posting…' : 'Post'} disabled={busy} onPress={post} />
         </View> : null}
       </View> : null}
@@ -262,7 +262,7 @@ function Editor({ clip, onRetake, onClose }) {
               backgroundColor: tp.st === 'box' ? '#fff' : tp.st === 'soft' ? 'rgba(255,255,255,.3)' : 'transparent' }}>
             <T d style={{ color: tp.st === 'box' ? '#000' : '#fff', fontSize: 17, letterSpacing: -1 }}>A</T></Pressable>
           <View style={{ flex: 1 }} />
-          <Pressable onPress={doneText} accessibilityLabel="Done" hitSlop={10} style={{ paddingHorizontal: 16, paddingVertical: 8, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: '#ff5500' }}>
+          <Pressable onPress={doneText} accessibilityLabel="Done" hitSlop={10} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 15, backgroundColor: '#ff5500' }}>
             <T h style={{ color: '#fff', fontSize: 15 }}>Done</T></Pressable>
         </View>
         <Pressable style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 }} onPress={doneText}>
@@ -352,7 +352,7 @@ export function Recorder({ onClose, startMode = 'replay' }) {
   }
 
   const Chip = ({ on, label, onPress }) => (
-    <Pressable onPress={onPress} style={{ paddingVertical: 8, paddingHorizontal: 14, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: on ? '#fff' : 'rgba(255,255,255,.16)' }}>
+    <Pressable onPress={onPress} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 15, backgroundColor: on ? '#fff' : 'rgba(255,255,255,.16)' }}>
       <T h style={{ color: on ? '#000' : '#fff', fontSize: 13 }}>{label}</T></Pressable>);
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
@@ -378,9 +378,9 @@ export function Recorder({ onClose, startMode = 'replay' }) {
                 {Object.entries(FILTERS).map(([k, f]) => <Chip key={k} on={filter === k} label={f.name} onPress={() => setFilter(k)} />)}</ScrollView> : null}
               {phase === 'camera' && mode === 'story' ? <View style={{ flexDirection: 'row', gap: 6 }}>
                 <Chip on={shot === 'photo'} label="Photo" onPress={() => setShot('photo')} /><Chip on={shot === 'video'} label="Video" onPress={() => setShot('video')} /></View> : null}
-              {phase === 'camera' && mode === 'replay' ? <View style={{ flexDirection: 'row', gap: 4, backgroundColor: 'rgba(0,0,0,.35)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 3 }}>
+              {phase === 'camera' && mode === 'replay' ? <View style={{ flexDirection: 'row', gap: 4, backgroundColor: 'rgba(0,0,0,.35)', borderRadius: 15, padding: 3 }}>
                 {LENGTHS.map(([v, l]) => <Pressable key={v} onPress={() => setLen(v)} accessibilityLabel={'Record up to ' + l}
-                  style={{ paddingVertical: 6, paddingHorizontal: 14, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: len === v ? '#fff' : 'transparent' }}>
+                  style={{ paddingVertical: 6, paddingHorizontal: 14, borderRadius: 15, backgroundColor: len === v ? '#fff' : 'transparent' }}>
                   <T h style={{ color: len === v ? '#000' : '#fff', fontSize: 13 }}>{l}</T></Pressable>)}</View> : null}
               <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 34 }}>
                 <Pressable onPress={fromGallery} disabled={phase !== 'camera'} accessibilityLabel="Choose from your photos"

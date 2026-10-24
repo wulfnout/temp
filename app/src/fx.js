@@ -1,7 +1,7 @@
 // Animated rings and headers. Everything runs off a few shared clocks on the native driver,
 // so dozens of animated avatars in a feed cost almost nothing.
 import React from 'react';
-import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet, AppState } from 'react-native';
 import { F } from './lib';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,19 +10,30 @@ import { Ionicons } from '@expo/vector-icons';
 // (e.g. leaving the shop), so each clock notes when it stopped and gets restarted as soon as
 // anything uses it again — on render, after mount, and by a light safety check every second.
 const clocks = {};
-function run(c) {
-  const id = (c.gen = (c.gen || 0) + 1); c.running = true;
-  Animated.loop(Animated.timing(c.v, { toValue: 1, duration: c.ms, easing: Easing.linear, useNativeDriver: true })).start(() => { if (c.gen === id) c.running = false; });
+function run(c, from = 0) {
+  const id = (c.gen = (c.gen || 0) + 1); c.running = true; c.v.setValue(from);
+  const loop = () => Animated.loop(Animated.timing(c.v, { toValue: 1, duration: c.ms, easing: Easing.linear, useNativeDriver: true })).start(() => { if (c.gen === id) c.running = false; });
+  if (from <= 0.001) return loop();
+  Animated.timing(c.v, { toValue: 1, duration: c.ms * (1 - from), easing: Easing.linear, useNativeDriver: true })
+    .start(({ finished }) => { if (c.gen !== id) return; if (finished) { c.v.setValue(0); loop(); } else c.running = false; });
 }
 export function kickClocks() { Object.values(clocks).forEach((c) => { if (!c.running) { c.v.setValue(0); run(c); } }); }
+// Views that mount while a native loop is already running can miss its updates (headers looked frozen
+// after switching screens), so newly mounted effects restart every clock from where it is — no jump.
+let lastForce = 0;
+export function forceClocks() {
+  const now = Date.now(); if (now - lastForce < 700) return; lastForce = now;
+  Object.values(clocks).forEach((c) => c.v.stopAnimation((val) => run(c, typeof val === 'number' && val < 1 ? val : 0)));
+}
 setInterval(kickClocks, 1000);
+AppState.addEventListener('change', (st) => { if (st === 'active') { lastForce = 0; setTimeout(forceClocks, 100); } });
 const keepers = new Set(); const notify = () => keepers.forEach((f) => f());
 export function clock(ms) {
   if (!clocks[ms]) { clocks[ms] = { v: new Animated.Value(0), ms, running: false }; run(clocks[ms]); setTimeout(notify, 0); }
   else if (!clocks[ms].running) run(clocks[ms]);
   return clocks[ms].v;
 }
-export function useClockKick() { React.useEffect(() => { const t = setTimeout(kickClocks, 50); return () => clearTimeout(t); }, []); }
+export function useClockKick() { React.useEffect(() => { const t = setTimeout(forceClocks, 60); return () => clearTimeout(t); }, []); }
 // deterministic pseudo-random so effects look the same every render
 function rng(seed) { let x = seed * 9301 + 49297; return () => { x = (x * 9301 + 49297) % 233280; return x / 233280; }; }
 
@@ -149,7 +160,7 @@ export function SpinRing({ size, ring, bg, accent, children }) {
 
 /* ---- Morph ring: the whole picture moves like liquid, like the story circles ---- */
 const jsClocks = {};
-function jsClock(ms) { // corner shapes can't run on the native driver, so this one ticks in JS
+export function jsClock(ms) { // corner shapes can't run on the native driver, so this one ticks in JS
   if (!jsClocks[ms]) { const v = new Animated.Value(0); jsClocks[ms] = v; setTimeout(notify, 0); Animated.loop(Animated.timing(v, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: false })).start(); }
   return jsClocks[ms];
 }

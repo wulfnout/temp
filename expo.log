@@ -1,0 +1,154 @@
+
+added 510 packages in 20s
+Dependencies are up to date
+temp-app@1.0.0 /home/runner/work/temp/temp/app
+├─┬ expo-asset@57.0.20
+│ ├─┬ expo-constants@57.0.22
+│ │ └── expo@57.0.31 deduped
+│ └── expo@57.0.31 deduped
+├─┬ expo-audio@57.0.5
+│ ├── expo-asset@57.0.20 deduped
+│ └── expo@57.0.31 deduped
+├─┬ expo-camera@57.0.6
+│ └── expo@57.0.31 deduped
+├─┬ expo-font@57.0.4
+│ └── expo@57.0.31 deduped
+├─┬ expo-image-picker@57.0.20
+│ ├─┬ expo-image-loader@57.0.1
+│ │ └── expo@57.0.31 deduped
+│ └── expo@57.0.31 deduped
+├─┬ expo-image@57.0.5
+│ └── expo@57.0.31 deduped
+├─┬ expo-linear-gradient@57.0.2
+│ └── expo@57.0.31 deduped
+├─┬ expo-status-bar@57.0.1
+│ └── expo@57.0.31 deduped
+├─┬ expo-updates@57.0.26
+│ ├─┬ expo-manifests@57.0.2
+│ │ └── expo@57.0.31 deduped
+│ ├─┬ expo-updates-interface@57.0.2
+│ │ └── expo@57.0.31 deduped
+│ └── expo@57.0.31 deduped
+├─┬ expo-video@57.0.5
+│ └── expo@57.0.31 deduped
+├─┬ expo@57.0.31
+│ ├─┬ @expo/cli@57.0.32
+│ │ ├─┬ @expo/router-server@57.0.14
+│ │ │ └── expo@57.0.31 deduped
+│ │ └── expo@57.0.31 deduped
+│ ├─┬ @expo/dom-webview@57.0.1
+│ │ └── expo@57.0.31 deduped
+│ ├─┬ @expo/log-box@57.0.4
+│ │ └── expo@57.0.31 deduped
+│ ├─┬ @expo/metro-config@57.0.13
+│ │ └── expo@57.0.31 deduped
+│ ├─┬ babel-preset-expo@57.0.16
+│ │ └── expo@57.0.31 deduped
+│ ├── expo-asset@57.0.20 deduped
+│ ├─┬ expo-file-system@57.0.7
+│ │ └── expo@57.0.31 deduped
+│ ├─┬ expo-keep-awake@57.0.2
+│ │ └── expo@57.0.31 deduped
+│ └── react-native-webview@13.16.1 deduped
+└── react-native-webview@13.16.1
+
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated rimraf@2.4.5: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@6.0.4: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated uuid@7.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+No environment variables with visibility "Plain text" and "Sensitive" found for the "preview" environment on EAS.
+
+- Exporting...
+[expo-cli] --non-interactive is not supported, use $CI=1 instead
+[expo-cli] Starting Metro Bundler
+[expo-cli] warning: Bundler cache is empty, rebuilding (this may take a minute)
+[expo-cli] iOS Bundled 17537ms index.js (834 modules)
+[expo-cli] Android Bundled 24029ms index.js (831 modules)
+[expo-cli] Creating asset map
+[expo-cli] 
+[expo-cli] › Assets (47):
+[expo-cli] assets/sounds/n1.wav (141KB)
+[expo-cli] assets/sounds/n2.wav (141KB)
+[expo-cli] assets/sounds/n3.wav (141KB)
+[expo-cli] assets/sounds/n4.wav (141KB)
+[expo-cli] assets/sounds/tick.wav (8KB)
+[expo-cli] assets/sounds/tock.wav (11KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/300Light_Italic/Figtree_300Light_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/300Light/Figtree_300Light.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/400Regular_Italic/Figtree_400Regular_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/400Regular/Figtree_400Regular.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/500Medium_Italic/Figtree_500Medium_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/500Medium/Figtree_500Medium.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/600SemiBold_Italic/Figtree_600SemiBold_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/600SemiBold/Figtree_600SemiBold.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/700Bold_Italic/Figtree_700Bold_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/700Bold/Figtree_700Bold.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/800ExtraBold_Italic/Figtree_800ExtraBold_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/800ExtraBold/Figtree_800ExtraBold.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/900Black_Italic/Figtree_900Black_Italic.ttf (41KB)
+[expo-cli] node_modules/@expo-google-fonts/figtree/900Black/Figtree_900Black.ttf (40KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/200ExtraLight/Unbounded_200ExtraLight.ttf (363KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/300Light/Unbounded_300Light.ttf (366KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/400Regular/Unbounded_400Regular.ttf (365KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/500Medium/Unbounded_500Medium.ttf (369KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/600SemiBold/Unbounded_600SemiBold.ttf (370KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf (371KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/800ExtraBold/Unbounded_800ExtraBold.ttf (422KB)
+[expo-cli] node_modules/@expo-google-fonts/unbounded/900Black/Unbounded_900Black.ttf (418KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.ttf (130KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Entypo.ttf (66KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/EvilIcons.ttf (13KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf (56KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf (166KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf (134KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf (34KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf (203KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Brands.ttf (209KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf (68KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Solid.ttf (424KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Fontisto.ttf (314KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Foundation.ttf (57KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf (390KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf (1.3MB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf (357KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Octicons.ttf (69KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/SimpleLineIcons.ttf (54KB)
+[expo-cli] node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Zocial.ttf (26KB)
+[expo-cli] 
+[expo-cli] › ios bundles (2):
+[expo-cli] _expo/static/js/ios/index-bf291a5c83b52363f0c5ef270aea9665.hbc (2.6MB)
+[expo-cli] _expo/static/js/ios/index-bf291a5c83b52363f0c5ef270aea9665.hbc.map (5.8MB)
+[expo-cli] 
+[expo-cli] › android bundles (2):
+[expo-cli] _expo/static/js/android/index-271deeaaec9082346d0f35673ca62a6d.hbc (2.6MB)
+[expo-cli] _expo/static/js/android/index-271deeaaec9082346d0f35673ca62a6d.hbc.map (5.9MB)
+[expo-cli] › Files (2):
+[expo-cli] assetmap.json (25KB)
+[expo-cli] metadata.json (6.2KB)
+[expo-cli] 
+[expo-cli] Exported: dist
+✔ Exported bundle(s)
+- Uploading...
+- Uploading assetmap.json (0 / 24.2 KB)
+✔ Uploaded assetmap.json 
+✔ Uploaded 2 app bundles
+✔ Uploading assets skipped - no new assets found
+ℹ 48 iOS assets, 48 Android assets (maximum: 2000 total per update). Learn more about asset limits: https://expo.fyi/eas-update-asset-limits
+- Computing project fingerprints
+✔ Computed project fingerprints
+- Publishing...
+✔ Published!
+Branch             preview
+Runtime version    exposdk:57.0.0
+Platform           android, ios
+Update group ID    ec07f26c-321e-4298-9a44-f2d30981874c
+Android update ID  01a16e7a-cb74-7b6d-9aca-0d07e6be02d0
+iOS update ID      01a16e7a-cb74-78b9-98c8-9d8e83aa4035
+Message            Latest Temp test version
+Commit             f38a63fd788313b47712427ab6653d63dd21c6b2*
+EAS Dashboard      https://expo.dev/accounts/wulfnout/projects/temp/updates/ec07f26c-321e-4298-9a44-f2d30981874c
+

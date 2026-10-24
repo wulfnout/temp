@@ -116,7 +116,7 @@ img,video{max-width:100%;display:block}
 .lifebar{display:flex;align-items:center;margin-top:12px;position:relative}
 /* greyed-out trail: the full path the orb has travelled, with a faint imprint where it started */
 .lifebar::before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;border-radius:2px;background:var(--line)}
-.lifebar::after{content:"";position:absolute;right:0;top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;border:2px solid var(--line);box-sizing:border-box}
+.lifebar::after{content:"";position:absolute;right:0;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:54% 46% 56% 44%/48% 55% 45% 52%;background:var(--line)}
 .lifebar>*{position:relative;z-index:1}.lifebar i{height:3px;border-radius:2px;background:var(--orange);transition:flex .25s linear}
 .lifebar span.orb{position:relative;width:35px;height:35px;padding:0;justify-content:center;gap:1px;background:none;border-radius:0;margin-left:-2px;text-shadow:none}
 .lifebar span.orb>em{position:absolute;inset:0;z-index:0;border-radius:52% 44% 56% 42%/46% 55% 45% 54%;background:var(--orange);animation:morph 9s ease-in-out infinite,blob 5.6s ease-in-out infinite,orbspin 14s linear infinite}

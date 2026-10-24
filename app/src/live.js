@@ -9,7 +9,7 @@ import { useApp, IconBtn, T } from './ui';
 import { Header } from './screens';
 import { sb } from './lib';
 
-const SITE = 'https://wulfnout.github.io/temp/';
+const SITE = 'https://temptakes.com/';
 
 export function LiveScreen() {
   const { C } = useApp(); const ins = useSafeAreaInsets();

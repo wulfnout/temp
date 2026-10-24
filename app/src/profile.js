@@ -176,7 +176,7 @@ export function ShopScreen() {
   const Card = ({ k, it, price, off }) => (
     <FlowBox r={22} style={{ backgroundColor: C.card, padding: 10, gap: 10, width: '48.5%' }}>
       <FlowBox r={16} style={{ height: 92, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Preview k={k} it={it} />
-        {it.available_until ? <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#1a0b2e', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#ffb347', fontSize: 10.5 }}>🎃 {Math.max(0, Math.ceil((new Date(it.available_until) - Date.now()) / 864e5))}d left</T></View> : null}
+        {it.available_until ? <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#1a0b2e', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#ffb347', fontSize: 10.5 }}>{it.drop_week ? '✨ New · ' : '🎃 '}{Math.max(0, Math.ceil((new Date(it.available_until) - Date.now()) / 864e5))}d left</T></View> : null}
         {off ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: C.orange, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: C.onOrange, fontSize: 11 }}>-{off}%</T></View> : null}</FlowBox>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}><T h numberOfLines={1} style={{ flex: 1 }}>{it.name}</T>{off ? <T muted style={{ textDecorationLine: 'line-through', fontSize: 12 }}>{it.price}</T> : null}</View>
       <Action k={k} it={it} price={price} />

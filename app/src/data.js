@@ -1,4 +1,4 @@
-import { sb, ok, colorFor, upload } from './lib';
+import { sb, ok, colorFor, upload, THEMES, GLOW, STICKER_PACKS } from './lib';
 
 const q = async (p) => { const { data, error } = await p; if (error) throw error; return data || []; };
 
@@ -82,6 +82,8 @@ export async function loadAll(myId) {
   const weekMap = {}; week.forEach((w) => (weekMap[w.user_id] = w));
   const priv = privRows[0] || EMPTY.priv;
   return { me: myId, storyBurns: typeof storyBurns === 'number' ? storyBurns : 3, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
+    // weekly Fire Sale drops carry their own look (colours / stickers); register them so they work everywhere
+    ...(shop.forEach((i) => { if (!i.data) return; if (i.kind === 'themes' && i.data.c) { THEMES[i.id] = i.data.c; if (i.data.glow) GLOW[i.id] = 1; } if (i.kind === 'stickers' && i.data.items) STICKER_PACKS[i.id] = i.data.items; }), {}),
     priv: { ...EMPTY.priv, ...priv, settings: priv.settings || {}, custom: priv.custom || [], owned: priv.owned || EMPTY.priv.owned }, week: weekMap, shop, deals, loaded: true };
 }
 

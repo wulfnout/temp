@@ -1361,7 +1361,7 @@ const stick=async v=>v&&v.startsWith('I|blob:')?'I|'+await upload(blobFiles[v.sl
 
 async function loadAll(){
   const q=async p=>{const {data,error}=await p;if(error)throw error;return data||[]};
-  const [profiles,follows,blocks,posts,reacts,saves,stories,sviews,msgs,notifs,privRows,week,deals,reposts,storyBurns]=await Promise.all([
+  const [profiles,follows,blocks,posts,reacts,saves,stories,sviews,msgs,notifs,privRows,week,deals,drops,reposts,storyBurns]=await Promise.all([
     q(sb.from('profiles').select('*').limit(5000)),
     q(sb.from('follows').select('follower,followee').limit(20000)),
     q(sb.from('blocks').select('blocked')),
@@ -1375,9 +1375,14 @@ async function loadAll(){
     q(sb.from('profile_private').select('*').eq('id',myId)),
     q(sb.rpc('week_stats')),
     q(sb.rpc('deals_today')),
+    q(sb.from('shop_items').select('kind,id,name,price,available_until,data').not('data','is',null)),
     q(sb.from('reposts').select('user_id,post_id,created_at').order('created_at',{ascending:false}).limit(20000)),
     q(sb.rpc('story_burns_left')).catch(()=>3),
   ]);
+  // weekly Fire Sale drops (new theme + sticker pack each week, two weeks in the shop); the originals never change
+  drops.forEach(d=>{const list=SHOP[d.kind];if(!list||list.some(x=>x.id===d.id))return;
+    if(d.kind==='themes')list.push({id:d.id,name:d.name,price:d.price,c:d.data.c,glow:!!d.data.glow,until:d.available_until,drop:true});
+    if(d.kind==='stickers')list.push({id:d.id,name:d.name,price:d.price,items:d.data.items,until:d.available_until,drop:true})});
   const ids=posts.map(p=>p.id);
   const comments=ids.length?await q(sb.from('comments').select('*').in('post_id',ids).order('created_at').limit(5000)):[];
   const cids=comments.map(c=>c.id);
@@ -2804,7 +2809,7 @@ function ShopView({s,dispatch,open}){
     <div className="packs">${PACKS.map(p=>html`<button className="pack" key=${p.n} disabled style=${{opacity:.6,cursor:'default'}}>${p.tag&&html`<span className="tag">${p.tag}</span>`}
       <b><span style=${{color:'var(--orange)',display:'inline-flex'}}><${Icon} n="flame" s=${18} w=${2.4} fill="currentColor"/></span>${p.n.toLocaleString()}</b><span className="usd">${p.usd} · Coming soon</span></button>`)}</div>
     <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
-    <div className="shop-grid">${SHOP[tab].filter(it=>!it.until||new Date(it.until)>Date.now()).map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/>${it.until&&html`<span className="ltd">🎃 ${Math.max(0,Math.ceil((new Date(it.until)-Date.now())/864e5))}d left</span>`}<div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
+    <div className="shop-grid">${SHOP[tab].filter(it=>!it.until||new Date(it.until)>Date.now()).map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/>${it.until&&html`<span className="ltd">${it.drop?'✨ New · ':'🎃 '}${Math.max(0,Math.ceil((new Date(it.until)-Date.now())/864e5))}d left</span>`}<div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
     ${studio&&html`<${StickerStudio} s=${s} dispatch=${dispatch} onClose=${()=>setStudio(false)}/>`}
     ${pack&&html`<${Sheet} onClose=${()=>setPack(null)} label="Buy points"><h3>${pack.n.toLocaleString()} points</h3>
       <p className="sub" style=${{marginTop:0}}>${pack.usd}. This prototype won’t charge you.</p>

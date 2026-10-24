@@ -1972,6 +1972,14 @@ function StoriesRow({s,open,addStory}){
   </div>`;
 }
 
+// Sound for Replays and story videos: they play with sound. Browsers only allow that after you've tapped the page once,
+// so if a video has to start muted it unmutes on your next tap. The speaker button remembers your choice.
+const SND={on:store.get('temp-sound')!=='off',blocked:false};
+const sndVideos=()=>document.querySelectorAll('.reel video,.sv-media video');
+function playSound(v){if(!v)return;v.muted=!SND.on;const p=v.play();if(p&&p.catch)p.catch(()=>{v.muted=true;SND.blocked=true;v.play().catch(()=>{})})}
+addEventListener('pointerdown',()=>{if(!SND.blocked)return;SND.blocked=false;if(SND.on)sndVideos().forEach(v=>{if(!v.paused||v.autoplay)v.muted=false})},{capture:true});
+function useSound(){const [on,setOn]=useState(SND.on);useEffect(()=>{const f=()=>setOn(SND.on);addEventListener('temp-sound',f);return()=>removeEventListener('temp-sound',f)},[]);
+  return [on,()=>{SND.on=!SND.on;store.set('temp-sound',SND.on?'on':'off');sndVideos().forEach(v=>v.muted=!SND.on);dispatchEvent(new Event('temp-sound'))}]}
 const STORY_REACTS=['🔥','😂','😮','🧊'];
 const MORE_EMOJI=['❤️','😍','🥵','🥶','💀','😭','🤣','🙌','👏','👀','🫡','🤯','😤','🥹','😈','🤡','💅','🗿','🫠','😬','🤝','💯','✨','⚡','🌶️','🍿','👑','💎','🏆','🎯','🚨','🧨','☄️','🌋','🫶','🙏','😮‍💨','🤌','🐐','🔥'];
 // one emoji only (any emoji, typed or picked)
@@ -1990,8 +1998,9 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   const paused=hold>0||text.length>0||picker||more||panel||!!burning;
   useEffect(()=>{if(item)dispatch({type:'seen',id:item.id});setPicker(false);setPanel(false);setText('');setHold(0)},[item&&item.id]);
   useEffect(()=>{if(!hold)return;const t=setTimeout(()=>setHold(hold-1),1000);return()=>clearTimeout(t)},[hold]);
-  useEffect(()=>{const v=vid.current;if(!v)return;try{paused?v.pause():v.play().catch(()=>{})}catch(e){}},[paused]);
-  function replay(){setProg(0);const v=vid.current;if(v){v.currentTime=0;if(!paused)v.play().catch(()=>{})}}
+  useEffect(()=>{const v=vid.current;if(!v)return;try{paused?v.pause():playSound(v)}catch(e){}},[paused]);
+  const [soundOn,toggleSound]=useSound();
+  function replay(){setProg(0);const v=vid.current;if(v){v.currentTime=0;if(!paused)playSound(v)}}
   // tap left = replay, tap right = next, hold = pause (15s countdown), swipe down = close
   function down(e){g.current={x:e.clientX,y:e.clientY,moved:false,held:false,id:e.pointerId,t:setTimeout(()=>{g.current.held=true;setHold(15)},220)};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(x){}}
   function move(e){const d=g.current;if(d.x==null)return;const dy=e.clientY-d.y,dx=e.clientX-d.x;if(dy>8&&dy>Math.abs(dx)){d.moved=true;clearTimeout(d.t);setDragY(dy)}}
@@ -2014,11 +2023,12 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   const stop=e=>e.stopPropagation();
   return html`<div className="sv" role="dialog" aria-label="Story" style=${{background:dragY?'rgba(0,0,0,'+Math.max(.3,1-dragY/600)+')':undefined}}>
     <div className="sv-in" style=${dragY?{transform:'translateY('+dragY+'px)',transition:'none'}:{transition:'transform .2s ease'}}>
-      <div className="sv-media">${item.type==='video'?html`<video ref=${vid} key=${item.id} src=${item.url} autoPlay muted playsInline></video>`:item.layout?html`<${StoryPhoto} key=${item.id} url=${item.url} layout=${item.layout}/>`:html`<img src=${item.url} alt="" />`}
+      <div className="sv-media">${item.type==='video'?html`<video ref=${vid} key=${item.id} src=${item.url} playsInline onLoadedData=${e=>{if(!paused)playSound(e.target)}}></video>`:item.layout?html`<${StoryPhoto} key=${item.id} url=${item.url} layout=${item.layout}/>`:html`<img src=${item.url} alt="" />`}
         ${burning===item.id&&html`<${AshBurn} onDone=${()=>{const id=burning;setBurning(null);onClose();dispatch({type:'burnStory',id})}}/>`}</div>
       <div className="sv-bars">${st.items.map((it,i)=>html`<div key=${it.id}><span style=${{width:(i<ii?1:i===ii?prog:0)*100+'%'}}></span></div>`)}</div>
       <div className="sv-head"><${Avatar} u=${u} size=${32}/><span>${u.handle} <span className="t">${item.uploading?'Posting…':ago(s.now-item.at)}</span></span>
         <div className="sv-btns">
+          ${item.type==='video'&&html`<button className="sv-close" onClick=${toggleSound} aria-label=${soundOn?'Mute':'Turn sound on'}><${Icon} n=${soundOn?'sound':'mute'} s=${22}/></button>`}
           ${mine&&html`<button className="sv-burn" onClick=${()=>{const n=s.storyBurns??3;if(n<=0){dispatch({type:'toast',msg:'You’ve used your 3 story burns this week'});return}
             if(confirm('Burn this story? It burns to ash right now instead of waiting out its 24 hours. Free — '+n+' of 3 burns left this week.'))setBurning(item.id)}} aria-label="Burn this story"><${Icon} n="flame" s=${15} fill="#ff5500"/>${s.storyBurns??3}</button>`}
           ${mine&&html`<button className="sv-close" onClick=${onAdd} aria-label="Add to your story"><${Icon} n="plus"/></button>`}
@@ -2349,7 +2359,7 @@ function ReelClip({p,active,paused,runKey,onEnd}){
     const end=()=>{v.currentTime=t0;setProg(0);v.play().catch(()=>{})};
     v.addEventListener('timeupdate',tu);v.addEventListener('ended',end);
     v.dataset.rate=o.speed||1;v.playbackRate=o.speed||1;
-    if(active){if(v.ended||v.currentTime<t0||(o.trimEnd&&v.currentTime>=o.trimEnd))v.currentTime=t0;v.play().catch(()=>{})}else{v.pause();v.currentTime=t0}
+    if(active){if(v.ended||v.currentTime<t0||(o.trimEnd&&v.currentTime>=o.trimEnd))v.currentTime=t0;playSound(v)}else{v.pause();v.muted=true;v.currentTime=t0}
     return()=>{v.removeEventListener('timeupdate',tu);v.removeEventListener('ended',end)};
   },[active,runKey]);
   return html`${p.clip.kind==='art'?html`<canvas ref=${cv} aria-label=${p.text}></canvas>`:html`<video ref=${vd} src=${p.clip.url} muted playsInline></video>`}
@@ -2358,6 +2368,7 @@ function ReelClip({p,active,paused,runKey,onEnd}){
 }
 
 function Reel({p,s,active,dispatch,open}){
+  const [soundOn,toggleSound]=useSound();
   const u=s.users[p.userId];const paused=useRef(false);const [pz,setPz]=useState(false);const [burst,setBurst]=useState(0);
   const [ended,setEnded]=useState(false);const [runKey,setRunKey]=useState(0);const [manual,setManual]=useState(false);
   const lastTap=useRef(0);
@@ -2391,6 +2402,7 @@ function Reel({p,s,active,dispatch,open}){
         <button className=${'rail-btn rp'+(p.myRepost?' on':'')} disabled=${p.userId==='me'} onClick=${()=>dispatch({type:'repost',id:p.id})} aria-label=${p.myRepost?'Undo repost':'Repost'}><span className="rb"><${Icon} n="repost" s=${23} w=${2.2}/></span>${kfmt(p.reposts||0)}</button>
         <button className="rail-btn" onClick=${()=>open.share(p.id)} aria-label="Send"><span className="rb"><${Icon} n="share" s=${22}/></span></button>
         <button className=${'rail-btn'+(p.saved?' on':'')} onClick=${()=>dispatch({type:'save',id:p.id})} aria-label="Save"><span className="rb"><${Icon} n="save" s=${22} fill=${p.saved?'currentColor':null}/></span></button>
+        ${p.clip&&p.clip.kind==='video'&&html`<button className="rail-btn" onClick=${toggleSound} aria-label=${soundOn?'Mute':'Turn sound on'}><span className="rb"><${Icon} n=${soundOn?'sound':'mute'} s=${22}/></span></button>`}
         <button className="rail-btn" onClick=${()=>open.menu(p.id)} aria-label="More"><span className="rb"><${Icon} n="more" s=${22}/></span></button>
       </div>
     </div>

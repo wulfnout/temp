@@ -17,9 +17,10 @@ jobs:
           mkdir -p out
           for h in temptakes.com www.temptakes.com; do echo "=== dig $h" >> out/report.txt; dig +short A $h >> out/report.txt; dig +short CNAME $h >> out/report.txt; done
           echo "=== NS" >> out/report.txt; dig +short NS temptakes.com >> out/report.txt
-          for u in https://wulfnout.github.io/temp/ https://wulfnout.github.io/temp/get/ https://wulfnout.github.io/temp/icons/apple-touch-icon.png https://wulfnout.github.io/temp/manifest.webmanifest https://wulfnout.github.io/temp/apple-touch-icon.png; do
+          sleep 60
+          for u in http://temptakes.com/ https://temptakes.com/ https://temptakes.com/get/ https://temptakes.com/icons/apple-touch-icon.png https://wulfnout.github.io/temp/; do
             echo "=== $u" >> out/report.txt
-            curl -sS -o /tmp/body -D - "$u" | head -12 >> out/report.txt
+            curl -sS --max-time 20 -o /tmp/body -D - "$u" | head -12 >> out/report.txt
             echo "bytes: $(wc -c < /tmp/body)" >> out/report.txt
             grep -o '<link[^>]*apple-touch-icon[^>]*>' /tmp/body >> out/report.txt || true
           done

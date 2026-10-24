@@ -27,9 +27,11 @@ export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon
   const fg = kind === 'orange' ? C.onOrange : kind === 'ghost' ? C.ink : C.bg;
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={title}
-      style={({ pressed }) => [glow, { backgroundColor: bg, borderRadius: 10, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
+      style={({ pressed }) => [glow, { backgroundColor: bg, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
+      {kind === 'orange' ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, overflow: 'hidden' }}>
+        <LinearGradient colors={['#ee5f1f', '#f58a3d', '#ffb36b', '#f7924a']} locations={[0, 0.42, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} /></View> : null}
       {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
-      <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14 }}>{title}</Text>
+      <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14, textShadowColor: kind === 'orange' ? 'rgba(140,40,0,.35)' : 'transparent', textShadowRadius: 2 }}>{title}</Text>
     </Pressable>
   );
 }
@@ -99,7 +101,7 @@ export function Timer({ p }) {
   return null;
 }
 function Pill({ bg, fg, icon, text }) {
-  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: bg, borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10 }}>
+  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: bg, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingVertical: 5, paddingHorizontal: 10 }}>
     <Ionicons name={icon} size={13} color={fg} /><Text style={{ color: fg, fontFamily: F.heavy, fontSize: 12.5, fontVariant: ['tabular-nums'] }}>{text}</Text></View>;
 }
 
@@ -267,8 +269,8 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
   const on = hover != null ? hover : idx;
   return (
     <View ref={bar} {...pan.panHandlers} onLayout={(e) => setW(e.nativeEvent.layout.width)} accessibilityRole="tablist"
-      style={[{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 10, padding: 4 }, style]}>
-      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 10, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
+      style={[{ flexDirection: 'row', backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 4 }, style]}>
+      {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
       {items.map(([k, l], i) => (
         <View key={k} accessible accessibilityRole="tab" accessibilityLabel={l} accessibilityState={{ selected: i === idx }} style={{ flex: 1, paddingVertical: 9, alignItems: 'center' }}>
           <T h style={{ color: i === on ? C.bg : C.muted, fontSize: size }}>{l}</T></View>))}

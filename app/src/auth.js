@@ -55,7 +55,7 @@ export function AuthScreen() {
   }
 
   const Seg = ({ k, label }) => (
-    <Pressable onPress={() => go(k)} style={{ flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: mode === k ? C.ink : 'transparent', alignItems: 'center' }}>
+    <Pressable onPress={() => go(k)} style={{ flex: 1, paddingVertical: 10, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: mode === k ? C.ink : 'transparent', alignItems: 'center' }}>
       <T h style={{ color: mode === k ? C.bg : C.muted }}>{label}</T></Pressable>);
 
   return (
@@ -66,7 +66,7 @@ export function AuthScreen() {
           <View style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: C.orange, marginBottom: 14 }} />
         </View>
         <View>
-          {mode !== 'forgot' ? <View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 10, padding: 4 }}><Seg k="signup" label="Sign up" /><Seg k="signin" label="Sign in" /></View>
+          {mode !== 'forgot' ? <View style={{ flexDirection: 'row', backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 4 }}><Seg k="signup" label="Sign up" /><Seg k="signin" label="Sign in" /></View>
             : <T d style={{ fontSize: 22 }}>Reset password</T>}
           {mode === 'signup' ? <>
             <Field label="Name" value={f.name} onChangeText={up('name')} autoCapitalize="words" maxLength={40} />

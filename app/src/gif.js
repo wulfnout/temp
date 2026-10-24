@@ -37,7 +37,7 @@ export function GifPicker({ onPick, onClose }) {
   return (
     <View style={{ backgroundColor: C.soft, borderRadius: 20, padding: 10, marginTop: 10, gap: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.card, borderRadius: 10, paddingHorizontal: 12 }}>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 12 }}>
           <Ionicons name="search" size={16} color={C.muted} />
           <TextInput value={q} onChangeText={setQ} placeholder="Search GIPHY" placeholderTextColor={C.muted} autoCapitalize="none"
             style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 16, paddingVertical: 9 }} />

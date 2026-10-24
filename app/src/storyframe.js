@@ -40,7 +40,7 @@ export function StoryPhotoEditor({ uri, layout, onChange }) {
     <View style={{ flex: 1 }}>
       <View {...pan.panHandlers} style={{ flex: 1 }}><StoryPhoto uri={uri} layout={L} /></View>
       <Pressable onPress={() => set({ s: 1, x: 0, y: 0, fill: !L.fill })} accessibilityLabel={L.fill ? 'Fit the whole photo' : 'Fill the screen'}
-        style={{ position: 'absolute', right: 16, top: H * 0.16, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(0,0,0,.5)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 }}>
+        style={{ position: 'absolute', right: 16, top: H * 0.16, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(0,0,0,.5)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 12, paddingVertical: 7 }}>
         <Ionicons name={L.fill ? 'contract-outline' : 'expand-outline'} size={16} color="#fff" /><T h style={{ color: '#fff', fontSize: 13 }}>{L.fill ? 'Fit' : 'Fill'}</T></Pressable>
     </View>
   );

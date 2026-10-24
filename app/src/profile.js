@@ -41,7 +41,7 @@ export function ProfileScreen({ id, isTab }) {
               return <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><StoryOrb u={u} size={96} seen={!unseen} onPress={() => nav.sheet('story', { userId: uid })} label={'Story from @' + u.handle} /></View>; })()}
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
               {isMe ? <>
-                <Pressable onPress={() => nav.push('shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.ink, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 }}>
+                <Pressable onPress={() => nav.push('shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.ink, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 14, paddingVertical: 10 }}>
                   <Ionicons name="flame" size={15} color={C.orange} /><T h style={{ color: C.bg, fontSize: 14 }}>{kfmt(s.priv.points)}</T></Pressable>
                 <Btn kind="ghost" title="Edit profile" onPress={() => setEdit(true)} /></>
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
@@ -215,10 +215,10 @@ export function Composer({ reel: reel0, onClose }) {
     <Sheet visible onClose={onClose} full>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <Btn small kind="ghost" title="Cancel" onPress={onClose} />
-        <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 10, padding: 3 }}>
+        <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 3 }}>
           {[[false, 'Post'], [true, 'Replay']].map(([v, l]) => <Pressable key={l} onPress={() => { setReel(v); if (v && asset && asset.type !== 'video') setAsset(null); }}
-            style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10, backgroundColor: reel === v ? C.card : 'transparent' }}><T h style={{ color: reel === v ? C.ink : C.muted, fontSize: 13 }}>{l}</T></Pressable>)}
-          <Pressable onPress={() => { onClose(); setTimeout(() => nav.push('live'), 250); }} accessibilityLabel="Live Takes" style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            style={{ paddingVertical: 7, paddingHorizontal: 12, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, backgroundColor: reel === v ? C.card : 'transparent' }}><T h style={{ color: reel === v ? C.ink : C.muted, fontSize: 13 }}>{l}</T></Pressable>)}
+          <Pressable onPress={() => { onClose(); setTimeout(() => nav.push('live'), 250); }} accessibilityLabel="Live Takes" style={{ paddingVertical: 7, paddingHorizontal: 12, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#ff2d2d' }} /><T h style={{ color: C.muted, fontSize: 13 }}>Live</T></Pressable>
         </View>
         <Btn small kind="orange" title={busy ? 'Posting…' : 'Post'} disabled={!ok || busy} onPress={post} />
@@ -266,7 +266,7 @@ export function StoryDraft({ asset, onClose }) {
           {cap.trim() ? <T h style={{ color: '#fff', fontSize: 16, textShadowColor: 'rgba(0,0,0,.7)', textShadowRadius: 8 }}>{cap}</T> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <TextInput value={cap} onChangeText={setCap} placeholder="Add a caption…" placeholderTextColor="rgba(255,255,255,.7)" maxLength={150}
-              style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 11 }} />
+              style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 16, paddingVertical: 11 }} />
             <Btn kind="orange" title="Share" onPress={() => postStory(asset, cap.trim(), asset.type === 'video' ? null : layout.current)} />
           </View>
         </View>
@@ -354,7 +354,7 @@ export function StoryViewer({ userId, onClose }) {
             if (n <= 0) { nav.toast('You’ve used your 3 story burns this week'); return; }
             Alert.alert('Burn this story?', 'It burns to ash right now instead of waiting out its 24 hours. Free — ' + n + ' of 3 burns left this week.', [
               { text: 'Cancel', style: 'cancel' }, { text: 'Burn it', style: 'destructive', onPress: () => setBurning(item.id) }]);
-          }} accessibilityLabel="Burn this story" hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(0,0,0,.35)', borderRadius: 10, paddingHorizontal: 9, paddingVertical: 5 }}>
+          }} accessibilityLabel="Burn this story" hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(0,0,0,.35)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingHorizontal: 9, paddingVertical: 5 }}>
             <Ionicons name="flame" size={15} color="#ff5500" /><T h style={{ color: '#fff', fontSize: 12 }}>{s.storyBurns == null ? 3 : s.storyBurns}</T></Pressable> : null}
           <Pressable onPress={onClose} accessibilityLabel="Close" hitSlop={12}><Ionicons name="close" size={26} color="#fff" /></Pressable>
         </View>
@@ -372,12 +372,12 @@ export function StoryViewer({ userId, onClose }) {
                 <View style={{ flex: 1 }}><T style={{ color: '#fff', fontSize: 14 }}><T h style={{ color: '#fff', fontSize: 14 }}>{cu.handle} </T>{c.text}</T></View></View>); })}</ScrollView>
           </View> : null}
           {mine && total > 0 ? <View style={{ flexDirection: 'row', gap: 12 }}>{STORY_REACTS.filter((e) => reacts[e]).map((e) => <T key={e} h style={{ color: '#fff', fontSize: 15 }}>{e} {reacts[e]}</T>)}</View> : null}
-          {picker ? <View style={[glass, { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, borderRadius: 10, padding: 6 }]}>
+          {picker ? <View style={[glass, { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, padding: 6 }]}>
             {STORY_REACTS.map((e) => <Pressable key={e} onPress={() => react(e)} accessibilityLabel={'React ' + e}
               style={{ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: myReact === e ? 'rgba(255,255,255,.25)' : 'transparent' }}><T style={{ fontSize: 30 }}>{e}</T></Pressable>)}
           </View> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderRadius: 10, paddingLeft: 16, padding: 4 }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingLeft: 16, padding: 4 }}>
               <TextInput value={text} onChangeText={setText} placeholder={mine ? 'Reply to comments…' : 'Add a comment…'} placeholderTextColor="rgba(255,255,255,.7)" maxLength={300}
                 onSubmitEditing={sendComment} returnKeyType="send" style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, paddingVertical: 8 }} />
               {text.trim() ? <Pressable onPress={sendComment} accessibilityLabel="Post comment" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color="#fff" /></Pressable> : null}

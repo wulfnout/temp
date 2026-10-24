@@ -1,0 +1,43 @@
+# Copies the face-tracking engine (MediaPipe Tasks Vision) and its face model into /vendor/mp,
+# so the camera effects load from temptakes.com itself instead of a third-party CDN.
+name: Vendor face tracking
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/vendor-mediapipe.yml']
+  workflow_dispatch:
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch engine and model
+        run: |
+          set -e
+          V=0.10.14
+          mkdir -p vendor/mp /tmp/p && cd /tmp/p
+          npm pack @mediapipe/tasks-vision@$V >/dev/null && tar xzf mediapipe-tasks-vision-$V.tgz
+          cd "$GITHUB_WORKSPACE"
+          cp /tmp/p/package/vision_bundle.mjs vendor/mp/
+          cp /tmp/p/package/wasm/vision_wasm_internal.js /tmp/p/package/wasm/vision_wasm_internal.wasm vendor/mp/
+          cp /tmp/p/package/wasm/vision_wasm_nosimd_internal.js /tmp/p/package/wasm/vision_wasm_nosimd_internal.wasm vendor/mp/
+          curl -sSfL -o vendor/mp/face_landmarker.task https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
+          echo "$V" > vendor/mp/VERSION
+          ls -la vendor/mp
+      - name: Commit to main
+        run: |
+          git add vendor/mp
+          git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "Vendor MediaPipe face tracking" || exit 0
+          git pull -q --rebase origin main && git push -q origin HEAD:main
+      - name: Test pictures (fx-test branch, not served)
+        run: |
+          mkdir -p /tmp/t && cd /tmp/t
+          for u in https://storage.googleapis.com/mediapipe-assets/portrait.jpg https://storage.googleapis.com/mediapipe-tasks/face_landmarker/portrait.jpg https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Pierre-Person.jpg/480px-Pierre-Person.jpg https://upload.wikimedia.org/wikipedia/commons/8/8d/President_Barack_Obama.jpg; do
+            curl -sSfL -A "Mozilla/5.0" -o "$(echo $u | md5sum | cut -c1-8).jpg" "$u" || true
+          done
+          ls -la
+          git init -q && git checkout -q -b fx-test && git add -A
+          git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "test pictures" || exit 0
+          git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" fx-test

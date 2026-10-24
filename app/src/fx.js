@@ -190,7 +190,7 @@ export function MorphRing({ size, bg, children }) {
 /* ---------------- headers ---------------- */
 // colours for every header; the ones listed in ANIM also get motion
 export const HEADER_FX = { lava: ['#ffd27a', '#ff2d00', '#0a0a0a'], aurora: ['#0a0a0a', '#ff5500', '#ffd27a'], static: ['#151515', '#ff5500'], embers: ['#0a0a0a', '#3a1204'],
-  hazard: ['#ff5500', '#0a0a0a'], sunburst: ['#ffd27a', '#ff5500'], snow: ['#1b2430', '#6c8194'], thermal: ['#2b00a8', '#c4007a', '#ff5500', '#ffe14d'], disco: ['#2a1206', '#ff2bd6', '#0a0a0a'],
+  templogo: ['#0a0a0a', '#1a0a03'], hazard: ['#ff5500', '#0a0a0a'], sunburst: ['#ffd27a', '#ff5500'], snow: ['#1b2430', '#6c8194'], thermal: ['#2b00a8', '#c4007a', '#ff5500', '#ffe14d'], disco: ['#2a1206', '#ff2bd6', '#0a0a0a'],
   checker: ['#ff5500', '#0a0a0a'], synth: ['#14002e', '#4a0060', '#ff2bd6'], rain: ['#0a0a0a', '#ff5500'],
   wildfire: ['#0a0a0a', '#3a0d02', '#ff3d00'], heatwave: ['#ff2d00', '#ff8a2b', '#ffd27a'], blizzard: ['#0e1620', '#3b5163', '#9fb4c4'], glitchtv: ['#050505', '#141414'],
   starfield: ['#03010a', '#14002e', '#3a0a4a'], lavalamp: ['#1a0303', '#3a0a02', '#0a0a0a'] };
@@ -460,6 +460,19 @@ function Thermal2() {
 }
 
 // Sunburst: a cool sun in shades grins, swells up and bursts into a shower of logo t's, then comes back
+// free header: the Temp logo, big, with a softly breathing orange dot and glow
+function TempLogoHeader() {
+  const [b, onL] = useBox(); const c = clock(3200); const fs = Math.min(b.h * 0.42, b.w * 0.2);
+  return <View onLayout={onL} style={[fill, { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }]}>
+    <LinearGradient colors={['#0a0a0a', '#1a0a03', '#2a0f04']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={fill} />
+    <Animated.View style={{ position: 'absolute', width: b.w * 0.9, height: b.w * 0.9, borderRadius: b.w, backgroundColor: '#ff5500', opacity: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.12, 0.22, 0.12] }), transform: [{ scale: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.9, 1.05, 0.9] }) }] }} />
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginTop: fs * 0.2 }}>
+      <Text style={{ fontFamily: F.display, fontSize: fs, color: '#ffffff', letterSpacing: -fs * 0.05 }}>temp</Text>
+      <Animated.View style={{ width: fs * 0.22, height: fs * 0.22, borderRadius: fs * 0.06, backgroundColor: '#ff5500', marginLeft: fs * 0.04, marginBottom: fs * 0.2,
+        shadowColor: '#ff5500', shadowOpacity: 1, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, transform: [{ scale: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 1.15, 1] }) }] }} />
+    </View>
+  </View>;
+}
 function SunPop() {
   const [b, onL] = useBox(); const c = clock(5200);
   const cx = b.w / 2, cy = b.h * 0.52, R = Math.min(b.h * 0.3, 60);
@@ -660,6 +673,7 @@ export function HeaderFx({ id, fallback }) {
     case 'hazard': return <Hazard />;
     case 'checker': return <Checker />;
     case 'sunburst': return <SunPop />;
+    case 'templogo': return <TempLogoHeader />;
     case 'disco': return <Disco2 />;
     case 'synth': return <Synth />;
     case 'thermal': return <Thermal2 />;

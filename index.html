@@ -888,6 +888,13 @@ html.blackout .lifebar span.orb>b{color:var(--on-orange)}
 .live-mini{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff2d2d;margin-right:5px;vertical-align:middle}
 /* drawn header art */
 .ha{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.fx-templogo{background:linear-gradient(135deg,#0a0a0a,#1a0a03 55%,#2a0f04)!important}
+.ha-tl{display:grid;place-items:center}
+.tl-glow{position:absolute;width:90%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,85,0,.28),transparent 65%);animation:tlg 3.2s ease-in-out infinite}
+.tl-mark{position:relative;font-family:var(--display);font-weight:800;color:#fff;font-size:min(42cqh,20cqw);font-size:clamp(40px,14vw,110px);letter-spacing:-.05em;line-height:1;display:flex;align-items:flex-end;gap:.04em}
+.tl-mark i{width:.22em;height:.22em;border-radius:.06em;background:#ff5500;margin-bottom:.12em;box-shadow:0 0 18px #ff5500;animation:tld 3.2s ease-in-out infinite}
+@keyframes tlg{0%,100%{transform:scale(.9);opacity:.8}50%{transform:scale(1.05);opacity:1}}
+@keyframes tld{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 .fx-disco{background:linear-gradient(#1a0820,#07030c 60%,#2a0d05)!important}
 .dz-string{position:absolute;left:50%;top:0;width:2px;height:calc(30% - 16px);background:#555}
 .dz-ball{position:absolute;left:50%;top:30%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:repeating-linear-gradient(90deg,#f2f2f2 0 6px,#8a8a8a 6px 7px),repeating-linear-gradient(0deg,transparent 0 6px,rgba(0,0,0,.25) 6px 7px);background-blend-mode:multiply;box-shadow:0 0 14px #fff,0 0 30px rgba(255,255,255,.4);animation:dzball 2.6s linear infinite}
@@ -1698,7 +1705,7 @@ const SHOP={
     {id:'radioactive',name:'Radioactive',price:550,c:['#39ff14','#d4ff3a'],glow:true},{id:'glowice',name:'Ice Glow',price:500,c:['#00e5ff','#a5f3ff'],glow:true},
     {id:'plasma',name:'Plasma',price:600,c:['#8b5cff','#00d9ff'],glow:true},{id:'molten',name:'Molten',price:600,c:['#ff2d00','#ffd27a'],glow:true}],
   rings:[{id:'fire',name:'Fire',price:200},{id:'ice',name:'Ice',price:200},{id:'morph',name:'Morph',price:300},{id:'gold',name:'Gold',price:400},{id:'glitch',name:'Glitch',price:500},{id:'plus',name:'Temp+',plusOnly:true}],
-  headers:[{id:'lava',name:'Lava',price:250},{id:'aurora',name:'Aurora',price:250},{id:'static',name:'Static',price:350},{id:'embers',name:'Embers',price:350},
+  headers:[{id:'templogo',name:'Temp Logo',price:0},{id:'lava',name:'Lava',price:250},{id:'aurora',name:'Aurora',price:250},{id:'static',name:'Static',price:350},{id:'embers',name:'Embers',price:350},
     {id:'hazard',name:'Hazard',price:300},{id:'sunburst',name:'Sunburst',price:350},{id:'snow',name:'Snowstorm',price:350},{id:'thermal',name:'Thermal Cam',price:450},
     {id:'disco',name:'Disco Inferno',price:450},{id:'checker',name:'Checkered Flag',price:300},{id:'synth',name:'Synthwave',price:550},{id:'rain',name:'Rain',price:450},
     {id:'wildfire',name:'Wildfire',price:500},{id:'heatwave',name:'Heatwave',price:400},{id:'blizzard',name:'Blizzard',price:450},
@@ -2745,7 +2752,7 @@ function ThermoCard({s,u,dispatch,open}){
 }
 
 // drawn, animated header art for the effects CSS alone can't do
-const HA_IDS={haunted:1,pumpkinpatch:1,ghosts:1,disco:1,starfield:1,blizzard:1,snow:1,lavalamp:1,rain:1,thermal:1,sunburst:1,embers:1,lava:1};
+const HA_IDS={templogo:1,haunted:1,pumpkinpatch:1,ghosts:1,disco:1,starfield:1,blizzard:1,snow:1,lavalamp:1,rain:1,thermal:1,sunburst:1,embers:1,lava:1};
 function HeaderArt({id}){
   if(!HA_IDS[id])return null;const r=rnd(id.length*97+7);const n=(k,f)=>Array.from({length:k},(_,i)=>f(i));
   if(id==='haunted')return html`<div className="ha ha-haunt"><i className="hh-moon"></i><i className="hh-hill"></i><span className="hh-house"><i className="w1"></i><i className="w2"></i><i className="w3"></i></span>${n(5,i=>html`<i key=${i} className="hh-bat" style=${{top:(10+r()*45)+'%',animationDuration:(7+r()*5)+'s',animationDelay:(-r()*12)+'s',fontSize:(12+r()*10)+'px'}}>🦇</i>`)}</div>`;
@@ -2760,6 +2767,7 @@ function HeaderArt({id}){
   if(id==='lavalamp')return html`<div className="ha ha-lamp"><div className="lp-goo">${n(7,i=>html`<i key=${i} style=${{left:(6+i*13+r()*4)+'%',width:(38+r()*46)+'px',height:(38+r()*46)+'px',animationDuration:(15+i*2.5)+'s',animationDelay:(-r()*12)+'s'}}></i>`)}<i className="lp-pool"></i></div></div>`;
   if(id==='rain')return html`<div className="ha ha-rain"><i className="rn"></i><i className="rn-floor"></i></div>`;
   if(id==='thermal')return html`<div className="ha ha-therm"><i className="th-body"></i><i className="th-head"></i><i className="th-cup"></i><i className="th-lines"></i><i className="th-box"></i><b className="th-read">98.6°F</b><i className="th-scale"></i><i className="th-c1"></i><i className="th-c2"></i></div>`;
+  if(id==='templogo')return html`<div className="ha ha-tl"><i className="tl-glow"></i><span className="tl-mark">temp<i></i></span></div>`;
   if(id==='sunburst')return html`<div className="ha ha-sun"><span className="sp-sun"><span className="sp-rays">${n(12,i=>html`<i key=${i} style=${{transform:`rotate(${i*30}deg) translateY(-74px)`}}></i>`)}</span><b className="sp-face"><i className="sp-l"></i><i className="sp-r"></i><i className="sp-br"></i><i className="sp-grin"></i></b></span>
     ${n(18,i=>{const a=(i/18)*Math.PI*2+r()*.3;const d=110+r()*90;return html`<b key=${i} className="sp-t" style=${{'--x':Math.cos(a)*d+'px','--y':(Math.sin(a)*d*.75+20)+'px','--r':(r()*720-360)+'deg',fontSize:(18+r()*22)+'px',color:['#fff','#0a0a0a','#ffe14d'][i%3]}}>t</b>`})}<i className="sp-flash"></i></div>`;
   if(id==='embers')return html`<div className="ha ha-emb">${n(44,i=>html`<i key=${i} style=${{left:(r()*100)+'%',width:(1.5+r()*3.2)+'px',height:(1.5+r()*3.2)+'px',background:['#ffd27a','#ff8a2b','#ff5500','#fff1c4'][i%4],animationDuration:(3.2+r()*3.8)+'s, '+(1.4+r()*1.6)+'s, .4s',animationDelay:(-r()*7)+'s, '+(-r()*3)+'s, '+(-r())+'s','--sw':(6+r()*14)+'px'}}></i>`)}</div>`;
@@ -3579,7 +3587,7 @@ meteor:`<defs><linearGradient id="ga-me" x1="1" y1="0" x2="0" y2="1"><stop offse
 <path d="M30 33c3 1 5 4 5 7" stroke="#ffd27a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
 phoenix:`<defs><linearGradient id="ga-ph" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c81d00"/><stop offset=".45" stop-color="#ff5500"/><stop offset=".8" stop-color="#ffb347"/><stop offset="1" stop-color="#fff3c4"/></linearGradient><linearGradient id="ga-ph2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ff2d00"/></linearGradient></defs>
 <path d="M32 30C24 20 14 18 2 20c6 3 9 6 10 10-4-1-7 0-9 2 6 1 10 3 13 7-3 0-5 1-6 3 8 0 14-2 18-7Z" fill="url(#ga-ph)"/><path d="M32 30c8-10 18-12 30-10-6 3-9 6-10 10 4-1 7 0 9 2-6 1-10 3-13 7 3 0 5 1 6 3-8 0-14-2-18-7Z" fill="url(#ga-ph)"/>
-<path d="M32 26c-3 0-5 3-5 8 0 6 2 10 5 14 3-4 5-8 5-14 0-5-2-8-5-8Z" fill="url(#ga-ph2)"/><circle cx="32" cy="20" r="5" fill="#ffb347"/><path d="M35 19l5 2-5 1.5Z" fill="#ffd27a"/><circle cx="33.5" cy="19" r="1" fill="#2a0a02"/>
+<path d="M32 26c-3 0-5 3-5 8 0 6 2 10 5 14 3-4 5-8 5-14 0-5-2-8-5-8Z" fill="url(#ga-ph2)"/><path d="M32 13.5c3.4 0 5.6 2.7 5.6 6.2 0 2.6-1.3 4.6-2.9 6.3H29.3c-1.6-1.7-2.9-3.7-2.9-6.3 0-3.5 2.2-6.2 5.6-6.2Z" fill="url(#ga-ph)"/>
 <path d="M32 15c-1-4 1-7 3-9 0 3 1 4 3 5-2 0-4 2-6 4Z" fill="#ff5500"/><path d="M32 46c-3 5-8 9-12 12 4 0 6-1 8-2-1 3-1 5-3 7 4-2 6-5 7-8 1 3 3 6 7 8-2-2-2-4-3-7 2 1 4 2 8 2-4-3-9-7-12-12Z" fill="url(#ga-ph)"/>`
 };
 function GiftArt({id,size=44}){return html`<svg className="gart" width=${size} height=${size} viewBox="0 0 64 64" aria-hidden="true" dangerouslySetInnerHTML=${{__html:GIFT_ART[id]||GIFT_ART.spark}}></svg>`}

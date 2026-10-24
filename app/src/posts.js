@@ -5,7 +5,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AshBurn } from './ash';
-import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
+import { useApp, flowRadii, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel } from './ui';
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
 import { GifPicker } from './gif';
@@ -296,12 +296,13 @@ function TimeOrb({ label }) {
     t = setTimeout(step, 1000 - (Date.now() % 1000) + 5); return () => clearTimeout(t);
   }, []);
   const spin = rot.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'], extrapolate: 'extend' });
-  const S = 35;
+  const S = 35; const orbFlow = React.useMemo(() => { const f = flowRadii(Math.floor(Math.random() * 100)); const o = {}; Object.keys(f).forEach((k) => { o[k] = Animated.multiply(f[k], S / 2 / 40); }); return o; }, []);
   return (
     <View style={{ width: S, height: S, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View style={{ position: 'absolute', width: S, height: S, borderTopLeftRadius: S * 0.5, borderTopRightRadius: S * 0.42, borderBottomRightRadius: S * 0.54, borderBottomLeftRadius: S * 0.4,
-        overflow: 'hidden', transform: [{ rotate: spin }], shadowColor: '#ff5500', shadowOpacity: 0.35, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } }}>
-        <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+      <Animated.View style={{ position: 'absolute', width: S, height: S, transform: [{ rotate: spin }] }}>
+        <Animated.View style={{ flex: 1, ...orbFlow, overflow: 'hidden' }}>
+          <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+        </Animated.View>
       </Animated.View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
         <Ionicons name="flame" size={7} color="#fff" /><T d style={{ color: '#fff', fontSize: 8.5, letterSpacing: -0.4, textShadowColor: 'rgba(160,50,0,.55)', textShadowRadius: 2 }}>{label}</T></View>

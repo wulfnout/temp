@@ -20,19 +20,39 @@ export function T({ style, b, h, d, muted, children, ...rest }) {
   return <Text {...rest} style={[{ color: muted ? C.muted : C.ink, fontFamily: fam, fontSize: 15 }, style]}>{children}</Text>;
 }
 
+// shared slow clock for the flowing orb buttons: each one stretches out of shape, settles into a
+// perfect round, then stretches the other way (JS driver — corner radii can't run on the native driver)
+let flowV = null;
+function flowClock() {
+  if (!flowV) { flowV = new Animated.Value(0); Animated.loop(Animated.timing(flowV, { toValue: 1, duration: 10000, easing: Easing.linear, useNativeDriver: false })).start(); }
+  return flowV;
+}
+const FLOW_KEYS = [[26, 17, 28, 15], [40, 40, 40, 40], [15, 28, 16, 27], [40, 40, 40, 40], [26, 17, 28, 15]];
+const FLOW_NAMES = ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius', 'borderBottomLeftRadius'];
+export function flowRadii(seed = 0) {
+  const v = flowClock(); const ph = (Math.abs(seed) % 100) / 100; const out = {};
+  FLOW_NAMES.forEach((n, ci) => { const inp = [], o = [];
+    for (let i = 0; i <= 20; i++) { const t = i / 20; const u = (t + ph) % 1; const seg = Math.min(3, Math.floor(u * 4)); const f = u * 4 - seg; const e = (1 - Math.cos(f * Math.PI)) / 2;
+      inp.push(t); o.push(FLOW_KEYS[seg][ci] + (FLOW_KEYS[seg + 1][ci] - FLOW_KEYS[seg][ci]) * e); }
+    out[n] = v.interpolate({ inputRange: inp, outputRange: o }); });
+  return out;
+}
 export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon }) {
-  const { C } = useApp();
-  const bg = kind === 'orange' ? C.orange : kind === 'ghost' ? C.soft : C.ink;
+  const { C } = useApp(); const [pressed, setPressed] = useState(false);
+  const bg = kind === 'orange' ? '#ee5f1f' : kind === 'ghost' ? C.soft : C.ink;
   const glow = kind === 'orange' && C.glow && !disabled ? { shadowColor: C.orange, shadowOpacity: 0.85, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 8 } : null;
   const fg = kind === 'orange' ? C.onOrange : kind === 'ghost' ? C.ink : C.bg;
+  const flow = React.useMemo(() => flowRadii(hashStr(title || '')), [title]);
   return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={title}
-      style={({ pressed }) => [glow, { backgroundColor: bg, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
-      {kind === 'orange' ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderTopLeftRadius: 26, borderTopRightRadius: 17, borderBottomRightRadius: 28, borderBottomLeftRadius: 15, overflow: 'hidden' }}>
-        <LinearGradient colors={['#ee5f1f', '#f58a3d', '#ffb36b', '#f7924a']} locations={[0, 0.42, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} /></View> : null}
-      {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
-      <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14, textShadowColor: kind === 'orange' ? 'rgba(140,40,0,.35)' : 'transparent', textShadowRadius: 2 }}>{title}</Text>
-    </Pressable>
+    <Animated.View style={[glow, flow, { backgroundColor: bg, opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }, style]}>
+      {kind === 'orange' ? <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }, flow]}>
+        <LinearGradient colors={['#ee5f1f', '#f58a3d', '#ffb36b', '#f7924a']} locations={[0, 0.42, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} /></Animated.View> : null}
+      <Pressable onPress={onPress} disabled={disabled} onPressIn={() => setPressed(true)} onPressOut={() => setPressed(false)} accessibilityRole="button" accessibilityLabel={title}
+        style={{ flexGrow: 1, paddingVertical: small ? 8 : 12, paddingHorizontal: small ? 14 : 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
+        {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
+        <Text style={{ color: fg, fontFamily: F.heavy, fontSize: small ? 13 : 14, textShadowColor: kind === 'orange' ? 'rgba(140,40,0,.35)' : 'transparent', textShadowRadius: 2 }}>{title}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 

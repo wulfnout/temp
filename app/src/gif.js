@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, TextInput, Pressable, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useApp, T } from './ui';
+import { useApp, FlowBox, T } from './ui';
 import { F } from './lib';
 
 // GIF search powered by GIPHY. The key is meant to ship inside apps.
@@ -35,13 +35,13 @@ export function GifPicker({ onPick, onClose }) {
   const cols = [[], [], []]; const hts = [0, 0, 0];
   list.forEach((g) => { const i = hts.indexOf(Math.min(...hts)); cols[i].push(g); hts[i] += g.h / g.w; });
   return (
-    <View style={{ backgroundColor: C.soft, borderRadius: 20, padding: 10, marginTop: 10, gap: 8 }}>
+    <FlowBox r={20} style={{ backgroundColor: C.soft, padding: 10, marginTop: 10, gap: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.card, borderRadius: 15, paddingHorizontal: 12 }}>
+        <FlowBox r={15} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.card, paddingHorizontal: 12 }}>
           <Ionicons name="search" size={16} color={C.muted} />
           <TextInput value={q} onChangeText={setQ} placeholder="Search GIPHY" placeholderTextColor={C.muted} autoCapitalize="none"
             style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 16, paddingVertical: 9 }} />
-        </View>
+        </FlowBox>
         {onClose ? <Pressable onPress={onClose} accessibilityLabel="Close GIFs" hitSlop={8} style={{ padding: 4 }}><Ionicons name="close" size={20} color={C.muted} /></Pressable> : null}
       </View>
       <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" style={{ maxHeight: 300 }} keyboardShouldPersistTaps="handled">
@@ -58,6 +58,6 @@ export function GifPicker({ onPick, onClose }) {
         {!busy && !list.length ? <T muted b style={{ textAlign: 'center', marginVertical: 20 }}>{err || 'No GIFs found'}</T> : null}
       </ScrollView>
       <T b muted style={{ fontSize: 11, textAlign: 'right', letterSpacing: 0.5 }}>Powered by GIPHY</T>
-    </View>
+    </FlowBox>
   );
 }

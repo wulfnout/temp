@@ -119,7 +119,7 @@ img,video{max-width:100%;display:block}
 .lifebar span.orb>svg,.lifebar span.orb>b{position:relative;z-index:1}
 .lifebar span.orb>b{font-family:var(--display);font-weight:800;font-size:8.5px;letter-spacing:-.04em}
 @keyframes orbtick{0.000%{transform:rotate(0deg)}3.500%{transform:rotate(30deg)}8.333%{transform:rotate(30deg)}11.833%{transform:rotate(60deg)}16.667%{transform:rotate(60deg)}20.167%{transform:rotate(90deg)}25.000%{transform:rotate(90deg)}28.500%{transform:rotate(120deg)}33.333%{transform:rotate(120deg)}36.833%{transform:rotate(150deg)}41.667%{transform:rotate(150deg)}45.167%{transform:rotate(180deg)}50.000%{transform:rotate(180deg)}53.500%{transform:rotate(210deg)}58.333%{transform:rotate(210deg)}61.833%{transform:rotate(240deg)}66.667%{transform:rotate(240deg)}70.167%{transform:rotate(270deg)}75.000%{transform:rotate(270deg)}78.500%{transform:rotate(300deg)}83.333%{transform:rotate(300deg)}86.833%{transform:rotate(330deg)}91.667%{transform:rotate(330deg)}95.167%{transform:rotate(360deg)}100%{transform:rotate(360deg)}}
-.lifebar span{display:inline-flex;align-items:center;gap:2px;background:var(--orange);color:#fff;--r:8px;border-radius:var(--r);padding:1px 6px;font-size:9.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;animation:squish 7s ease-in-out -4s infinite} .life.frozen{background:var(--ink)}
+.lifebar span{display:inline-flex;align-items:center;gap:2px;background:var(--orange);color:#fff;--r:8px;border-radius:var(--r);padding:1px 6px;font-size:9.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap} .life.frozen{background:var(--ink)}
 .p-actions{display:flex;align-items:center;gap:6px;margin-top:12px}
 .react{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;--r:15px;border-radius:var(--r);background:var(--soft);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;transition:background .2s,color .2s,transform .15s;animation:squish 9s ease-in-out -3s infinite}
 .react:active{transform:scale(.94)}
@@ -228,7 +228,7 @@ img,video{max-width:100%;display:block}
 .field textarea{resize:vertical;min-height:76px}
 
 /* settings */
-.set-group{background:var(--card);border-radius:24px;overflow:hidden;margin-top:12px}
+.set-group{background:var(--card);--r:24px;border-radius:var(--r);overflow:hidden;margin-top:12px;animation:squish 11s ease-in-out -8s infinite}
 .set-label{font-family:var(--display);font-size:12.5px;font-weight:700;margin:22px 6px 0;letter-spacing:-.01em}
 .set-item{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;text-align:left;font-weight:700;min-height:56px}
 .set-item + .set-item{border-top:1px solid var(--line)}
@@ -257,7 +257,7 @@ img,video{max-width:100%;display:block}
 .trend span{color:var(--muted);font-weight:600;font-size:12px}
 
 /* lists */
-.list-card{background:var(--card);border-radius:26px;padding:6px 14px;margin-top:8px}
+.list-card{background:var(--card);--r:26px;border-radius:var(--r);padding:6px 14px;margin-top:8px;animation:squish 13s ease-in-out -7s infinite}
 .thread-row{display:flex;gap:12px;align-items:center;padding-block:10px;width:100%;text-align:left}
 .thread-row + .thread-row{border-top:1px solid var(--line)}
 .thread-row .grow{flex:1;min-width:0}
@@ -366,8 +366,8 @@ img,video{max-width:100%;display:block}
 .tour-dim,.tour-card{pointer-events:auto}
 .tour-dim{position:fixed;background:rgba(0,0,0,.52);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .tour-ring{position:fixed;box-shadow:0 0 0 3px var(--orange),0 0 0 9px rgba(255,85,0,.22);pointer-events:none;transition:all .35s cubic-bezier(.2,.9,.3,1);animation:ring 1.6s ease-in-out infinite}
-.tour-card{position:fixed;width:min(340px,calc(100vw - 32px));background:var(--card);color:var(--ink);border-radius:26px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.4);
-  transition:top .35s cubic-bezier(.2,.9,.3,1),left .35s cubic-bezier(.2,.9,.3,1);animation:up .3s ease}
+.tour-card{position:fixed;width:min(340px,calc(100vw - 32px));background:var(--card);color:var(--ink);--r:26px;border-radius:var(--r);padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.4);
+  transition:top .35s cubic-bezier(.2,.9,.3,1),left .35s cubic-bezier(.2,.9,.3,1);animation:up .3s ease,squish 10s ease-in-out -6s infinite}
 .tour-card.center{left:50%!important;top:50%!important;transform:translate(-50%,-50%);animation:none}
 .t-step{font-size:12px;color:var(--orange);font-weight:800;font-variant-numeric:tabular-nums}
 .t-title{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.03em;margin:6px 0 6px;line-height:1.15;text-wrap:balance}
@@ -381,7 +381,7 @@ img,video{max-width:100%;display:block}
 .t-dots span.on{background:var(--orange)}
 
 .modal{position:fixed;inset:0;z-index:95;background:var(--scrim);display:grid;place-items:center;padding:16px;animation:fade .2s ease}
-.modal-card{background:var(--card);border-radius:28px;padding:24px;width:min(360px,100%);text-align:center;display:grid;gap:12px;justify-items:center}
+.modal-card{background:var(--card);--r:28px;border-radius:var(--r);padding:24px;width:min(360px,100%);text-align:center;display:grid;gap:12px;justify-items:center;animation:squish 12s ease-in-out -5s infinite}
 .modal-card h3{font-family:var(--display);font-size:22px;letter-spacing:-.03em;margin:0}
 .empty{padding:56px 16px;text-align:center;color:var(--muted);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;--r:15px;border-radius:var(--r);font-weight:800;font-size:14px;z-index:99;max-width:calc(100% - 32px);animation:toast 2.2s ease forwards,squish 9s ease-in-out -5s infinite;text-align:center}
@@ -423,14 +423,14 @@ img,video{max-width:100%;display:block}
 .t-level{font-weight:800;color:var(--orange);margin-top:3px}
 .t-meta{display:grid;gap:2px;margin-top:8px;font-size:13px;color:var(--muted);font-weight:600}
 .bubble{animation:bub 2.6s ease-in infinite;transform-box:fill-box}
-.pts-hero{background:var(--card);border-radius:26px;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
+.pts-hero{background:var(--card);--r:26px;border-radius:var(--r);padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px;animation:squish 9s ease-in-out -4s infinite}
 .pts-hero b{font-family:var(--display);font-size:32px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
 .item{background:var(--card);--r:22px;border-radius:var(--r);padding:10px;display:grid;gap:10px;align-content:start;min-width:0;animation:squish 7s ease-in-out -1s infinite}
 .item .pv{height:96px;--r:16px;border-radius:var(--r);background:var(--soft);display:grid;place-items:center;overflow:hidden;position:relative;font-size:30px;animation:squish 9s ease-in-out 0s infinite}
 .item .nm{font-weight:800;padding-inline:4px;display:flex;justify-content:space-between;gap:6px;align-items:center}
 .item .btn{width:100%}
-.plus-hero{background:#0a0a0a;color:#fff;border-radius:28px;padding:24px;margin-top:6px;position:relative;overflow:hidden}
+.plus-hero{background:#0a0a0a;color:#fff;--r:28px;border-radius:var(--r);padding:24px;margin-top:6px;position:relative;overflow:hidden;animation:squish 11s ease-in-out -3s infinite}
 .plus-hero::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),#ffd27a,var(--orange));animation:morph 7s ease-in-out infinite,spin 4s linear infinite;opacity:.9}
 .plus-hero h2{font-family:var(--display);font-size:40px;letter-spacing:-.06em;margin:0;position:relative;z-index:1}
 .plus-hero h2 span{color:var(--orange)}
@@ -468,7 +468,7 @@ img,video{max-width:100%;display:block}
 .add-stk:hover{border-color:var(--orange);color:var(--orange)}
 .bubble-h{animation:bubh 2.6s ease-in infinite;transform-box:fill-box}
 @keyframes bubh{0%{transform:translateX(0);opacity:0}15%{opacity:.85}100%{transform:translateX(140px);opacity:0}}
-.fs-hero{color:#fff;border-radius:28px;padding:20px;margin-top:6px;position:relative;overflow:hidden;display:grid;gap:14px}
+.fs-hero{color:#fff;--r:28px;border-radius:var(--r);padding:20px;margin-top:6px;position:relative;overflow:hidden;display:grid;gap:14px;animation:squish 13s ease-in-out -2s infinite}
 .fs-title{font-family:var(--display);font-size:32px;font-weight:800;letter-spacing:-.05em;margin:0;display:flex;align-items:center;gap:8px;line-height:1}
 .fs-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .fs-pts{display:grid}
@@ -673,7 +673,7 @@ img,video{max-width:100%;display:block}
 /* Go Live */
 .gl-lobby{padding:calc(12px + env(safe-area-inset-top,0px)) 16px 40px}
 .gl-top{display:flex;align-items:center;gap:10px}.gl-top h2{margin:0;font-family:var(--display);font-size:26px;letter-spacing:-.04em}
-.gl-start{margin-top:14px;background:linear-gradient(135deg,#1a0700,#3a1204 55%,#ff5500);border-radius:26px;padding:18px;display:grid;gap:12px;color:#fff;justify-items:center}
+.gl-start{margin-top:14px;background:linear-gradient(135deg,#1a0700,#3a1204 55%,#ff5500);--r:26px;border-radius:var(--r);padding:18px;display:grid;gap:12px;color:#fff;justify-items:center;animation:squish 10s ease-in-out -1s infinite}
 .gl-cam{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center}
 .gl-start input{width:100%;background:rgba(0,0,0,.35);border:0;--r:14px;border-radius:var(--r);padding:12px 14px;color:#fff;font-size:16px;font-weight:600;animation:squish 10s ease-in-out -4s infinite}
 .gl-start input::placeholder{color:rgba(255,255,255,.7)}
@@ -702,6 +702,7 @@ img,video{max-width:100%;display:block}
 @keyframes glh{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:1;transform:translate(-6px,-30px) scale(1.1)}60%{transform:translate(10px,-170px)}100%{opacity:0;transform:translate(-12px,-300px) scale(.9)}}
 .gl-gifts{position:absolute;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;gap:8px;justify-content:center}
 .gl-gifts button{flex:1;max-width:110px;background:rgba(0,0,0,.65);border-radius:18px;padding:10px;color:#fff;display:grid;gap:2px;justify-items:center}.gl-gifts span{font-size:30px}
+.gl-conn{position:absolute;left:50%;transform:translateX(-50%);top:calc(110px + env(safe-area-inset-top,0px));z-index:5;margin:0;background:rgba(0,0,0,.6);border-radius:12px;padding:6px 12px;font-weight:800;font-size:12px}
 .gl-err{position:absolute;left:12px;right:12px;bottom:calc(120px + env(safe-area-inset-bottom,0px));z-index:4;background:rgba(0,0,0,.7);--r:12px;border-radius:var(--r);padding:8px 12px;margin:0;font-weight:700;animation:squish 10s ease-in-out -8s infinite}
 .gl-bar{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;gap:8px;align-items:center}
 .gl-bar input{flex:1;min-width:0;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.35);--r:15px;border-radius:var(--r);padding:10px 14px;color:#fff;font-size:16px;animation:squish 7s ease-in-out -7s infinite}
@@ -945,7 +946,7 @@ img,video{max-width:100%;display:block}
 .rec-dot2{width:10px;height:10px;border-radius:50%;background:#ff2d2d;animation:tick 1s ease-in-out infinite}
 /* Live Takes */
 .live-lobby{padding-block:6px 20px}
-.live-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#1a0700,#3a1204 60%,#ff5500);color:#fff;border-radius:26px;padding:20px}
+.live-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#1a0700,#3a1204 60%,#ff5500);color:#fff;--r:26px;border-radius:var(--r);padding:20px;animation:squish 12s ease-in-out 0s infinite}
 .live-hero h2{margin:0;font-family:var(--display);font-size:26px;letter-spacing:-.04em}.live-hero p{margin:4px 0 0;opacity:.8;font-weight:600}
 .live-hero .btn{display:inline-flex;gap:6px;align-items:center}
 .live-make{background:var(--card);--r:22px;border-radius:var(--r);padding:14px;margin-top:12px;display:grid;gap:10px;animation:squish 7s ease-in-out 0s infinite}
@@ -1013,7 +1014,7 @@ img,video{max-width:100%;display:block}
 .fullv-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center}
 .fullv-bar{position:absolute;left:16px;right:16px;bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:12px;color:#fff;font-size:12.5px;font-variant-numeric:tabular-nums}
 .fullv-bar input{flex:1;accent-color:#ff5500}
-.fv-time{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;--r:8px;border-radius:var(--r);padding:3px 8px;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums;animation:squish 11s ease-in-out -2s infinite}
+.fv-time{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;--r:8px;border-radius:var(--r);padding:3px 8px;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
 .fv-btns{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}.fv-btns button{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}
 .fv-big{position:absolute;inset:0;margin:auto;width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;pointer-events:none}
 /* intro + ash */
@@ -3158,15 +3159,32 @@ function useVoiceRecorder(onDone){
 
 /* ---------- Live Takes: audio rooms (peer to peer, small rooms) ---------- */
 const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}];
+// Join a realtime room and keep it joined: retries on errors/timeouts, and switches between a private
+// (signed-in) and a public channel in case one of them is refused. Sets eng.ch to the live channel.
+function rtJoin(eng,topic,bind){
+  let priv=true,tries=0;
+  return new Promise(res=>{
+    const open=()=>{
+      if(eng.left)return;
+      const ch=sb.channel(topic,{config:{private:priv,broadcast:{self:false},presence:{key:eng.me}}});bind(ch);eng.ch=ch;
+      ch.subscribe(async(st,err)=>{
+        if(eng.left||eng.ch!==ch)return;
+        if(st==='SUBSCRIBED'){tries=0;try{await ch.track({at:Date.now()})}catch(e){}eng.status&&eng.status('ok');res()}
+        else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){
+          tries++;eng.status&&eng.status('retry');if(tries%2===0)priv=!priv;
+          setTimeout(()=>{if(eng.left||eng.ch!==ch)return;try{sb.removeChannel(ch)}catch(e){}if(EMBED_TOKEN)try{sb.realtime.setAuth(EMBED_TOKEN)}catch(e){}open()},Math.min(8000,1500*tries))}
+      });
+    };
+    open();
+  });
+}
 class LiveEngine{
   constructor(roomId,me,onChange){this.roomId=roomId;this.me=me;this.onChange=onChange;this.pcs={};this.audio={};this.levels={};this.local=null;this.muted=true;this.ac=null;this.an={};this.loop=null}
   async join(){
     this.ac=new (window.AudioContext||window.webkitAudioContext)();try{await this.ac.resume()}catch(e){}
-    this.ch=sb.channel('liveroom-'+this.roomId,{config:{broadcast:{self:false},presence:{key:this.me}}});
-    this.ch.on('broadcast',{event:'sig'},({payload})=>this.signal(payload))
+    await rtJoin(this,'liveroom-'+this.roomId,ch=>ch.on('broadcast',{event:'sig'},({payload})=>this.signal(payload))
       .on('broadcast',{event:'react'},({payload})=>this.onChange({react:payload}))
-      .on('presence',{event:'sync'},()=>this.sync());
-    await new Promise(res=>this.ch.subscribe(async st=>{if(st==='SUBSCRIBED'){try{await this.ch.track({at:Date.now()})}catch(e){}res()}}));
+      .on('presence',{event:'sync'},()=>this.sync()));
     this.loop=setInterval(()=>this.meter(),160);
   }
   send(p){this.ch&&this.ch.send({type:'broadcast',event:'sig',payload:{...p,from:this.me}}).catch(()=>{})}
@@ -3206,7 +3224,7 @@ class LiveEngine{
   }
   meter(){const lv={};const buf=new Uint8Array(256);Object.entries(this.an).forEach(([id,an])=>{an.getByteTimeDomainData(buf);let s=0;for(const v of buf){const d=(v-128)/128;s+=d*d}lv[id]=Math.sqrt(s/buf.length)});
     if(this.local&&this.muted)lv[this.me]=0;this.sm=this.sm||{};Object.keys(lv).forEach(k=>{const p=this.sm[k]||0;this.sm[k]=lv[k]>p?lv[k]:p*.82+lv[k]*.18});this.onChange({levels:{...this.sm}})}
-  leave(){clearInterval(this.loop);Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}try{this.ac&&this.ac.close()}catch(e){}}
+  leave(){this.left=true;clearInterval(this.loop);Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}try{this.ac&&this.ac.close()}catch(e){}}
 }
 const liveUser=p=>p?{id:p.id,uid:p.id,name:p.name||p.handle,handle:p.handle,avatar:p.avatar_url,color:colorFor(p.id),ring:p.ring}:{id:'?',name:'Someone',handle:'someone',color:'#ff5500'};
 const LIVE_FRESH=70e3;
@@ -3308,15 +3326,14 @@ function LiveEmbed(){
 class StreamEngine{
   constructor(id,me,on){this.id=id;this.me=me;this.on=on;this.pcs={};this.remote={};this.local=null;this.facing='user'}
   async join(){
-    this.ch=sb.channel('stream-'+this.id,{config:{broadcast:{self:false},presence:{key:this.me}}});
-    this.ch.on('broadcast',{event:'sig'},({payload})=>this.signal(payload))
+    await rtJoin(this,'stream-'+this.id,ch=>ch.on('broadcast',{event:'sig'},({payload})=>this.signal(payload))
       .on('broadcast',{event:'chat'},({payload})=>this.on({chat:payload}))
       .on('broadcast',{event:'heart'},({payload})=>this.on({heart:payload}))
       .on('broadcast',{event:'gift'},({payload})=>this.on({gift:payload}))
+      .on('broadcast',{event:'like'},({payload})=>this.on({like:payload}))
       .on('broadcast',{event:'req'},({payload})=>this.on({req:payload}))
       .on('broadcast',{event:'guest'},({payload})=>this.on({guest:payload}))
-      .on('presence',{event:'sync'},()=>this.sync());
-    await new Promise(res=>this.ch.subscribe(async st=>{if(st==='SUBSCRIBED'){try{await this.ch.track({at:Date.now()})}catch(e){}res()}}));
+      .on('presence',{event:'sync'},()=>this.sync()));
   }
   send(ev,p){this.ch&&this.ch.send({type:'broadcast',event:ev,payload:{...p,from:this.me}}).catch(()=>{})}
   sync(){const ids=Object.keys(this.ch.presenceState());this.on({viewers:ids});const others=ids.filter(k=>k!==this.me);others.forEach(id=>this.pc(id));Object.keys(this.pcs).forEach(id=>{if(!others.includes(id))this.drop(id)})}
@@ -3346,7 +3363,7 @@ class StreamEngine{
   setMic(on){if(this.local)this.local.getAudioTracks().forEach(t=>t.enabled=on)}
   setCam(on){if(this.local)this.local.getVideoTracks().forEach(t=>t.enabled=on)}
   camOff(){if(!this.local)return;Object.values(this.pcs).forEach(st=>st.pc.getSenders().forEach(sn=>{if(sn.track)try{st.pc.removeTrack(sn)}catch(e){}}));this.local.getTracks().forEach(t=>t.stop());this.local=null;this.on({local:null})}
-  leave(){Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}}
+  leave(){this.left=true;Object.keys(this.pcs).forEach(id=>this.drop(id));if(this.local)this.local.getTracks().forEach(t=>t.stop());this.local=null;if(this.ch){try{this.ch.untrack()}catch(e){}sb.removeChannel(this.ch)}}
 }
 function Vid({stream,mirror,muted}){const r=useRef();
   useEffect(()=>{const v=r.current;if(!v)return;v.muted=!!muted;v.defaultMuted=!!muted;v.setAttribute('playsinline','');v.setAttribute('autoplay','');
@@ -3486,12 +3503,19 @@ function StreamRoom({id,me,people,setPeople,onExit}){
   const [wallet,setWallet]=useState(null);const [events,setEvents]=useState([]);const [likes,setLikes]=useState(0);const [banners,setBanners]=useState([]);const [shows,setShows]=useState([]);
   const [levels,setLevels]=useState({});const [combo,setCombo]=useState(null);const [score,setScore]=useState({h:0,g:0});const [now,setNow]=useState(Date.now());const [menu,setMenu]=useState(null);
   const pend=useRef({likes:0,t:null});const comboRef=useRef(null);const seenIds=useRef(null);
+  const [dbViewers,setDbViewers]=useState([]);const [conn,setConn]=useState('ok');const lastGiftId=useRef(0);const heard=useRef({});const giftRows=useRef([]);
   const isHost=row&&row.host_id===me;const isGuest=row&&row.guest_id===me;const onCam=isHost||isGuest;
   const loadRow=async(n=0)=>{const {data,error}=await sb.from('live_streams').select('*').eq('id',id).maybeSingle();
     if(!data){if(n<8)setTimeout(()=>loadRow(n+1),1500);else setErr(error?friendly(error):'Couldn’t load this live.');return}
     if(data){setRow(data);const need=[data.host_id,data.guest_id].filter(x=>x&&!people[x]);
     if(need.length){const {data:p}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').in('id',need);setPeople(x=>{const n={...x};(p||[]).forEach(q=>n[q.id]=liveUser(q));return n})}}};
-  const loadGifts=async()=>{const {data}=await sb.from('live_gift_events').select('from_id,to_id,sparks,created_at').eq('stream_id',id).limit(2000);setEvents(data||[])};
+  // gifts come from the database too, so the goal bar, top gifters and banners stay right even if the live connection drops
+  const loadGifts=async()=>{const {data}=await sb.from('live_gift_events').select('id,from_id,to_id,gift_id,qty,sparks,created_at').eq('stream_id',id).gt('id',lastGiftId.current).order('id').limit(500);
+    if(!data||!data.length)return;const first=lastGiftId.current===0;lastGiftId.current=data[data.length-1].id;giftRows.current=[...giftRows.current,...data];setEvents(giftRows.current);
+    if(first)return;data.forEach(r=>{if(r.from_id===me)return;const k=r.from_id+'|'+r.gift_id;if(heard.current[k]&&Date.now()-heard.current[k]<12000)return;
+      showGift({from:r.from_id,gift:r.gift_id,qty:r.qty,to:r.to_id});setChat(c=>[...c.slice(-40),{from:r.from_id,gift:r.gift_id,qty:r.qty,k:Math.random()}])})};
+  const ping=async(leaving)=>{await sb.rpc('live_ping',{sid:id,leaving:!!leaving});if(leaving)return;
+    const since=new Date(Date.now()-45e3).toISOString();const {data}=await sb.from('live_viewers').select('user_id').eq('stream_id',id).gte('last_seen',since);if(data)setDbViewers(data.map(x=>x.user_id))};
   const loadWallet=async()=>{const {data}=await sb.rpc('my_sparks');const w=Array.isArray(data)?data[0]:data;if(w)setWallet(w)};
   const loadScore=async()=>{const {data}=await sb.rpc('live_match_score',{sid:id});const x=Array.isArray(data)?data[0]:data;if(x)setScore({h:+x.host_score||0,g:+x.guest_score||0})};
   const who=async uid=>{if(people[uid])return people[uid];const {data}=await sb.from('profiles').select('id,name,handle,avatar_url,ring').eq('id',uid).single();if(data){const u=liveUser(data);setPeople(x=>({...x,[uid]:u}));return u}return liveUser(null)};
@@ -3516,13 +3540,14 @@ function StreamRoom({id,me,people,setPeople,onExit}){
       if(ev.chat){setChat(c=>[...c.slice(-40),{...ev.chat,k:Math.random()}]);needLv([ev.chat.from])}
       if(ev.heart)pop(ev.heart.e||'🧡');
       if(ev.like){setLikes(l=>l+(ev.like.n||1));for(let i=0;i<Math.min(4,ev.like.n||1);i++)setTimeout(()=>pop('🧡'),i*120)}
-      if(ev.gift){showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
+      if(ev.gift){heard.current[ev.gift.from+'|'+ev.gift.gift]=Date.now();showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
       if(ev.req)setReqs(r=>({...r,[ev.req.from]:Date.now()}));
       if(ev.guest)loadRow()});
-    eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
+    e.status=setConn;eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
+    ping();const pt=setInterval(()=>{ping();loadGifts();sb.from('live_stats').select('likes').eq('stream_id',id).maybeSingle().then(({data})=>data&&setLikes(l=>Math.max(l,+data.likes||0)))},4000);
     const ch=sb.channel('stream-row-'+id+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'UPDATE',schema:'public',table:'live_streams',filter:'id=eq.'+id},()=>loadRow()).subscribe();
     const lt=setInterval(()=>{const n=pend.current.likes;if(!n)return;pend.current.likes=0;sb.rpc('live_like',{sid:id,n}).then(()=>{});eng.current&&eng.current.send('like',{n})},1500);
-    return()=>{e.leave();sb.removeChannel(ch);clearInterval(lt)}},[id]);
+    return()=>{e.leave();sb.removeChannel(ch);clearInterval(lt);clearInterval(pt);ping(true)}},[id]);
   useEffect(()=>{if(!row||!eng.current)return;if(onCam&&!local)eng.current.camOn().catch(()=>setErr('Temp needs your camera and microphone to go live.'));if(!onCam&&local)eng.current.camOff()},[row&&row.host_id,row&&row.guest_id]);
   useEffect(()=>{if(!isHost)return;const t=setInterval(()=>sb.from('live_streams').update({last_seen:new Date().toISOString()}).eq('id',id),20000);return()=>clearInterval(t)},[isHost]);
   useEffect(()=>{chat.slice(-1).forEach(c=>c.from&&who(c.from))},[chat.length]);
@@ -3540,10 +3565,10 @@ function StreamRoom({id,me,people,setPeople,onExit}){
     if(error){setErr(friendly(error));c.total-=q;setCombo(null);comboRef.current=null;return}
     setWallet(w=>w?{...w,sparks:data,sent:(w.sent||0)+c.g.cost*q}:w);
     const p={gift:c.g.id,qty:q,combo:c.total,to:c.to,from:me};eng.current.send('gift',p);
-    showGift(p);setChat(x=>[...x.slice(-40),{from:me,gift:c.g.id,qty:q,k:Math.random()}]);setEvents(x=>[...x,{from_id:me,to_id:c.to,sparks:c.g.cost*q,created_at:new Date().toISOString()}])};
+    showGift(p);setChat(x=>[...x.slice(-40),{from:me,gift:c.g.id,qty:q,k:Math.random()}]);setEvents(x=>[...x,{from_id:me,to_id:c.to,sparks:c.g.cost*q,created_at:new Date().toISOString()}]);setTimeout(loadGifts,600)};
   const sendGift=(g,to)=>{
     if(wallet&&wallet.sparks<g.cost){setErr('Not enough Sparks. Claim your free daily Sparks in the Sparks tab.');return}
-    let c=comboRef.current;if(!c||c.g.id!==g.id||c.to!==to){if(c)flush();c={g,to,pending:0,total:0};comboRef.current=c}
+    to=to||(row&&row.host_id);let c=comboRef.current;if(!c||c.g.id!==g.id||c.to!==to){if(c)flush();c={g,to,pending:0,total:0};comboRef.current=c}
     c.pending++;c.total++;setWallet(w=>w?{...w,sparks:w.sparks-g.cost}:w);clearTimeout(c.ft);c.ft=setTimeout(flush,450);
     clearTimeout(c.end);c.end=setTimeout(()=>{flush();if(comboRef.current===c){comboRef.current=null;setCombo(null)}},3000);
     if(g.tier==='small'){setPanel(null);setCombo({g,to,n:c.total,k:Math.random()})}else{setCombo(null);setPanel(null)}};
@@ -3567,6 +3592,7 @@ function StreamRoom({id,me,people,setPeople,onExit}){
   const left=matchOn?Math.max(0,Math.ceil((new Date(row.match_until).getTime()-now)/1000)):0;
   const res=matchDone?(score.h===score.g?['DRAW','DRAW']:score.h>score.g?['WIN','LOSE']:['LOSE','WIN']):null;
   const name=uid=>(people[uid]||{name:'…'}).name;
+  const allViewers=[...new Set([...viewers,...dbViewers])];const watching=Math.max(0,allViewers.filter(v=>!row||v!==row.host_id).length);
   return html`<div className="gl-room" onClick=${tapLike}>
     <div className=${'gl-stage'+(row&&row.guest_id?' split':'')}>
       <div className="gl-tile">${hostStream?html`<${Vid} stream=${hostStream} mirror=${isHost&&eng.current&&eng.current.facing==='user'} muted=${isHost}/>`:html`<div className="gl-wait"><${Avatar} u=${host||liveUser(null)} size=${84} noRing=${true}/><p>${row?'Connecting…':'Joining…'}</p></div>`}
@@ -3578,7 +3604,7 @@ function StreamRoom({id,me,people,setPeople,onExit}){
     <div className="gl-shade"></div>
     <div className="gl-head">${host&&html`<${Avatar} u=${host} size=${34} noRing=${true}/><div className="gl-who"><b>${host.name}</b><span><${Icon} n="heart" s=${11} fill="currentColor"/> ${fmtK(likes)} likes</span></div>`}
       <button className="gl-top3" onClick=${e=>{e.stopPropagation();setPanel('board')}} aria-label="Top gifters">${board.slice(0,3).map(([u],i)=>html`<span key=${u} className=${'r'+i}><${Avatar} u=${people[u]||liveUser(null)} size=${26} noRing=${true}/></span>`)}</button>
-      <button className="gl-count" onClick=${e=>{e.stopPropagation();setPanel('viewers')}}><${Icon} n="eye" s=${14}/>${Math.max(0,viewers.length-1)}</button>
+      <button className="gl-count" onClick=${e=>{e.stopPropagation();setPanel('viewers')}}><${Icon} n="eye" s=${14}/>${watching}</button>
       <button className="gl-x" onClick=${end} aria-label=${isHost?'End live':'Leave'}><${Icon} n="x" s=${20}/></button></div>
     <div className="gl-sub">
       <span className="live-dot">LIVE</span>${row&&row.title&&html`<span className="gl-title">${row.title}</span>`}
@@ -3598,13 +3624,14 @@ function StreamRoom({id,me,people,setPeople,onExit}){
     ${hearts.filter(h=>h.tap).map(h=>html`<span key=${h.k} className="gl-tap" style=${{left:h.x,top:h.y,'--r':h.rot+'deg'}} aria-hidden="true">🧡</span>`)}
     ${shows.length>0&&html`<${GiftShow} key=${shows[0].k} g=${{...shows[0],name:name(shows[0].from),k:shows[0].k}} onDone=${()=>setShows(v=>v.slice(1))}/>`}
     ${err&&html`<p className="gl-err" onClick=${e=>{e.stopPropagation();setErr('')}}>${err}</p>`}
+    ${conn==='retry'&&html`<p className="gl-conn">Reconnecting…</p>`}
     ${combo&&html`<button key=${combo.k} className="gl-combo" onClick=${e=>{e.stopPropagation();sendGift(combo.g,combo.to)}} aria-label=${'Send another '+combo.g.name}>
       <svg className="cring" viewBox="0 0 80 80"><circle cx="40" cy="40" r="37" className="cr"/></svg><${GiftArt} id=${combo.g.id} size=${36}/><b>×${combo.n}</b><span>Combo</span></button>`}
     ${panel==='gifts'&&html`<${GiftPanel} wallet=${wallet} setWallet=${setWallet} targets=${targets} onSend=${sendGift} onClose=${()=>setPanel(null)}/>`}
     ${panel==='board'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Top gifters</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
       ${board.length?html`<div className="gp-list">${board.slice(0,30).map(([u,n],i)=>html`<div key=${u} className="gp-row"><em className=${'rk r'+i}>${i+1}</em><${Avatar} u=${people[u]||liveUser(null)} size=${36} noRing=${true}/><b>${name(u)}</b><${LvBadge} lv=${levels[u]}/><span><${SparkIco} s=${12}/>${fmtK(n)}</span></div>`)}</div>`:html`<p className="gp-empty">No gifts yet. Be the first.</p>`}</div>`}
-    ${panel==='viewers'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>${Math.max(0,viewers.length-1)} watching</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
-      <div className="gp-list">${viewers.filter(v=>row&&v!==row.host_id).map(v=>{if(!people[v])who(v);return html`<div key=${v} className="gp-row"><${Avatar} u=${people[v]||liveUser(null)} size=${36} noRing=${true}/><b>${name(v)}</b><${LvBadge} lv=${levels[v]}/></div>`})}</div></div>`}
+    ${panel==='viewers'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>${watching} watching</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
+      <div className="gp-list">${allViewers.filter(v=>row&&v!==row.host_id).map(v=>{if(!people[v])who(v);return html`<div key=${v} className="gp-row"><${Avatar} u=${people[v]||liveUser(null)} size=${36} noRing=${true}/><b>${name(v)}</b><${LvBadge} lv=${levels[v]}/></div>`})}</div></div>`}
     ${panel==='goal'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Live goal</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
       <${GoalForm} row=${row} onSave=${(goal,label)=>{hostUpd({goal,goal_label:label});setPanel(null)}}/></div>`}
     ${panel==='host'&&html`<div className="gp" onClick=${e=>e.stopPropagation()}><div className="gp-head"><h3>Live tools</h3><button className="gp-x" onClick=${()=>setPanel(null)} aria-label="Close"><${Icon} n="x" s=${18}/></button></div>
@@ -3612,7 +3639,7 @@ function StreamRoom({id,me,people,setPeople,onExit}){
         <button onClick=${()=>setPanel('goal')}><${SparkIco} s=${22}/><b>Goal</b><span>${row&&row.goal?fmtK(row.goal)+' Sparks':'Set a Sparks goal'}</span></button>
         <button disabled=${!row||!row.guest_id||matchOn} onClick=${startMatch}><${Icon} n="bolt" s=${22}/><b>Match</b><span>${matchOn?'In progress':row&&row.guest_id?'3 min gift battle with your guest':'Add a guest first'}</span></button>
         <button onClick=${()=>setPanel('board')}><${Icon} n="crown" s=${22}/><b>Top gifters</b><span>${board.length} so far</span></button>
-        <button onClick=${()=>setPanel('viewers')}><${Icon} n="eye" s=${22}/><b>Viewers</b><span>${Math.max(0,viewers.length-1)} watching</span></button>
+        <button onClick=${()=>setPanel('viewers')}><${Icon} n="eye" s=${22}/><b>Viewers</b><span>${watching} watching</span></button>
       </div></div>`}
     <div className="gl-bar" onClick=${e=>e.stopPropagation()}>
       <input placeholder="Add a comment…" maxLength=${150} value=${txt} onInput=${e=>{setTxt(e.target.value);setErr('')}} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Comment"/>

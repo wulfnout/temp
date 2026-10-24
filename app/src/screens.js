@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
+import { useApp, FlowBox, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
 import { PostCard, Video, RichText, useVideoTaps } from './posts';
 import { VoiceBubble, useVoiceRecorder, fmtSec } from './voice';
 import { act } from './data';
@@ -223,29 +223,29 @@ export function SearchScreen({ q: q0 }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.card, borderRadius: 15, paddingHorizontal: 16, height: 46 }}>
+        <FlowBox r={15} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.card, paddingHorizontal: 16, height: 46 }}>
           <Ionicons name="search" size={18} color={C.muted} />
           <TextInput value={q} onChangeText={setQ} placeholder="Search Temp" placeholderTextColor={C.muted} autoCapitalize="none" style={{ flex: 1, color: C.ink, fontFamily: F.bold, fontSize: 15 }} />
           {q ? <Pressable onPress={() => setQ('')} accessibilityLabel="Clear"><Ionicons name="close" size={18} color={C.muted} /></Pressable> : null}
-        </View>
+        </FlowBox>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }} keyboardShouldPersistTaps="handled">
         {!k ? <>
           <T d style={{ fontSize: 13, marginTop: 10, marginBottom: 6 }}>Hottest this week</T>
-          <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14, paddingVertical: 4 }}>
+          <FlowBox r={26} style={{ backgroundColor: C.card, paddingHorizontal: 14, paddingVertical: 4 }}>
             {board.map(({ u, d }, i) => (
               <Pressable key={u.id} onPress={() => nav.push('profile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, borderTopWidth: i ? 1 : 0, borderTopColor: C.line }}>
                 <T d style={{ width: 18, textAlign: 'center' }}>{i + 1}</T><Avatar u={u} size={40} />
                 <View style={{ flex: 1 }}><T h numberOfLines={1}>{u.name}</T>
                   <View style={{ height: 6, borderRadius: 3, marginTop: 6, width: Math.max(8, Math.min(100, ((d - 32) / 180) * 100)) + '%', backgroundColor: C.orange }} /></View>
                 <T d style={{ fontSize: 14 }}>{d}°</T></Pressable>))}
-          </View>
+          </FlowBox>
           {trending.length ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
             {trending.map(([t, n]) => <Pressable key={t} onPress={() => setQ(t)} style={{ backgroundColor: C.card, borderRadius: 15, paddingVertical: 9, paddingHorizontal: 14 }}>
               <T h>{t} <T muted style={{ fontSize: 12 }}>{n}</T></T></Pressable>)}</View> : null}
         </> : <>
-          {users.length ? <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 10 }}>
-            {users.map((u) => <UserRow key={u.id} u={u} />)}</View> : null}
+          {users.length ? <FlowBox r={26} style={{ backgroundColor: C.card, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 10 }}>
+            {users.map((u) => <UserRow key={u.id} u={u} />)}</FlowBox> : null}
           {posts.some((p) => p.reel) ? <View style={{ marginBottom: 10 }}><ReplayGrid posts={posts.filter((p) => p.reel)} /></View> : null}
           {posts.filter((p) => !p.reel).map((p) => <PostCard key={p.id} p={p} />)}
           {!users.length && !posts.length ? <Empty text={'No results for “' + q + '”'} /> : null}
@@ -284,16 +284,16 @@ export function ActivityScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Activity" back />
-      <View style={{ paddingHorizontal: 16 }}><View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 15, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></View></View>
+      <View style={{ paddingHorizontal: 16 }}><FlowBox r={15} style={{ flexDirection: 'row', backgroundColor: C.card, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></FlowBox></View>
       <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
         renderItem={({ item: n }) => { const u = s.users[n.userId] || {}; return (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, borderRadius: 20, marginBottom: 6 }}>
+          <FlowBox r={20} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, marginBottom: 6 }}>
             <Pressable onPress={() => nav.push('profile', { id: u.id })}><Avatar u={u} size={44} />
               <View style={{ position: 'absolute', right: -4, bottom: -4, width: 20, height: 20, borderRadius: 7, backgroundColor: C.orange, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name={icon[n.type] || 'notifications'} size={10} color="#fff" /></View></Pressable>
             <T style={{ flex: 1, fontSize: 14.5 }}>{n.type === 'viral' ? null : <T h style={{ fontSize: 14.5 }} onPress={() => u.id && nav.push('profile', { id: u.id })} accessibilityRole="link">{u.handle} </T>}{text(n)} <T muted style={{ fontSize: 13 }}>{ago(Date.now() - n.at)}</T></T>
             {!n.read ? <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: C.orange }} /> : null}
-          </View>); }} />
+          </FlowBox>); }} />
     </View>
   );
 }
@@ -313,10 +313,10 @@ export function DMListScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Messages" back />
       <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
-        {ids.length ? <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14 }}>
-          {ids.map((id) => { const m = s.threads[id].slice(-1)[0]; return <Row key={id} u={s.users[id]} sub={last(m) + ' · ' + ago(Date.now() - m.at)} unread={s.unread[id]} />; })}</View> : null}
+        {ids.length ? <FlowBox r={26} style={{ backgroundColor: C.card, paddingHorizontal: 14 }}>
+          {ids.map((id) => { const m = s.threads[id].slice(-1)[0]; return <Row key={id} u={s.users[id]} sub={last(m) + ' · ' + ago(Date.now() - m.at)} unread={s.unread[id]} />; })}</FlowBox> : null}
         {others.length ? <><T d style={{ fontSize: 13, marginTop: 20, marginBottom: 6 }}>Suggested</T>
-          <View style={{ backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 14 }}>{others.map((u) => <Row key={u.id} u={u} sub={'@' + u.handle} />)}</View></> : null}
+          <FlowBox r={26} style={{ backgroundColor: C.card, paddingHorizontal: 14 }}>{others.map((u) => <Row key={u.id} u={u} sub={'@' + u.handle} />)}</FlowBox></> : null}
         {!ids.length && !others.length ? <Empty text="No one to message yet" /> : null}
       </ScrollView>
     </View>
@@ -389,19 +389,19 @@ export function ThreadScreen({ id }) {
       <View style={{ paddingHorizontal: 16, paddingBottom: ins.bottom + 8, paddingTop: 6 }}>
         {pick ? <StickerPicker onPick={(e) => { setPick(false); run(() => act.dm(id, { sticker: e })); }} /> : null}
         {gif ? <GifPicker onClose={() => setGif(false)} onPick={(g) => { setGif(false); run(() => act.dm(id, { sticker: 'G|' + g.url })); }} /> : null}
-        {vr.on || vsend ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, backgroundColor: C.card, borderRadius: 15, paddingLeft: 16, padding: 4, height: 48 }}>
+        {vr.on || vsend ? <FlowBox r={15} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, backgroundColor: C.card, paddingLeft: 16, padding: 4, height: 48 }}>
           <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#ff2d2d' }} />
           <T h style={{ fontVariant: ['tabular-nums'] }}>{vsend ? 'Sending…' : fmtSec(vr.on.ms)}</T><T muted b style={{ flex: 1 }}>{vsend ? '' : 'Recording'}</T>
           {!vsend ? <><Pressable onPress={() => vr.stop(false)} accessibilityLabel="Cancel voice message" style={{ padding: 8 }}><Ionicons name="close" size={22} color={C.muted} /></Pressable>
             <Pressable onPress={() => vr.stop(true)} accessibilityLabel="Send voice message" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={17} color="#fff" /></Pressable></> : null}
-        </View> :
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, borderRadius: 15, paddingLeft: 16, padding: 4 }}>
+        </FlowBox> :
+        <FlowBox r={15} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: C.card, paddingLeft: 16, padding: 4 }}>
           <TextInput value={t} onChangeText={(v) => { setT(v); if (v) sendTyping(id); }} placeholder="Message…" placeholderTextColor={C.muted} onSubmitEditing={send} returnKeyType="send" style={{ flex: 1, color: C.ink, fontFamily: F.body, fontSize: 15, paddingVertical: 10 }} />
           <Pressable onPress={() => { setGif(!gif); setPick(false); }} accessibilityLabel="GIFs" style={{ paddingHorizontal: 6, paddingVertical: 8 }}><T h style={{ color: gif ? C.orange : C.muted, fontSize: 12 }}>GIF</T></Pressable>
           <Pressable onPress={() => setPick(!pick)} accessibilityLabel="Stickers" style={{ padding: 8 }}><Ionicons name="happy-outline" size={22} color={C.muted} /></Pressable>
           <Pressable onPress={t.trim() ? send : vr.start} accessibilityLabel={t.trim() ? 'Send' : 'Record a voice message'} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={t.trim() ? 'paper-plane' : 'mic'} size={t.trim() ? 17 : 19} color="#fff" /></Pressable>
-        </View>}
+        </FlowBox>}
       </View>
     </KeyboardAvoidingView>
   );

@@ -36,6 +36,11 @@ export function flowRadii(seed = 0) {
     out[n] = v.interpolate({ inputRange: inp, outputRange: o }); });
   return out;
 }
+// a box whose squircle corners breathe ever so slightly (same motion as the buttons), at any corner size
+export function FlowBox({ r = 15, style, children, ...rest }) {
+  const flow = React.useMemo(() => { const f = flowRadii(Math.floor(Math.random() * 100)); const o = {}; Object.keys(f).forEach((k) => { o[k] = Animated.multiply(f[k], r / 15); }); return o; }, [r]);
+  return <Animated.View {...rest} style={[style, flow]}>{children}</Animated.View>;
+}
 export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon }) {
   const { C } = useApp(); const [pressed, setPressed] = useState(false);
   const bg = kind === 'orange' ? '#ee5f1f' : kind === 'ghost' ? C.soft : C.ink;
@@ -195,7 +200,7 @@ export function Thermo({ w, isMe, stickers, onAddSticker, onRemoveSticker }) {
   const deg = tempOf(w); const frac = Math.max(0, Math.min(1, (deg - 32) / 180));
   const left = nextWeekStart() - Date.now(); const d = Math.floor(left / DAY), h = Math.floor((left % DAY) / HOUR);
   return (
-    <View style={{ backgroundColor: C.soft, borderRadius: 22, padding: 14, marginTop: 14, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+    <FlowBox r={22} style={{ backgroundColor: C.soft, padding: 14, marginTop: 14, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
       <ThermoBar frac={frac} tier={tierOf(deg)} />
       <View>
         <T b muted style={{ fontSize: 12.5 }}>This week</T>
@@ -212,7 +217,7 @@ export function Thermo({ w, isMe, stickers, onAddSticker, onRemoveSticker }) {
           style={{ width: 62, height: 62, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', borderColor: C.line, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={20} color={C.muted} /><T b muted style={{ fontSize: 11 }}>Sticker</T></Pressable> : null}
       </View>
-    </View>
+    </FlowBox>
   );
 }
 

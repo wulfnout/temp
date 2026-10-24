@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, An
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, tapAway, SegTabs, StoryOrb, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
+import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video } from './posts';
 import { Header, pickMedia, ReplayGrid } from './screens';
 import { GifPicker } from './gif';
@@ -110,7 +110,7 @@ function EditProfile({ onClose }) {
 export function SettingsScreen() {
   const { s, C, nav, run } = useApp(); const me = s.users[s.me] || {}; const st = s.priv.settings || {};
   const setSetting = (k, v) => run(() => act.settings(s.me, { ...st, [k]: v }));
-  const Group = ({ children }) => <View style={{ backgroundColor: C.card, borderRadius: 24, overflow: 'hidden', marginTop: 12 }}>{children}</View>;
+  const Group = ({ children }) => <FlowBox r={24} style={{ backgroundColor: C.card, overflow: 'hidden', marginTop: 12 }}>{children}</FlowBox>;
   const Item = ({ icon, label, val, onPress, right, warn }) => (
     <Pressable onPress={onPress} disabled={!onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 56, borderTopWidth: 1, borderTopColor: C.line, marginTop: -1 }}>
       <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}><Ionicons name={icon} size={17} color={warn ? C.orange : C.ink} /></View>
@@ -174,13 +174,13 @@ export function ShopScreen() {
     return <HeaderFx id={it.id} fallback={[C.orange, '#0a0a0a']} />;
   };
   const Card = ({ k, it, price, off }) => (
-    <View style={{ backgroundColor: C.card, borderRadius: 22, padding: 10, gap: 10, width: '48.5%' }}>
-      <View style={{ height: 92, borderRadius: 16, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Preview k={k} it={it} />
+    <FlowBox r={22} style={{ backgroundColor: C.card, padding: 10, gap: 10, width: '48.5%' }}>
+      <FlowBox r={16} style={{ height: 92, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Preview k={k} it={it} />
         {it.available_until ? <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#1a0b2e', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#ffb347', fontSize: 10.5 }}>🎃 {Math.max(0, Math.ceil((new Date(it.available_until) - Date.now()) / 864e5))}d left</T></View> : null}
-        {off ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: C.orange, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#fff', fontSize: 11 }}>-{off}%</T></View> : null}</View>
+        {off ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: C.orange, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 }}><T h style={{ color: '#fff', fontSize: 11 }}>-{off}%</T></View> : null}</FlowBox>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}><T h numberOfLines={1} style={{ flex: 1 }}>{it.name}</T>{off ? <T muted style={{ textDecorationLine: 'line-through', fontSize: 12 }}>{it.price}</T> : null}</View>
       <Action k={k} it={it} price={price} />
-    </View>);
+    </FlowBox>);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Fire Sale" back />
@@ -215,12 +215,12 @@ export function Composer({ reel: reel0, onClose }) {
     <Sheet visible onClose={onClose} full>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <Btn small kind="ghost" title="Cancel" onPress={onClose} />
-        <View style={{ flexDirection: 'row', backgroundColor: C.soft, borderRadius: 15, padding: 3 }}>
+        <FlowBox r={15} style={{ flexDirection: 'row', backgroundColor: C.soft, padding: 3 }}>
           {[[false, 'Post'], [true, 'Replay']].map(([v, l]) => <Pressable key={l} onPress={() => { setReel(v); if (v && asset && asset.type !== 'video') setAsset(null); }}
             style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 15, backgroundColor: reel === v ? C.card : 'transparent' }}><T h style={{ color: reel === v ? C.ink : C.muted, fontSize: 13 }}>{l}</T></Pressable>)}
           <Pressable onPress={() => { onClose(); setTimeout(() => nav.push('live'), 250); }} accessibilityLabel="Live Takes" style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#ff2d2d' }} /><T h style={{ color: C.muted, fontSize: 13 }}>Live</T></Pressable>
-        </View>
+        </FlowBox>
         <Btn small kind="orange" title={busy ? 'Posting…' : 'Post'} disabled={!ok || busy} onPress={post} />
       </View>
       <View style={{ flexDirection: 'row', gap: 12 }}>

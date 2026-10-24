@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, T, Btn } from './ui';
+import { useApp, FlowBox, T, Btn } from './ui';
 import { sb, F, friendly } from './lib';
 
 function Field({ label, ...p }) {
@@ -66,7 +66,7 @@ export function AuthScreen() {
           <View style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: C.orange, marginBottom: 14 }} />
         </View>
         <View>
-          {mode !== 'forgot' ? <View style={{ flexDirection: 'row', backgroundColor: C.card, borderRadius: 15, padding: 4 }}><Seg k="signup" label="Sign up" /><Seg k="signin" label="Sign in" /></View>
+          {mode !== 'forgot' ? <FlowBox r={15} style={{ flexDirection: 'row', backgroundColor: C.card, padding: 4 }}><Seg k="signup" label="Sign up" /><Seg k="signin" label="Sign in" /></FlowBox>
             : <T d style={{ fontSize: 22 }}>Reset password</T>}
           {mode === 'signup' ? <>
             <Field label="Name" value={f.name} onChangeText={up('name')} autoCapitalize="words" maxLength={40} />
@@ -80,7 +80,7 @@ export function AuthScreen() {
           </View> : null}
           {mode === 'signin' ? <Pressable onPress={() => go('forgot')} style={{ alignSelf: 'flex-end', marginTop: 10 }}><T h style={{ color: C.orange, fontSize: 14 }}>Forgot password?</T></Pressable> : null}
           {err ? <T b style={{ color: C.orange, marginTop: 12 }}>{err}</T> : null}
-          {note ? <View style={{ backgroundColor: C.card, padding: 12, borderRadius: 14, marginTop: 12 }}><T b>{note}</T></View> : null}
+          {note ? <FlowBox r={14} style={{ backgroundColor: C.card, padding: 12, marginTop: 12 }}><T b>{note}</T></FlowBox> : null}
           <Btn kind="orange" title={busy ? '…' : mode === 'signup' ? 'Create account' : mode === 'signin' ? 'Sign in' : 'Send reset link'} onPress={submit} disabled={busy} style={{ marginTop: 18, paddingVertical: 16 }} />
           {mode === 'forgot' ? <Pressable onPress={() => go('signin')} style={{ alignSelf: 'center', marginTop: 12 }}><T h style={{ color: C.orange }}>Back to sign in</T></Pressable> : null}
         </View>

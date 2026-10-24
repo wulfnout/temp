@@ -173,6 +173,167 @@ function Editor({ clip, onRetake, onClose }) {
     if (tp.i == null) { if (t) setTexts([...texts, { t, x: 0.5, y: 0.42, s: 1, r: 0, c: tp.c, st: tp.st }]); return; }
     setTexts(t ? texts.map((x, j) => (j === tp.i ? { ...x, t, c: tp.c, st: tp.st } : x)) : texts.filter((_, j) => j !== tp.i));
   };
+  async function post() {
+    if (busy) return; setBusy(true);
+    const overlay = { v: 2, filter, texts: texts.map((x) => ({ ...x, x: +x.x.toFixed(4), y: +x.y.toFixed(4), s: +x.s.toFixed(3), r: +(x.r || 0).toFixed(1) })), speed,
+      trimStart: +trim.s.toFixed(1), trimEnd: +trim.e.toFixed(1), dur: +clip.dur.toFixed(1) };
+    const isMov = /\.mov$/i.test(clip.uri);
+    const asset = { uri: clip.uri, type: 'video', mimeType: clip.mimeType || (isMov ? 'video/quicktime' : 'video/mp4'), fileName: clip.fileName || (isMov ? 'replay.mov' : 'replay.mp4') };
+    const ok = await run(() => act.post(s.me, { text: caption.trim(), asset, reel: true, overlay }), { toast: 'Replay posted' });
+    setBusy(false); if (ok) { onClose(); nav.tab('replay'); }
+  }
+  const rail = ({ icon, label, onPress, on }) => (
+    <Pressable key={label} onPress={onPress} accessibilityLabel={label} style={{ alignItems: 'center', gap: 3 }}>
+      <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: on ? '#ff5500' : 'rgba(0,0,0,.38)', alignItems: 'center', justifyContent: 'center' }}>
+        {icon === 'Aa' ? <T d style={{ color: '#fff', fontSize: 17, letterSpacing: -1 }}>Aa</T> : <Ionicons name={icon} size={22} color="#fff" />}</View>
+      <T h style={{ color: '#fff', fontSize: 11, textShadowColor: 'rgba(0,0,0,.6)', textShadowRadius: 4 }}>{label}</T>
+    </Pressable>);
+  const panel = (title, children) => (
+    <View style={{ backgroundColor: 'rgba(12,12,12,.94)', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingTop: 14, paddingHorizontal: 16, paddingBottom: ins.bottom + 14, gap: 14 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <T d style={{ color: '#fff', fontSize: 16, flex: 1 }}>{title}</T>
+        <Pressable onPress={() => { setTool(null); resume(); }} accessibilityLabel="Done" hitSlop={10} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#ff5500', alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="checkmark" size={20} color="#fff" /></Pressable>
+      </View>
+      {children}
+    </View>);
+  const tp = typing; const showChrome = !typing && !dragging;
+  return (
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <View style={{ flex: 1 }} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+        <Video uri={clip.uri} style={{ flex: 1 }} controls={false} autoPlay loop trim={{ trimStart: trim.s, trimEnd: trim.e }} rate={speed} playerRef={playerRef} />
+        <Tint filter={filter} />
+        <Pressable style={fillAbs} onPress={() => { if (tool) { setTool(null); resume(); return; } try { const p = pl(); if (p) p.playing ? p.pause() : p.play(); } catch (e) {} }} accessibilityLabel="Play or pause" />
+        {guide ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: 1.5, marginLeft: -0.75, backgroundColor: '#ff8a2b' }} /> : null}
+        {box ? texts.map((it, i) => typing && typing.i === i ? null : <DragText key={i} it={it} box={box}
+          onChange={(n, y) => { setTexts((xs) => xs.map((x, j) => (j === i ? n : x))); setGuide(n.x === 0.5); setOverTrash(y > trashY); }}
+          onEdit={() => openText(i)} onDrag={() => setDragging(true)}
+          onDrop={(y) => { setDragging(false); setGuide(false); setOverTrash(false); if (y > trashY) setTexts((xs) => xs.filter((_, j) => j !== i)); }} />) : null}
+      </View>
+
+      {showChrome ? <View style={{ position: 'absolute', top: ins.top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
+        <Pressable onPress={onRetake} accessibilityLabel="Retake" style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Ionicons name="chevron-back" size={26} color="#fff" /><T h style={{ color: '#fff' }}>Retake</T></Pressable>
+        <View style={{ flex: 1 }} />
+        <Pressable onPress={onClose} accessibilityLabel="Discard" hitSlop={10}><Ionicons name="close" size={28} color="#fff" /></Pressable>
+      </View> : null}
+
+      {showChrome && !tool ? <View style={{ position: 'absolute', right: 12, top: ins.top + 64, gap: 16 }}>
+        {rail({ icon: 'Aa', label: 'Text', onPress: () => openText(null) })}
+        {rail({ icon: 'color-filter-outline', label: 'Filters', onPress: () => setTool('filters') })}
+        {rail({ icon: 'cut-outline', label: 'Trim', onPress: () => setTool('trim') })}
+        {rail({ icon: 'speedometer-outline', label: speed === 1 ? 'Speed' : speed + 'x', on: speed !== 1, onPress: () => setTool('speed') })}
+      </View> : null}
+
+      {dragging ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: ins.bottom + 30, alignItems: 'center' }}>
+        <View style={{ width: overTrash ? 66 : 54, height: overTrash ? 66 : 54, borderRadius: 40, backgroundColor: overTrash ? '#ff2d55' : 'rgba(0,0,0,.5)', borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="trash-outline" size={overTrash ? 28 : 24} color="#fff" /></View></View> : null}
+
+      {showChrome ? <View style={{ position: 'absolute', left: 0, right: 0, bottom: tool ? 0 : kb || 0 }}>
+        {tool === 'filters' ? panel('Filters', <>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+            {Object.entries(FILTERS).map(([k, f]) => <Pressable key={k} onPress={() => setFilter(k)} accessibilityLabel={f.name} style={{ alignItems: 'center', gap: 6 }}>
+              <View style={{ width: 62, height: 80, borderRadius: 14, overflow: 'hidden', borderWidth: 2.5, borderColor: filter === k ? '#ff5500' : 'transparent', backgroundColor: '#222' }}>
+                {thumbs && thumbs[4] ? <XImage source={thumbs[4]} style={fillAbs} contentFit="cover" /> : <LinearGradient colors={['#ff8a2b', '#401a08', '#0a0a0a']} style={fillAbs} />}
+                <Tint filter={k} /></View>
+              <T h style={{ color: filter === k ? '#fff' : 'rgba(255,255,255,.6)', fontSize: 12 }}>{f.name}</T></Pressable>)}
+          </ScrollView></>) : null}
+        {tool === 'trim' ? panel('Trim', <>
+          <Timeline dur={clip.dur} start={trim.s} end={trim.e} thumbs={thumbs} onChange={(a, b) => setTrim({ s: a, e: b })}
+            onScrub={(t) => { scrubbing.current = true; seek(t); }} onScrubEnd={() => { scrubbing.current = false; setTimeout(resume, 30); }}
+            getTime={() => { try { return pl() ? pl().currentTime : null; } catch (e) { return null; } }} /></>) : null}
+        {tool === 'speed' ? panel('Speed', <>
+          <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999, padding: 4 }}>
+            {SPEEDS.map((v) => <Pressable key={v} onPress={() => setSpeed(v)} accessibilityLabel={v + 'x speed'}
+              style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: speed === v ? '#fff' : 'transparent' }}>
+              <T h style={{ color: speed === v ? '#000' : '#fff', fontSize: 14 }}>{v}x</T></Pressable>)}
+          </View></>) : null}
+        {!tool ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingTop: 10, paddingBottom: kb ? 10 : ins.bottom + 12 }}>
+          <TextInput value={caption} onChangeText={setCaption} placeholder="Caption… #hashtags" placeholderTextColor="rgba(255,255,255,.65)" maxLength={280}
+            style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, backgroundColor: 'rgba(0,0,0,.38)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.45)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 }} />
+          <Btn kind="orange" title={busy ? 'Posting…' : 'Post'} disabled={busy} onPress={post} />
+        </View> : null}
+      </View> : null}
+
+      {tp ? <View style={[fillAbs, { backgroundColor: 'rgba(0,0,0,.55)' }]}>
+        <View style={{ paddingTop: ins.top + 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Pressable onPress={() => setTyping({ ...tp, st: TEXT_STYLES[(TEXT_STYLES.indexOf(tp.st) + 1) % TEXT_STYLES.length] })} accessibilityLabel="Text style"
+            style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff',
+              backgroundColor: tp.st === 'box' ? '#fff' : tp.st === 'soft' ? 'rgba(255,255,255,.3)' : 'transparent' }}>
+            <T d style={{ color: tp.st === 'box' ? '#000' : '#fff', fontSize: 17, letterSpacing: -1 }}>A</T></Pressable>
+          <View style={{ flex: 1 }} />
+          <Pressable onPress={doneText} accessibilityLabel="Done" hitSlop={10} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#ff5500' }}>
+            <T h style={{ color: '#fff', fontSize: 15 }}>Done</T></Pressable>
+        </View>
+        <Pressable style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 }} onPress={doneText}>
+          {(() => { const W = box ? box.w : 390; const fs = W * BASE * 1.15; const st = tp.st; const bg = st === 'box' ? tp.c : st === 'soft' ? 'rgba(0,0,0,.5)' : 'transparent';
+            const col = st === 'box' ? (isLight(tp.c) ? '#0a0a0a' : '#fff') : tp.c;
+            return <TextInput value={tp.t} onChangeText={(t) => setTyping({ ...tp, t })} autoFocus multiline maxLength={120} placeholder="Type something" placeholderTextColor="rgba(255,255,255,.5)"
+              style={{ fontFamily: F.display, fontSize: fs, lineHeight: fs * 1.2, color: col, textAlign: 'center', backgroundColor: bg, borderRadius: fs * 0.3, paddingHorizontal: fs * 0.35, paddingVertical: fs * 0.1, minWidth: 60, maxWidth: W * 0.9 }} />; })()}
+        </Pressable>
+        <ScrollView horizontal keyboardShouldPersistTaps="always" showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: (kb || ins.bottom) + 12 }} contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}>
+          {TEXT_COLORS.map((c) => <Pressable key={c} onPress={() => setTyping({ ...tp, c })} accessibilityLabel={'Text color ' + c}
+            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: c, borderWidth: tp.c === c ? 3.5 : 2, borderColor: tp.c === c ? '#ff5500' : '#fff' }} />)}
+        </ScrollView>
+      </View> : null}
+    </View>
+  );
+}
+
+const MAX = 120; // longest Replay (2 min)
+const LENGTHS = [[60, '60s'], [90, '90s'], [120, '2m']];
+export function Recorder({ onClose, startMode = 'replay' }) {
+  const { C, s, run, nav } = useApp(); const ins = useSafeAreaInsets();
+  const [camPerm, askCam] = useCameraPermissions(); const [micPerm, askMic] = useMicrophonePermissions();
+  const cam = useRef(null); const [ready, setReady] = useState(false);
+  const [facing, setFacing] = useState('back'); const [torch, setTorch] = useState(false); const [countdown, setCountdown] = useState(false);
+  const [phase, setPhase] = useState('camera'); // camera | counting | recording | edit
+  const [count, setCount] = useState(3); const [elapsed, setElapsed] = useState(0); const started = useRef(0); const tick = useRef(null);
+  const [clip, setClip] = useState(null); const [filter, setFilter] = useState('none'); const [len, setLen] = useState(60); const lastTap = useRef(0);
+  const prog = useRef(new Animated.Value(0)).current;
+  const [mode, setMode] = useState(startMode); const [shot, setShot] = useState('photo'); // story: photo | video
+  const maxLen = mode === 'story' ? 15 : len;
+  const camMode = mode === 'story' && shot === 'photo' ? 'picture' : 'video';
+  async function fromGallery() {
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: mode === 'story' ? ['images', 'videos'] : ['videos'], quality: 0.85, videoMaxDuration: mode === 'story' ? 15 : MAX,
+      videoExportPreset: ImagePicker.VideoExportPreset ? ImagePicker.VideoExportPreset.H264_1280x720 : undefined });
+    if (r.canceled || !r.assets || !r.assets[0]) return;
+    const a = r.assets[0];
+    if (mode === 'story') { onClose(); setTimeout(() => nav.sheet('storyDraft', { asset: a }), 200); return; }
+    const dur = Math.max(1, Math.min(MAX, (a.duration || MAX * 1000) / 1000));
+    if (a.fileSize && a.fileSize > 49 * 1024 * 1024) { nav.toast('That video is too big (50 MB max). Pick a shorter one.'); return; }
+    setClip({ uri: a.uri, dur, mimeType: a.mimeType, fileName: a.fileName }); setPhase('edit');
+  }
+  async function snap() {
+    if (!ready || !cam.current) return;
+    try { const p = await cam.current.takePictureAsync({ quality: 0.85 }); onClose(); setTimeout(() => nav.sheet('storyDraft', { asset: { uri: p.uri, type: 'image', mimeType: 'image/jpeg', fileName: 'story.jpg' } }), 200); }
+    catch (e) { nav.toast('Couldn’t take the photo. Try again.'); }
+  }
+
+  useEffect(() => () => clearInterval(tick.current), []);
+  const permsOk = camPerm && camPerm.granted && micPerm && micPerm.granted;
+
+  async function begin() {
+    if (!ready || !cam.current) return;
+    setPhase('recording'); started.current = Date.now(); setElapsed(0); prog.setValue(0);
+    Animated.timing(prog, { toValue: 1, duration: maxLen * 1000, easing: Easing.linear, useNativeDriver: false }).start();
+    tick.current = setInterval(() => setElapsed((Date.now() - started.current) / 1000), 200);
+    try {
+      const v = await cam.current.recordAsync({ maxDuration: maxLen });
+      clearInterval(tick.current); prog.stopAnimation();
+      const dur = Math.max(1, Math.min(maxLen, (Date.now() - started.current) / 1000));
+      if (v && v.uri && mode === 'story') { const mov = /\.mov$/i.test(v.uri); onClose(); setTimeout(() => nav.sheet('storyDraft', { asset: { uri: v.uri, type: 'video', mimeType: mov ? 'video/quicktime' : 'video/mp4', fileName: mov ? 'story.mov' : 'story.mp4' } }), 200); return; }
+      if (v && v.uri) { setClip({ uri: v.uri, dur }); setPhase('edit'); } else setPhase('camera');
+    } catch (e) { clearInterval(tick.current); setPhase('camera'); nav.toast('Recording stopped. Try again.'); }
+  }
+  function shutter() {
+    if (phase === 'recording') { cam.current && cam.current.stopRecording(); return; }
+    if (phase !== 'camera') return;
+    if (camMode === 'picture') return snap();
+    if (!countdown) return begin();
+    setPhase('counting'); setCount(3); let n = 3;
+    const t = setInterval(() => { n -= 1; if (n <= 0) { clearInterval(t); begin(); } else setCount(n); }, 1000);
+  }
   // double tap anywhere on the camera to flip it (before you record — the camera can't switch mid-take)
   const camTap = () => { const now = Date.now(); if (now - lastTap.current < 300) { lastTap.current = 0; if (phase !== 'recording') setFacing((f) => (f === 'back' ? 'front' : 'back')); } else lastTap.current = now; };
 

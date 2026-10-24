@@ -1,0 +1,94 @@
+=== dig temptakes.com
+185.199.111.153
+185.199.109.153
+185.199.110.153
+185.199.108.153
+=== dig www.temptakes.com
+wulfnout.github.io.
+185.199.111.153
+185.199.108.153
+185.199.110.153
+185.199.109.153
+wulfnout.github.io.
+=== NS
+ns1106.ui-dns.biz.
+ns1093.ui-dns.de.
+ns1017.ui-dns.org.
+ns1064.ui-dns.com.
+=== http://temptakes.com/
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 459011
+Server: GitHub.com
+Content-Type: text/html; charset=utf-8
+Last-Modified: Sat, 24 Oct 2026 14:43:45 GMT
+Access-Control-Allow-Origin: *
+ETag: "6adcc421-70103"
+expires: Sat, 24 Oct 2026 14:54:06 GMT
+Cache-Control: max-age=600
+x-proxy-cache: HIT
+X-GitHub-Request-Id: AE94:2A3112:73BFA:847F6:6ADCC456
+bytes: 459011
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
+=== https://temptakes.com/
+HTTP/2 200 
+server: GitHub.com
+content-type: text/html; charset=utf-8
+x-origin-cache: HIT
+last-modified: Sat, 24 Oct 2026 14:43:45 GMT
+access-control-allow-origin: *
+etag: "6adcc421-70103"
+expires: Sat, 24 Oct 2026 14:54:06 GMT
+cache-control: max-age=600
+x-proxy-cache: HIT
+x-github-request-id: 34D8:379B23:7562F:8629E:6ADCC461
+x-github-edge-region: westus3
+bytes: 459011
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
+=== https://temptakes.com/get/
+HTTP/2 200 
+server: GitHub.com
+content-type: text/html; charset=utf-8
+last-modified: Sat, 24 Oct 2026 14:43:45 GMT
+access-control-allow-origin: *
+etag: "6adcc421-2632"
+expires: Sat, 24 Oct 2026 14:54:53 GMT
+cache-control: max-age=600
+x-proxy-cache: MISS
+x-github-request-id: E71A:382824:74106:84D97:6ADCC465
+x-github-edge-region: westus3
+accept-ranges: bytes
+bytes: 9778
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
+=== https://temptakes.com/icons/apple-touch-icon.png
+HTTP/2 200 
+server: GitHub.com
+content-type: image/png
+last-modified: Sat, 24 Oct 2026 14:43:45 GMT
+access-control-allow-origin: *
+etag: "6adcc421-dc5"
+expires: Sat, 24 Oct 2026 14:54:53 GMT
+cache-control: max-age=600
+x-proxy-cache: MISS
+x-github-request-id: 6ED8:37E7C6:753F3:86003:6ADCC465
+x-github-edge-region: westus3
+accept-ranges: bytes
+bytes: 3525
+=== https://wulfnout.github.io/temp/
+HTTP/2 301 
+server: GitHub.com
+content-type: text/html
+location: http://temptakes.com/
+x-github-request-id: 8D24:296662:724EA:83154:6ADCC465
+x-github-edge-region: westus3
+accept-ranges: bytes
+age: 0
+date: Sat, 24 Oct 2026 14:44:53 GMT
+via: 1.1 varnish
+x-served-by: cache-pao-kpao1770055-PAO
+x-cache: MISS
+bytes: 162
+Sat Oct 24 14:44:53 UTC 2026

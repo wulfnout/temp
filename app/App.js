@@ -129,7 +129,7 @@ function Root() {
     onPanResponderMove: (e, d) => edgeX.setValue(Math.max(0, d.dx)),
     onPanResponderRelease: (e, d) => {
       const W = Dimensions.get('window').width;
-      if (d.dx > W * 0.3 || d.vx > 0.6) Animated.timing(edgeX, { toValue: W, duration: 170, useNativeDriver: true }).start(() => { setStack((st) => st.slice(0, -1)); edgeX.setValue(0); });
+      if (d.dx > W * 0.3 || d.vx > 0.6) Animated.timing(edgeX, { toValue: W, duration: 170, useNativeDriver: true }).start(() => { setStack((st) => st.slice(0, -1)); requestAnimationFrame(() => edgeX.setValue(0)); }); // always bound to edgeX so the page underneath slides back to 0 (an unbound native transform stayed off-screen = blank page)
       else Animated.spring(edgeX, { toValue: 0, useNativeDriver: true }).start();
     },
     onPanResponderTerminate: () => Animated.spring(edgeX, { toValue: 0, useNativeDriver: true }).start(),
@@ -212,7 +212,7 @@ function Root() {
       <StatusBar style={dark || C.dark ? 'light' : 'dark'} />
       <View {...tapAway} style={{ flex: 1, backgroundColor: C.bg }}>
         <ClockKeeper />
-        <Animated.View {...edge.panHandlers} style={{ flex: 1, transform: [{ translateX: top ? edgeX : 0 }] }}>{screen(current)}</Animated.View>
+        <Animated.View {...edge.panHandlers} style={{ flex: 1, transform: [{ translateX: edgeX }] }}>{screen(current)}</Animated.View>
         {current.name !== 'thread' ? <Animated.View onLayout={(e) => setTabH(e.nativeEvent.layout.height)}
           style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : null}>
           <TabBar tab={tab.name} stacked={!!top} dark={dark} onTab={(n) => { setBars(false); return n === 'compose' ? nav.sheet('compose', { reel: tab.name === 'replay' }) : nav.tab(n); }} /></Animated.View> : null}

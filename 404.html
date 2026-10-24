@@ -1364,7 +1364,7 @@ const L=u=>u===myId?'me':u, R=id=>id==='me'?myId:id;
 const PALETTE=['#ff5500','#0a0a0a','#c2410c','#2b2b2b','#ff7a33','#9a3412','#1a1a1a','#ea580c'];
 const colorFor=id=>PALETTE[Math.abs(hashStr(id||'x'))%PALETTE.length];
 const posterCache={};const posterFor=seed=>posterCache[seed]||(posterCache[seed]=art(seed,540,960));
-const blobFiles={};function blobUrl(f){const u=blobUrl(f);blobFiles[u]=f;return u}
+const blobFiles={};function blobUrl(f){const u=URL.createObjectURL(f);blobFiles[u]=f;return u}
 function nextWeekStart(){const d=new Date();const day=(d.getUTCDay()+6)%7;return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-day+7)}
 function nextDayStart(){const d=new Date();return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1)}
 function friendly(e){const m=(e&&e.message)||String(e||'');

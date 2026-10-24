@@ -250,7 +250,10 @@ export function Composer({ reel: reel0, onClose }) {
 
 /* ---------------- story viewer ---------------- */
 const STORY_REACTS = ['🔥', '😂', '😮', '🧊'];
-const glass = { backgroundColor: 'rgba(20,20,20,.72)' };
+const glass = { backgroundColor: 'rgba(14,14,14,.58)', borderWidth: 1, borderColor: 'rgba(255,255,255,.14)' };
+// more emoji for the + in the story reaction tray (or type any emoji yourself)
+const MORE_EMOJI = ['❤️','😍','🥵','🥶','💀','😭','🤣','🙌','👏','👀','🫡','🤯','😤','🥹','😈','🤡','💅','🗿','🫠','😬','🤝','💯','✨','⚡','🌶️','🍿','👑','💎','🏆','🎯','🚨','🧨','☄️','🌋','🫶','🙏','😮‍💨','🤌','🐐','🔥'];
+const oneEmoji = (t) => { const v = (t || '').trim(); if (!v || v.length > 16) return null; try { const seg = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(v)]; if (seg.length !== 1) return null; } catch (e) {} let ok; try { ok = new RegExp('\\p{Extended_Pictographic}', 'u').test(v); } catch (e) { ok = !/[A-Za-z0-9\s]/.test(v) && v.length <= 8; } return ok ? v : null; };
 
 export function StoryDraft({ asset, onClose }) {
   const { C, postStory } = useApp(); const ins = useSafeAreaInsets(); const [cap, setCap] = useState(''); const layout = useRef({ s: 1, x: 0, y: 0, fill: false });
@@ -280,7 +283,7 @@ export function StoryViewer({ userId, onClose }) {
   const [burning, setBurning] = useState(null);
   const order = [...(s.stories.find((x) => x.userId === s.me) ? [s.me] : []), ...s.stories.filter((x) => x.userId !== s.me && !s.blocked[x.userId]).map((x) => x.userId)];
   const [ui, setUi] = useState(Math.max(0, order.indexOf(userId))); const [ii, setIi] = useState(0);
-  const [text, setText] = useState(''); const [picker, setPicker] = useState(false); const [panel, setPanel] = useState(false);
+  const [text, setText] = useState(''); const [picker, setPicker] = useState(false); const [panel, setPanel] = useState(false); const [more, setMore] = useState(false); const [custom, setCustom] = useState('');
   const [mine2, setMine2] = useState({}); // instant local reaction/comment feedback until the reload lands
   const prog = useRef(new Animated.Value(0)).current; const anim = useRef(null); const left = useRef(0);
   const st = s.stories.find((x) => x.userId === order[ui]); const item = st && st.items[ii];
@@ -288,7 +291,7 @@ export function StoryViewer({ userId, onClose }) {
   const prev = () => { if (ii > 0) setIi(ii - 1); else if (ui > 0) { setUi(ui - 1); setIi(0); } };
   const [hold, setHold] = useState(0); // seconds left while holding to pause
   const player = useRef(null); const drag = useRef(new Animated.Value(0)).current;
-  const paused = picker || panel || text.length > 0 || hold > 0 || !!burning;
+  const paused = picker || more || panel || text.length > 0 || hold > 0 || !!burning;
   const restart = () => { anim.current && anim.current.stop(); prog.setValue(0); if (!paused) startAnim(0);
     try { if (player.current) { player.current.currentTime = 0; player.current.play(); } } catch (e) {} };
   // hold to pause, up to 15 seconds with a countdown in the middle
@@ -327,11 +330,11 @@ export function StoryViewer({ userId, onClose }) {
   const local = mine2[item.id] || {};
   const myReact = local.react !== undefined ? local.react : item.myReact;
   const comments = [...(item.comments || []), ...(local.comments || [])].filter((c) => !s.blocked[c.userId]);
-  const reacts = item.reacts || {}; const total = STORY_REACTS.reduce((n, e) => n + (reacts[e] || 0), 0);
+  const reacts = item.reacts || {}; const total = Object.values(reacts).reduce((n, v) => n + (v || 0), 0);
   const sendComment = () => { const t = text.trim(); if (!t) return; setText(''); setPanel(true);
     setMine2({ ...mine2, [item.id]: { ...local, comments: [...(local.comments || []), { id: 'l' + Date.now(), userId: s.me, text: t, at: Date.now() }] } });
     run(() => act.storyComment(item.id, t)); };
-  const react = (e) => { setPicker(false); setMine2({ ...mine2, [item.id]: { ...local, react: myReact === e ? null : e } }); run(() => act.storyReact(item.id, e, myReact, s.me)); };
+  const react = (e) => { setPicker(false); setMore(false); setCustom(''); setMine2({ ...mine2, [item.id]: { ...local, react: myReact === e ? null : e } }); run(() => act.storyReact(item.id, e, myReact, s.me)); };
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <Animated.View style={{ flex: 1, backgroundColor: '#000', opacity: drag.interpolate({ inputRange: [0, 600], outputRange: [1, 0.3], extrapolate: 'clamp' }) }}>
@@ -362,7 +365,7 @@ export function StoryViewer({ userId, onClose }) {
         {hold ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
           <T style={{ fontFamily: F.display, fontSize: 96, color: '#000', textShadowColor: 'rgba(255,255,255,.85)', textShadowRadius: 18 }}>{hold}</T></View> : null}
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: ins.bottom + 12, gap: 8 }}>
-          {item.caption ? <T h style={{ color: '#fff', fontSize: 16, textShadowColor: 'rgba(0,0,0,.7)', textShadowRadius: 8 }}>{item.caption}</T> : null}
+          {item.caption ? <View style={[glass, { alignSelf: 'flex-start', maxWidth: '100%', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 9 }]}><T h style={{ color: '#fff', fontSize: 16, lineHeight: 21 }}>{item.caption}</T></View> : null}
           {panel ? <View style={[glass, { borderRadius: 22, padding: 12, maxHeight: 280 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
               <T h style={{ color: '#fff', flex: 1 }}>{comments.length ? comments.length + (comments.length === 1 ? ' comment' : ' comments') : 'No comments yet'}</T>
@@ -371,22 +374,36 @@ export function StoryViewer({ userId, onClose }) {
               <View key={c.id} style={{ flexDirection: 'row', gap: 8, paddingVertical: 5 }}><Avatar u={cu} size={28} />
                 <View style={{ flex: 1 }}><T style={{ color: '#fff', fontSize: 14 }}><T h style={{ color: '#fff', fontSize: 14 }}>{cu.handle} </T>{c.text}</T></View></View>); })}</ScrollView>
           </View> : null}
-          {mine && total > 0 ? <View style={{ flexDirection: 'row', gap: 12 }}>{STORY_REACTS.filter((e) => reacts[e]).map((e) => <T key={e} h style={{ color: '#fff', fontSize: 15 }}>{e} {reacts[e]}</T>)}</View> : null}
-          {picker ? <View style={[glass, { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, borderRadius: 15, padding: 6 }]}>
-            {STORY_REACTS.map((e) => <Pressable key={e} onPress={() => react(e)} accessibilityLabel={'React ' + e}
-              style={{ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: myReact === e ? 'rgba(255,255,255,.25)' : 'transparent' }}><T style={{ fontSize: 30 }}>{e}</T></Pressable>)}
-          </View> : null}
+          {mine && total > 0 ? <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>{Object.entries(reacts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([e, n]) => <T key={e} h style={{ color: '#fff', fontSize: 15 }}>{e} {n}</T>)}</View> : null}
+          {more ? <FlowBox r={22} style={[glass, { padding: 12, gap: 10 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TextInput value={custom} onChangeText={setCustom} placeholder="Type any emoji" placeholderTextColor="rgba(255,255,255,.6)" maxLength={16} autoFocus
+                onSubmitEditing={() => { const e = oneEmoji(custom); if (e) react(e); }} returnKeyType="done"
+                style={{ flex: 1, height: 44, borderRadius: 14, paddingHorizontal: 14, backgroundColor: 'rgba(255,255,255,.1)', color: '#fff', fontSize: 20 }} />
+              <Pressable disabled={!oneEmoji(custom)} onPress={() => react(oneEmoji(custom))} accessibilityLabel="React with this emoji"
+                style={{ height: 44, paddingHorizontal: 16, borderRadius: 14, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', opacity: oneEmoji(custom) ? 1 : 0.4 }}><T h style={{ color: C.onOrange }}>React</T></Pressable>
+            </View>
+            <ScrollView style={{ maxHeight: 170 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="always"><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+              {MORE_EMOJI.map((e) => <Pressable key={e} onPress={() => react(e)} accessibilityLabel={'React ' + e} style={{ width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: myReact === e ? 'rgba(255,255,255,.22)' : 'transparent' }}><T style={{ fontSize: 26 }}>{e}</T></Pressable>)}
+            </View></ScrollView>
+          </FlowBox> : null}
+          {picker ? <FlowBox r={20} style={[glass, { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, padding: 6 }]}>
+            {[...STORY_REACTS, ...(myReact && !STORY_REACTS.includes(myReact) ? [myReact] : [])].map((e) => <Pressable key={e} onPress={() => react(e)} accessibilityLabel={'React ' + e}
+              style={{ width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: myReact === e ? 'rgba(255,255,255,.22)' : 'transparent' }}><T style={{ fontSize: 30 }}>{e}</T></Pressable>)}
+            <Pressable onPress={() => { setPicker(false); setMore(true); }} accessibilityLabel="More emoji"
+              style={{ width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,.12)' }}><Ionicons name="add" size={26} color="#fff" /></Pressable>
+          </FlowBox> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.55)', borderRadius: 15, paddingLeft: 16, padding: 4 }}>
+            <FlowBox r={16} style={[glass, { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 6 }]}>
               <TextInput value={text} onChangeText={setText} placeholder={mine ? 'Reply to comments…' : 'Add a comment…'} placeholderTextColor="rgba(255,255,255,.7)" maxLength={300}
                 onSubmitEditing={sendComment} returnKeyType="send" style={{ flex: 1, color: '#fff', fontFamily: F.body, fontSize: 16, paddingVertical: 8 }} />
-              {text.trim() ? <Pressable onPress={sendComment} accessibilityLabel="Post comment" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color={C.onOrange} /></Pressable> : null}
-            </View>
-            <Pressable onPress={() => { setPanel(!panel); setPicker(false); }} accessibilityLabel="Comments" style={[glass, { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' }]}>
+              {text.trim() ? <Pressable onPress={sendComment} accessibilityLabel="Post comment" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="paper-plane" size={15} color={C.onOrange} /></Pressable> : null}
+            </FlowBox>
+            <Pressable onPress={() => { setPanel(!panel); setPicker(false); }} accessibilityLabel="Comments" style={[glass, { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }]}>
               <Ionicons name="chatbubble-outline" size={21} color="#fff" />
               {comments.length ? <View style={{ position: 'absolute', top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}><T h style={{ color: C.onOrange, fontSize: 11 }}>{comments.length}</T></View> : null}
             </Pressable>
-            {!mine ? <Pressable onPress={() => { setPicker(!picker); setPanel(false); }} accessibilityLabel="React" style={[glass, { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' }]}>
+            {!mine ? <Pressable onPress={() => { setPicker(!picker); setMore(false); setPanel(false); }} accessibilityLabel="React" style={[glass, { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }]}>
               {myReact ? <T style={{ fontSize: 22 }}>{myReact}</T> : <Ionicons name="heart-outline" size={22} color="#fff" />}</Pressable> : null}
           </View>
         </View>

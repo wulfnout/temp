@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, Pressable, Text, BackHandler, Animated, ActivityIndicator, AppState, PanResponder, Dimensions } from 'react-native';
+import { View, Pressable, Text, BackHandler, Animated, ActivityIndicator, AppState, PanResponder, Dimensions, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,19 +17,35 @@ import { Intro } from './src/ash';
 import { LiveScreen } from './src/live';
 import { ClockKeeper } from './src/fx';
 
+// Android: show what went wrong instead of a frozen screen
+class AndroidBoundary extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  render() {
+    if (!this.state.err || Platform.OS !== 'android') { if (this.state.err) throw this.state.err; return this.props.children; }
+    return <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', padding: 28, gap: 14 }}>
+      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>Temp hit a snag</Text>
+      <Text selectable style={{ color: 'rgba(255,255,255,.7)', textAlign: 'center' }}>{String((this.state.err && this.state.err.message) || this.state.err)}</Text>
+      <Pressable onPress={() => this.setState({ err: null })} style={{ backgroundColor: '#ff5500', borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
+    </View>;
+  }
+}
+
 export default function App() {
   const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
   const [ready, setReady] = useState(false); const [intro, setIntro] = useState(true);
   useEffect(() => { const t = setTimeout(() => setReady(true), 2500); return () => clearTimeout(t); }, []);
+  // Android: the intro always gets out of the way, even if its animation never reports finishing
+  useEffect(() => { if (Platform.OS !== 'android') return; const t = setTimeout(() => setIntro(false), 6500); return () => clearTimeout(t); }, []);
   return (
     <SafeAreaProvider>
-      {fontsLoaded || ready ? <View style={{ flex: 1 }}><Root />{intro ? <Intro onDone={() => setIntro(false)} /> : null}</View> : <View style={{ flex: 1, backgroundColor: '#000' }} />}
+      {fontsLoaded || ready ? <View style={{ flex: 1 }}>{Platform.OS === 'android' ? <AndroidBoundary><Root /></AndroidBoundary> : <Root />}{intro ? <Intro onDone={() => setIntro(false)} /> : null}</View> : <View style={{ flex: 1, backgroundColor: '#000' }} />}
     </SafeAreaProvider>
   );
 }
 
 function Root() {
-  const [session, setSession] = useState(undefined);
+  const [session, setSession] = useState(undefined); const [bootErr, setBootErr] = useState(null);
   const [s, setS] = useState(EMPTY);
   const C = useColors(s.priv.theme, (s.priv.settings || {}).theme);
   const [tab, setTab] = useState({ name: 'home', params: {} });
@@ -40,7 +56,12 @@ function Root() {
   const myId = session && session.user && session.user.id;
 
   useEffect(() => {
-    sb.auth.getSession().then(({ data }) => setSession(data.session || null));
+    if (Platform.OS === 'android') {
+      // Android safety net: never sit on the spinner — if restoring the session fails or hangs, say so and offer a retry
+      let done = false; const t = setTimeout(() => { if (!done) setBootErr('Taking too long to connect.'); }, 9000);
+      sb.auth.getSession().then(({ data }) => { done = true; clearTimeout(t); setSession(data.session || null); })
+        .catch((e) => { done = true; clearTimeout(t); setBootErr((e && e.message) || 'Couldn’t start.'); });
+    } else sb.auth.getSession().then(({ data }) => setSession(data.session || null));
     const { data } = sb.auth.onAuthStateChange((_e, ses) => setSession(ses || null));
     return () => data.subscription.unsubscribe();
   }, []);
@@ -155,7 +176,13 @@ function Root() {
   };
   const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars, ashing, ash, finishAsh, ASH_COST, typing, sendTyping };
 
-  if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
+  if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 30 }}>
+    {bootErr ? <>
+      <Text style={{ color: C.ink, fontSize: 16, textAlign: 'center' }}>{bootErr}</Text>
+      <Pressable onPress={() => { setBootErr(null); sb.auth.getSession().then(({ data }) => setSession(data.session || null)).catch((e) => setBootErr((e && e.message) || 'Couldn’t start.')); }}
+        style={{ backgroundColor: C.orange, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12 }}><Text style={{ color: '#fff', fontWeight: '800' }}>Try again</Text></Pressable>
+      <Pressable onPress={() => setSession(null)}><Text style={{ color: C.muted }}>Sign in again</Text></Pressable>
+    </> : <ActivityIndicator color={C.orange} />}</View>;
   if (!session) return <Ctx.Provider value={ctx}><StatusBar style={C.dark ? 'light' : 'dark'} /><AuthScreen /></Ctx.Provider>;
 
   const top = stack[stack.length - 1];

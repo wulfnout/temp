@@ -1,14 +1,16 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-import { AppState, useColorScheme } from 'react-native';
+import { AppState, useColorScheme, Platform } from 'react-native';
 
 // Same backend as the website, so the app and the browser share one Temp.
 export const SB_URL = 'https://izrtdycmvgqpitohdeog.supabase.co';
 export const SB_KEY = 'sb_publishable_zm6EuiQhiR7qQYVIFA2Nhg_TxpdUnSd';
 
 export const sb = createClient(SB_URL, SB_KEY, {
-  auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
+  auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false,
+    // Android: serialize auth calls so session restore can't stall on start-up (iPhone keeps its current setup)
+    ...(Platform.OS === 'android' && require('@supabase/supabase-js').processLock ? { lock: require('@supabase/supabase-js').processLock } : {}) },
 });
 AppState.addEventListener('change', (st) => {
   if (st === 'active') sb.auth.startAutoRefresh();

@@ -304,7 +304,7 @@ function TimeOrb({ label }) {
         <LinearGradient colors={['#ee5f1f', '#f39a55', '#ffe2ac', '#f7b072']} locations={[0, 0.45, 0.62, 1]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
       </Animated.View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-        <Ionicons name="flame" size={7} color="#fff" /><T h style={{ color: '#fff', fontSize: 9.5, fontVariant: ['tabular-nums'], textShadowColor: 'rgba(160,50,0,.55)', textShadowRadius: 2 }}>{label}</T></View>
+        <Ionicons name="flame" size={7} color="#fff" /><T d style={{ color: '#fff', fontSize: 8.5, letterSpacing: -0.4, textShadowColor: 'rgba(160,50,0,.55)', textShadowRadius: 2 }}>{label}</T></View>
     </View>
   );
 }

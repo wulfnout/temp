@@ -1,0 +1,119 @@
+
+added 510 packages in 26s
+› Installing 1 other package using npm
+› Using ^58.0.0 instead of ~57.0.31 for expo because this version was explicitly provided. Packages excluded from dependency validation should be listed in expo.install.exclude in package.json. Learn more: https://docs.expo.dev/more/expo-cli/#configuring-dependency-validation
+> npm install
+
+added 52 packages, removed 5 packages, changed 25 packages, and audited 558 packages in 9s
+
+52 packages are looking for funding
+  run `npm fund` for details
+
+6 high severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+› Running npx expo install under the updated expo version
+> expo install --fix
+The following packages should be updated for best compatibility with the installed expo version:
+  expo-asset@57.0.20 - expected version: ~58.0.18
+  expo-audio@57.0.5 - expected version: ~58.0.10
+  expo-camera@57.0.6 - expected version: ~58.0.12
+  expo-font@57.0.4 - expected version: ~58.0.10
+  expo-image@57.0.5 - expected version: ~58.0.17
+  expo-image-picker@57.0.20 - expected version: ~58.0.10
+  expo-linear-gradient@57.0.2 - expected version: ~58.0.3
+  expo-status-bar@57.0.1 - expected version: ~58.0.4
+  expo-updates@57.0.26 - expected version: ~58.0.18
+  expo-video@57.0.5 - expected version: ~58.0.12
+  react@19.2.3 - expected version: 19.3.0
+  react-native@0.86.3 - expected version: 0.88.0
+  react-native-safe-area-context@5.7.0 - expected version: ~5.10.1
+  react-native-webview@13.16.1 - expected version: 14.0.1
+Your project may not work correctly until you install the expected versions of the packages.
+› Installing 14 SDK 58.0.0 compatible native modules using npm
+> npm install
+
+added 11 packages, removed 42 packages, changed 51 packages, and audited 527 packages in 9s
+
+51 packages are looking for funding
+  run `npm fund` for details
+
+6 high severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+› Added config plugins: expo-asset, expo-audio, expo-font, expo-image, expo-status-bar
+Dependencies are up to date
+=== expo-doctor
+Running 20 checks on your project...
+20/20 checks passed. No issues detected!
+=== export check
+Starting Metro Bundler
+
+iOS Bundled 17148ms index.js (873 modules)
+
+› Assets (47):
+assets/sounds/n1.wav (141KB)
+assets/sounds/n2.wav (141KB)
+assets/sounds/n3.wav (141KB)
+assets/sounds/n4.wav (141KB)
+assets/sounds/tick.wav (8KB)
+assets/sounds/tock.wav (11KB)
+node_modules/@expo-google-fonts/figtree/300Light_Italic/Figtree_300Light_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/300Light/Figtree_300Light.ttf (40KB)
+node_modules/@expo-google-fonts/figtree/400Regular_Italic/Figtree_400Regular_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/400Regular/Figtree_400Regular.ttf (40KB)
+node_modules/@expo-google-fonts/figtree/500Medium_Italic/Figtree_500Medium_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/500Medium/Figtree_500Medium.ttf (40KB)
+node_modules/@expo-google-fonts/figtree/600SemiBold_Italic/Figtree_600SemiBold_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/600SemiBold/Figtree_600SemiBold.ttf (40KB)
+node_modules/@expo-google-fonts/figtree/700Bold_Italic/Figtree_700Bold_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/700Bold/Figtree_700Bold.ttf (40KB)
+node_modules/@expo-google-fonts/figtree/800ExtraBold_Italic/Figtree_800ExtraBold_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/800ExtraBold/Figtree_800ExtraBold.ttf (40KB)
+node_modules/@expo-google-fonts/figtree/900Black_Italic/Figtree_900Black_Italic.ttf (41KB)
+node_modules/@expo-google-fonts/figtree/900Black/Figtree_900Black.ttf (40KB)
+node_modules/@expo-google-fonts/unbounded/200ExtraLight/Unbounded_200ExtraLight.ttf (363KB)
+node_modules/@expo-google-fonts/unbounded/300Light/Unbounded_300Light.ttf (366KB)
+node_modules/@expo-google-fonts/unbounded/400Regular/Unbounded_400Regular.ttf (365KB)
+node_modules/@expo-google-fonts/unbounded/500Medium/Unbounded_500Medium.ttf (369KB)
+node_modules/@expo-google-fonts/unbounded/600SemiBold/Unbounded_600SemiBold.ttf (370KB)
+node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf (371KB)
+node_modules/@expo-google-fonts/unbounded/800ExtraBold/Unbounded_800ExtraBold.ttf (422KB)
+node_modules/@expo-google-fonts/unbounded/900Black/Unbounded_900Black.ttf (418KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.ttf (130KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Entypo.ttf (66KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/EvilIcons.ttf (13KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf (56KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf (166KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf (134KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf (34KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf (203KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Brands.ttf (209KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf (68KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Solid.ttf (424KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Fontisto.ttf (314KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Foundation.ttf (57KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf (390KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf (1.3MB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf (357KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Octicons.ttf (69KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/SimpleLineIcons.ttf (54KB)
+node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Zocial.ttf (26KB)
+
+› ios bundles (1):
+_expo/static/js/ios/index-9afd81cb0dd462f8f31589fdab09a4f8.hbc (3.2MB)
+
+› Files (1):
+metadata.json (3.1KB)
+
+Exported: /tmp/exp
+EXPORT OK
+17:    "expo": "^58.0.0",
+28:    "react": "19.3.0",
+29:    "react-native": "0.88.0",

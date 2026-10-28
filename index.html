@@ -845,6 +845,14 @@ img,video{max-width:100%;display:block}
 .acc-add{color:var(--orange);font-weight:700;font-size:16px;padding:14px 4px}
 .a-agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;line-height:1.4;color:var(--muted)}.a-agree input{width:20px;height:20px;flex:none;accent-color:var(--orange);margin-top:1px}.a-agree a{color:var(--orange);font-weight:700}
 .terms-frame{width:100%;height:46vh;border:0;border-radius:16px;background:var(--card)}
+.timer.kept{background:var(--orange);color:var(--on-orange)}
+.ic.rf.on{color:var(--orange)}
+.quote{display:grid;gap:6px;width:100%;text-align:left;border:1px solid var(--line);--r:18px;border-radius:var(--r);padding:10px 12px;margin-top:10px;background:var(--bg)}
+.quote .q-head{display:flex;align-items:center;gap:6px;font-size:14px;min-width:0}.quote .q-head .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quote .q-text{font-size:15px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.quote img{width:100%;max-height:220px;object-fit:cover;border-radius:12px}.quote .q-vid{display:inline-flex;align-items:center;gap:4px;font-weight:700;color:var(--muted);font-size:13px}
+.gone-q{color:var(--muted);font-size:14px}
+.rf-sheet{display:grid;gap:4px}.rf-opt{display:flex;gap:14px;align-items:center;text-align:left;padding:12px 4px}.rf-opt b{display:block;font-size:17px}.rf-ico{width:46px;height:46px;border-radius:15px;background:var(--card);display:grid;place-items:center;flex:none}
 .set-search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px;margin:4px 0 10px;color:var(--muted)}.set-search input{flex:1;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-width:0;outline:none}
 .set-list{display:grid}.set-row{display:flex;align-items:center;gap:16px;padding:16px 6px;text-align:left;width:100%;border-bottom:1px solid var(--line)}.set-row:last-child{border-bottom:0}
 .sr-ico{flex:none;width:28px;display:grid;place-items:center;color:var(--ink)}.sr-t{flex:1;min-width:0;display:grid;gap:3px}.sr-t b{font-size:16.5px;font-weight:800}.sr-t span{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1279,6 +1287,7 @@ const P={
   bag:'<path d="M5 8h14l-1 12.5H6zM9 8V6.5a3 3 0 0 1 6 0V8"/>',
   crown:'<path d="M4 17.5L3 7l5 4 4-6 4 6 5-4-1 10.5z M4 20.5h16"/>',
   smile:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5v.5M15 9.5v.5"/>',
+  reflame:'<path d="M12 21c-3.3 0-6-2.4-6-5.6 0-2.6 1.6-4.3 3-5.6.3 1.5 1.2 2.6 2.4 3 .1-3 1.4-5.4 3.6-7.3.1 2.3.9 3.8 2 5.3.6.9 1 2 1 3.2C18 18.4 15.3 21 12 21z"/><path d="M20 4v3.5h-3.5M4 20v-3.5h3.5"/>',
   spark:'<path d="M12 3c.6 4.6 2.3 6.4 7 7-4.7.6-6.4 2.4-7 7-.6-4.6-2.3-6.4-7-7 4.7-.6 6.4-2.4 7-7Z"/><path d="M19 16.5c.2 1.4.7 2 2 2.2-1.3.2-1.8.8-2 2.2-.2-1.4-.7-2-2-2.2 1.3-.2 1.8-.8 2-2.2Z"/>',
   wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/><path d="M6 6V5a2 2 0 0 1 2-2h9"/>',
   music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
@@ -1462,7 +1471,7 @@ async function loadAll(){
     media:p.media_url&&!p.reel?{type:p.media_type,url:p.media_url,gif:p.is_gif}:null,reel:p.reel,
     clip:p.reel?(p.media_url?{kind:'video',url:p.media_url}:{kind:'art',seed:p.clip_seed||1}):null,poster:p.reel&&!p.media_url?posterFor(p.clip_seed||1):null,
     createdAt:+new Date(p.created_at),status:p.status,burnEnds:p.burn_ends?+new Date(p.burn_ends):null,heat:p.heat,freeze:p.freezes,views:p.views,
-    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),overlay:p.overlay||null,reposts:p.reposts||0,myRepost:myRp.has(p.id),nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
+    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),overlay:p.overlay||null,reposts:p.reposts||0,myRepost:myRp.has(p.id),kept:!!p.kept,quoteOf:p.quote_of||null,nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
   const sids=stories.map(x=>x.id);
   const [scom,sreact]=sids.length?await Promise.all([q(sb.from('story_comments').select('*').in('story_id',sids).order('created_at').limit(3000)),q(sb.from('story_reactions').select('story_id,user_id,emoji').in('story_id',sids).limit(10000))]):[[],[]];
   const sc={},sr={},smy={};
@@ -1495,7 +1504,7 @@ async function remote(a,b){
     case 'view': await sb.rpc('add_view',{pid:a.id});return;
     case 'save':{const p=P(a.id);if(!p)return;
       if(p.saved)await ok(sb.from('saves').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('saves').insert({post_id:a.id}));return}
-    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay)row.overlay=a.overlay;
+    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay)row.overlay=a.overlay;if(a.quoteOf)row.quote_of=a.quoteOf;
       if(a.media){const url=a.media.remote?a.media.url:await upload(a.media.file);
         if(a.reel){row.media_url=url;row.media_type='video'}else{row.media_url=url;row.media_type=a.media.type;row.is_gif=!!a.media.gif}}
       else if(a.reel)row.clip_seed=Math.floor(Math.random()*9999)+1;
@@ -1626,9 +1635,9 @@ function reducer(s,a){
     case 'view': return s.viewed[a.id]?s:{...s,viewed:{...s.viewed,[a.id]:1},posts:mapPost(a.id,p=>({...p,views:(p.views||0)+1}))};
     case 'save': {const p=s.posts.find(x=>x.id===a.id);return {...s,posts:mapPost(a.id,p=>({...p,saved:!p.saved})),toast:T(p&&p.saved?'Removed from saved':'Saved')}}
     case 'post':
-      return {...s,posts:[{id:nid(),userId:'me',text:a.text,media:a.media,overlay:a.overlay||null,createdAt:s.now,status:'normal',windowEnds:null,burnEnds:null,heat:0,freeze:0,myHeat:false,myFreeze:false,saved:false,comments:[],goneAt:0,
+      return {...s,posts:[{id:nid(),userId:'me',text:a.text,media:a.media,overlay:a.overlay||null,quoteOf:a.quoteOf||null,createdAt:s.now,status:'normal',windowEnds:null,burnEnds:null,heat:0,freeze:0,myHeat:false,myFreeze:false,saved:false,comments:[],goneAt:0,
         views:0,nsfw:!!a.nsfw,flags:MOD.classify(a.text),
-        ...(a.reel?{reel:true,clip:a.media&&a.media.type==='video'?{kind:'video',url:a.media.url}:{kind:'art',seed:Math.floor(Math.random()*9999)},plays:0,media:null}:{})},...s.posts],toast:T(a.reel?'Replay posted':'Posted')};
+        ...(a.reel?{reel:true,clip:a.media&&a.media.type==='video'?{kind:'video',url:a.media.url}:{kind:'art',seed:Math.floor(Math.random()*9999)},plays:0,media:null}:{})},...s.posts],toast:T(a.reel?'Replay posted':a.quoteOf?'Quote reflamed':'Posted')};
     case 'comment': return {...s,posts:mapPost(a.id,p=>({...p,comments:[...p.comments,{id:nid(),userId:'me',text:a.text||'',sticker:a.sticker||null,at:s.now,likes:0,myLike:false,flags:MOD.classify(a.text||'')}]}))};
     case 'likeComment': return {...s,posts:mapPost(a.id,p=>({...p,comments:p.comments.map(c=>c.id===a.cid?{...c,myLike:!c.myLike,likes:c.likes+(c.myLike?-1:1)}:c)}))};
     case 'follow':{const u=s.users[a.id];return {...s,users:{...s.users,[a.id]:{...u,following:!u.following,followers:u.followers+(u.following?-1:1)}},toast:u.following?s.toast:T(`Following @${u.handle}`)}}
@@ -1670,7 +1679,7 @@ function reducer(s,a){
     case 'storyComment': return {...s,stories:s.stories.map(st=>({...st,items:st.items.map(it=>it.id===a.id?{...it,comments:[...(it.comments||[]),{id:nid(),userId:'me',text:a.text,at:s.now}]}:it)}))};
     case 'storyReact': return {...s,stories:s.stories.map(st=>({...st,items:st.items.map(it=>{if(it.id!==a.id)return it;const r={...(it.reacts||{})};
       if(it.myReact)r[it.myReact]=Math.max(0,(r[it.myReact]||1)-1);const nx=it.myReact===a.emoji?null:a.emoji;if(nx)r[nx]=(r[nx]||0)+1;return {...it,reacts:r,myReact:nx}})}))};
-    case 'repost': return {...s,posts:s.posts.map(p=>p.id===a.id?{...p,myRepost:!p.myRepost,reposts:Math.max(0,(p.reposts||0)+(p.myRepost?-1:1))}:p),toast:T(s.posts.find(p=>p.id===a.id&&p.myRepost)?'Repost removed':'Reposted to your profile')};
+    case 'repost': return {...s,posts:s.posts.map(p=>p.id===a.id?{...p,myRepost:!p.myRepost,kept:p.kept||!p.myRepost,reposts:Math.max(0,(p.reposts||0)+(p.myRepost?-1:1))}:p),toast:T(s.posts.find(p=>p.id===a.id&&p.myRepost)?'Reflame removed':'Reflamed. It lives on past its timer')};
     case 'storyDone': return {...s,storyUploading:Math.max(0,(s.storyUploading||1)-1),toast:s.toast&&s.toast.sticky?null:s.toast};
     case 'hydrate':{const keep=s.posts.filter(p=>p.tutorial);const st=a.st;
       const users={...st.users};if(s.users.temp)users.temp=s.users.temp;
@@ -1796,6 +1805,7 @@ function Sheet({onClose,children,label}){
 
 function Timer({p,now}){
   const tag=p.tour?'state-'+p.tour:null;
+  if(p.kept&&p.status!=='frozen')return html`<span className="timer kept" data-tour=${tag}><${Icon} n="reflame" s=${14} w=${2.2}/>Reflamed</span>`;
   if(p.status==='normal')return null;
   if(p.status==='frozen')return html`<span className="timer frozen" data-tour=${tag}><${Icon} n="snow" s=${14} w=${2.4}/>Frozen</span>`;
   if(p.status==='kept')return html`<span className="timer burning" data-tour=${tag}><${Icon} n="pin" s=${14} w=${2.4}/>Kept</span>`;
@@ -1910,6 +1920,28 @@ function FeedVideo({url,auto,p,s,dispatch}){
       <button onClick=${e=>{stop(e);setMuted(!muted)}} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${15}/></button></div>
     ${paused&&html`<span className="fv-big" aria-hidden="true"><${Icon} n="play" s=${26} fill="#fff"/></span>`}</div>`;
 }
+// a quoted take, shown inside the quote (tap to open it)
+function QuoteCard({id,s,open}){
+  const q=s.posts.find(x=>x.id===id);
+  if(!q||!visible(s,q))return html`<div className="quote gone-q">This take has burned away.</div>`;
+  const u=s.users[q.userId]||{};
+  return html`<button className="quote" onClick=${e=>{e.stopPropagation();q.reel?open.replay(q.id):open.post(q.id)}}>
+    <span className="q-head"><${Avatar} u=${u} size=${20} noRing=${true}/><b>${u.name}</b><span className="sub">@${u.handle} · ${ago(s.now-q.createdAt)}</span></span>
+    ${q.text&&html`<span className="q-text">${q.text}</span>`}
+    ${q.media&&q.media.type!=='video'&&html`<img src=${q.media.url} alt="" />`}${(q.reel||q.media&&q.media.type==='video')&&html`<span className="q-vid"><${Icon} n="play" s=${16}/>Video</span>`}
+  </button>`;
+}
+// Reflame: keep a take alive past its timer, or quote it with your own words
+function ReflameSheet({p,s,dispatch,onClose,open}){
+  const mine=p.userId==='me';
+  return html`<${Sheet} onClose=${onClose} label="Reflame">
+    <div className="rf-sheet">
+      ${!mine&&html`<button className="rf-opt" onClick=${()=>{dispatch({type:'repost',id:p.id});onClose()}}><span className="rf-ico"><${Icon} n="reflame" s=${24}/></span>
+        <span><b>${p.myRepost?'Undo reflame':'Reflame'}</b><span className="sub">${p.myRepost?'Take it off your profile.':'Share it to your profile and keep it alive past its timer.'}</span></span></button>`}
+      <button className="rf-opt" onClick=${()=>{onClose();setTimeout(()=>open.quote(p.id),60)}}><span className="rf-ico"><${Icon} n="comment" s=${23}/></span>
+        <span><b>Quote</b><span className="sub">Add your own take on top. The original lives on too.</span></span></button>
+    </div><//>`;
+}
 function Post({p,s,dispatch,open}){
   const u=s.users[p.userId];
   const [burst,setBurst]=useState(0);const [reveal,setReveal]=useState(false);const ref=useRef();
@@ -1919,7 +1951,7 @@ function Post({p,s,dispatch,open}){
   const heat=()=>dispatch({type:'heat',id:p.id});
   const dbl=()=>{if(!p.myHeat)heat();setBurst(Date.now())};
   const cs=p.comments.filter(c=>cvis(s,c)==='show');
-  const live=p.status==='burning'||p.status==='gone';const frozen=p.status==='frozen';
+  const live=(p.status==='burning'||p.status==='gone')&&!p.kept;const frozen=p.status==='frozen';
   const pct=live?Math.max(0,Math.min(1,(p.burnEnds-s.now)/DAY)):0;
   const top=cs.length?[...cs].sort((a,b)=>b.likes-a.likes)[0]:null;
   const counts=!s.settings.hideCounts||p.userId==='me';
@@ -1935,7 +1967,8 @@ function Post({p,s,dispatch,open}){
     </div>
     <div className="cover-wrap">
       <div className=${covered?'covered':''}>
-        ${p.text&&html`<p className=${'p-text'+(!p.media&&p.text.length<90?' big':'')}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
+        ${p.text&&html`<p className=${'p-text'+(!p.media&&!p.quoteOf&&p.text.length<90?' big':'')}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
+        ${p.quoteOf&&html`<${QuoteCard} id=${p.quoteOf} s=${s} open=${open}/>`}
         ${p.media&&html`<div className="media" onDoubleClick=${dbl}>
             ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver} p=${p} s=${s} dispatch=${dispatch}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
             ${p.media.gif&&html`<span className="gif-tag">GIF</span>`}
@@ -1949,6 +1982,7 @@ function Post({p,s,dispatch,open}){
       <button className=${'react freeze'+(p.myFreeze?' on':'')} aria-pressed=${p.myFreeze} aria-label="Freeze" data-tour=${t?'freeze-'+t:null} onClick=${()=>dispatch({type:'freeze',id:p.id})}><${Icon} n="snow" s=${19} w=${2.2}/>${counts?kfmt(p.freeze):''}</button>
       <div className="social" data-tour=${t?'social-'+t:null}>
         <button className="ic" aria-label=${frozen?'Comments are off while frozen':'Comments'} disabled=${frozen} onClick=${()=>open.comments(p.id)}><${Icon} n="comment" s=${21}/><span className="n">${cs.length||''}</span></button>
+        <button className=${'ic rf'+(p.myRepost?' on':'')} aria-label=${p.myRepost?'Undo reflame':'Reflame'} onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${21} w=${2}/><span className="n">${p.reposts||''}</span></button>
         <button className="ic" aria-label="Send" onClick=${()=>open.share(p.id)}><${Icon} n="share" s=${20}/></button>
         <button className=${'ic'+(p.saved?' on':'')} aria-pressed=${p.saved} aria-label="Save" onClick=${()=>dispatch({type:'save',id:p.id})}><${Icon} n="save" s=${20} fill=${p.saved?'currentColor':null}/></button>
         <span className="views" aria-label=${kfmt(p.views||0)+' views'}><${Icon} n="views" s=${17} w=${2.2}/>${kfmt(p.views||0)}</span>
@@ -2434,7 +2468,7 @@ function Reel({p,s,active,dispatch,open}){
       <div className="reel-rail">
         <button className=${'rail-btn'+(p.myHeat?' on':'')} onClick=${()=>dispatch({type:'heat',id:p.id})} aria-label="Heat"><span className="rb"><${Icon} n="flame" s=${24} w=${2.2} fill=${p.myHeat?'currentColor':null}/></span>${counts?p.heat:''}</button>
         <button className="rail-btn" disabled=${p.status==='frozen'} onClick=${()=>open.comments(p.id)} aria-label="Comments"><span className="rb"><${Icon} n="comment" s=${23}/></span>${p.comments.length}</button>
-        <button className=${'rail-btn rp'+(p.myRepost?' on':'')} disabled=${p.userId==='me'} onClick=${()=>dispatch({type:'repost',id:p.id})} aria-label=${p.myRepost?'Undo repost':'Repost'}><span className="rb"><${Icon} n="repost" s=${23} w=${2.2}/></span>${kfmt(p.reposts||0)}</button>
+        <button className=${'rail-btn rp'+(p.myRepost?' on':'')} onClick=${()=>open.reflame(p.id)} aria-label=${p.myRepost?'Undo reflame':'Reflame'}><span className="rb"><${Icon} n="reflame" s=${24} w=${2.1}/></span>${kfmt(p.reposts||0)}</button>
         <button className="rail-btn" onClick=${()=>open.share(p.id)} aria-label="Send"><span className="rb"><${Icon} n="share" s=${22}/></span></button>
         <button className=${'rail-btn'+(p.saved?' on':'')} onClick=${()=>dispatch({type:'save',id:p.id})} aria-label="Save"><span className="rb"><${Icon} n="save" s=${22} fill=${p.saved?'currentColor':null}/></span></button>
         ${p.clip&&p.clip.kind==='video'&&html`<button className="rail-btn" onClick=${toggleSound} aria-label=${soundOn?'Mute':'Turn sound on'}><span className="rb"><${Icon} n=${soundOn?'sound':'mute'} s=${22}/></span></button>`}
@@ -2481,16 +2515,16 @@ function Replay({s,dispatch,open,startId}){
 }
 
 /* ---------- sheets ---------- */
-function Composer({s,dispatch,onClose,startReel,open}){
-  const [reel,setReel]=useState(!!startReel);const [gifOpen,setGifOpen]=useState(false);
+function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
+  const [reel,setReel]=useState(!!startReel&&!quoteOf);const [gifOpen,setGifOpen]=useState(false);
   const [text,setText]=useState('');const [media,setMedia]=useState(null);const [nsfw,setNsfw]=useState(false);const [err,setErr]=useState(null);const fileRef=useRef();
-  const max=280,over=text.length>max,ok=(reel?(text.trim()||(media&&media.type==='video')):(text.trim()||media))&&!over;
+  const max=280,over=text.length>max,ok=(reel?(text.trim()||(media&&media.type==='video')):(text.trim()||media||quoteOf))&&!over;
   const adult=isAdult(s),plus=s.users.me.plus;
   const pick=acc=>{fileRef.current.accept=acc;fileRef.current.click()};
-  const submit=()=>{const f=MOD.classify(text);const why=MOD.rules(f,plus,adult);if(why)return setErr(why);dispatch({type:'post',text:text.trim(),media,reel,nsfw:nsfw||f.sexual});onClose()};
+  const submit=()=>{const f=MOD.classify(text);const why=MOD.rules(f,plus,adult);if(why)return setErr(why);dispatch({type:'post',text:text.trim(),media,reel,nsfw:nsfw||f.sexual,quoteOf:quoteOf||undefined});onClose()};
   return html`<${Sheet} onClose=${onClose} label="New post">
     <div className="sheet-head"><button className="btn ghost" onClick=${onClose}>Cancel</button>
-      <div className="mode" role="group" aria-label="Type"><button aria-pressed=${!reel} onClick=${()=>setReel(false)}>Post</button><button aria-pressed=${reel} onClick=${()=>{setReel(true);if(media&&media.type!=='video')setMedia(null)}}>Replay</button><button onClick=${()=>{onClose();open.live&&open.live()}}><span className="live-mini"></span>Live</button></div>
+      <div className="mode" role="group" aria-label="Type">${quoteOf?html`<button aria-pressed=${true}>Quote</button>`:html`<button aria-pressed=${!reel} onClick=${()=>setReel(false)}>Post</button>`}<button aria-pressed=${reel} onClick=${()=>{setReel(true);if(media&&media.type!=='video')setMedia(null)}}>Replay</button><button onClick=${()=>{onClose();open.live&&open.live()}}><span className="live-mini"></span>Live</button></div>
       <button className="btn orange" disabled=${!ok} onClick=${submit}>Post</button></div>
     <div className="compose"><${Avatar} u=${s.users.me} size=${42}/>
       <div style=${{minWidth:0}}>
@@ -2498,6 +2532,7 @@ function Composer({s,dispatch,onClose,startReel,open}){
         <textarea id="compose-text" placeholder=${reel?'Caption, or a take to animate':'What’s your take?'} value=${text} onChange=${e=>{setText(e.target.value);setErr(null)}}></textarea>
         ${media&&html`<div className="c-preview"><div className="media">${media.type==='video'?html`<video src=${media.url} controls playsInline muted></video>`:html`<img src=${media.url} alt="" />`}${media.gif&&html`<span className="gif-tag">GIF</span>`}</div>
           <button className="c-remove" aria-label="Remove" onClick=${()=>setMedia(null)}><${Icon} n="x" s=${16}/></button></div>`}
+        ${quoteOf&&html`<${QuoteCard} id=${quoteOf} s=${s} open=${{post:()=>{},replay:()=>{}}}/>`}
         <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
       </div></div>
     ${gifOpen&&!reel&&html`<${GifPicker} onClose=${()=>setGifOpen(false)} onPick=${g=>{setMedia({type:'image',url:g.url,gif:true,remote:true});setGifOpen(false)}}/>`}
@@ -3020,7 +3055,7 @@ function Search({s,dispatch,open,query,setQuery}){
   </div>`;
 }
 
-const GROUPS={social:['follow','heat','freeze','viral','storyReact','repost'],comments:['mention','likeComment','reply','storyComment']};
+const GROUPS={social:['follow','heat','freeze','viral','storyReact','repost','reflame','quote'],comments:['mention','likeComment','reply','storyComment']};
 function Activity({s,dispatch,open}){
   const [tab,setTab]=useState('social');
   // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
@@ -3031,7 +3066,7 @@ function Activity({s,dispatch,open}){
     open.profile(n.userId)};
   const unread=k=>s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]&&GROUPS[k].includes(n.type)).length;
   const list=s.notifs.filter(n=>!s.blocked[n.userId]&&GROUPS[tab].includes(n.type)).slice(0,60);
-  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take went viral: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reposted your post: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
+  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take went viral: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reflamed your take: ${n.text}`,reflame:`reflamed your take: ${n.text}`,quote:`quoted your take: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
   const icon={viral:'flame',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
   return html`<div>
     <div className="seg" role="group" aria-label="Activity type">
@@ -3055,7 +3090,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
   const saved=s.posts.filter(p=>p.saved&&visible(s,p));
   const following=Object.values(s.users).filter(x=>x.following).length;
   const reposted=((s.repostsBy||{})[id]||[]).map(pid=>s.posts.find(p=>p.id===pid)).filter(p=>p&&visible(s,p));
-  const tabs=[['posts','Posts'],['replays','Replays'],['reposts','Reposts'],...(isMe?[['saved','Saved']]:[])];
+  const tabs=[['posts','Posts'],['replays','Replays'],['reposts','Reflames'],...(isMe?[['saved','Saved']]:[])];
   return html`<div>
     <div className="prof">
       <div className=${'header-img'+(u.headerFx?' fx-'+u.headerFx:'')}>${u.header&&!u.headerFx&&html`<img src=${u.header} alt="" />`}${u.headerFx&&html`<${HeaderArt} id=${u.headerFx}/>`}
@@ -3086,7 +3121,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
     ${tab==='replays'&&html`${reels.length?html`<div className="grid3">${reels.map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`:html`<div className="empty">No replays yet</div>`}`}
     ${tab==='reposts'&&html`${reposted.some(p=>p.reel)&&html`<div className="grid3">${reposted.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
       <div className="feed">${reposted.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
-      ${!reposted.length&&html`<div className="empty">No reposts yet</div>`}`}
+      ${!reposted.length&&html`<div className="empty">No reflames yet</div>`}`}
     ${tab==='saved'&&html`<div className="feed">${saved.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
       ${saved.some(p=>p.reel)&&html`<div className="grid3">${saved.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
       ${!saved.length&&html`<div className="empty">Nothing saved</div>`}`}`}
@@ -4061,6 +4096,8 @@ function App(){
     replay:id=>setView({tab:'replay',reelId:id}),
     post:id=>setView({tab:'post',postId:id}),
     compose:reel=>setSheet({kind:'compose',reel}),
+    reflame:id=>setSheet({kind:'reflame',id}),
+    quote:id=>setSheet({kind:'compose',quoteOf:id}),
     record:m=>setSheet({kind:'record',mode:m||'replay'}),
     shop:()=>setView({tab:'shop'}),
     terms:()=>window.open('/terms.html','_blank'),
@@ -4164,7 +4201,8 @@ function App(){
     <input ref=${storyFile} type="file" accept="image/*,video/*" className="vh" id="story-file"
       onChange=${e=>{const f=e.target.files[0];if(f){const r=readFile(f);setStoryDraft({url:r.url,type:r.type,file:f})}e.target.value=''}}/>
     ${storyDraft&&html`<${StoryDraft} draft=${storyDraft} onClose=${()=>setStoryDraft(null)} onPost=${(cap,layout)=>{dispatch({type:'story',url:storyDraft.url,mtype:storyDraft.type,file:storyDraft.file,caption:cap,layout});setStoryDraft(null)}}/>`}
-    ${sheet&&sheet.kind==='compose'&&html`<${Composer} s=${s} dispatch=${dispatch} onClose=${close} startReel=${sheet.reel} open=${open}/>`}
+    ${sheet&&sheet.kind==='compose'&&html`<${Composer} s=${s} dispatch=${dispatch} onClose=${close} startReel=${sheet.reel} quoteOf=${sheet.quoteOf} open=${open}/>`}
+    ${sheet&&sheet.kind==='reflame'&&(()=>{const rp=s.posts.find(x=>x.id===sheet.id);return rp&&html`<${ReflameSheet} p=${rp} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`})()}
     ${sheet&&sheet.kind==='record'&&html`<${Recorder} s=${s} dispatch=${dispatch} onClose=${close} open=${open} startMode=${sheet.mode} onStory=${d=>{close();setStoryDraft(d)}}/>`}
     ${sheet&&sheet.kind==='comments'&&sheetPost&&html`<${Comments} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='share'&&sheetPost&&html`<${Share} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close}/>`}

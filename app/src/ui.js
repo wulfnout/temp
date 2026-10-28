@@ -141,14 +141,14 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
     a.start(); b.start(); return () => { a.stop(); b.stop(); };
   }, [seen]);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const sx = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }), sy = breathe.interpolate({ inputRange: [0, 1], outputRange: [1.04, 0.97] });
+  const sx = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }), sy = breathe.interpolate({ inputRange: [0, 1], outputRange: [1.01, 0.99] });
   return (
     <Pressable onPress={onPress} accessibilityLabel={label} style={{ width: size + 4, alignItems: 'center', gap: 6 }}>
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size * 0.48, borderWidth: 3.5,
-          borderColor: seen ? C.line : C.orange, borderTopColor: seen ? C.line : '#ffd27a', borderRightColor: seen ? C.line : C.orange2,
+        <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: 3.5,
+          borderColor: seen ? C.line : C.orange,
           ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null),
-          transform: [{ rotate }, { scaleX: sx }, { scaleY: sy }] }} />
+          transform: [{ scaleX: sx }, { scaleY: sy }] }} />
         <Avatar u={{ ...u, ring: null }} size={size - 12} />
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={14} color={C.onOrange} /></Pressable> : null}

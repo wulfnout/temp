@@ -69,9 +69,9 @@ img,video{max-width:100%;display:block}
 .story{display:grid;justify-items:center;gap:7px;flex:none;width:76px}
 .story > span{font-size:12px;font-weight:600;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .orb{width:74px;height:74px;padding:3px;position:relative;display:block;
-  background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),#ffd27a,var(--orange-2),var(--orange));
-  animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite;border-radius:60% 40% 55% 45%/50% 60% 40% 50%}
-.orb.seen{background:var(--line);animation:morph 11s ease-in-out infinite}
+  background:var(--orange);animation:morphsoft 7s ease-in-out infinite;border-radius:50%}
+@keyframes morphsoft{0%,100%{border-radius:52% 48% 51% 49%/49% 52% 48% 51%}33%{border-radius:48% 52% 49% 51%/52% 48% 51% 49%}66%{border-radius:51% 49% 52% 48%/48% 51% 49% 52%}}
+.orb.seen{background:var(--line);animation:morphsoft 11s ease-in-out infinite}
 .orb > .av{width:100%;height:100%;border-radius:inherit;border:3px solid var(--bg)}
 .orb .add{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:8px;background:var(--orange);color:var(--on-orange);display:grid;place-items:center;border:3px solid var(--bg)}
 .story:nth-child(2n) .orb{animation-delay:-2s,-1s}.story:nth-child(3n) .orb{animation-delay:-4s,-2s}.story:nth-child(5n) .orb{animation-duration:9s,4.5s}
@@ -830,6 +830,22 @@ img,video{max-width:100%;display:block}
 .gl-lobby{position:relative;min-height:100dvh}.gl-lobby>*:not(.gl-prev){position:relative;z-index:1}
 .gl-lobby:has(.gl-prev-c) .gl-top h2,.gl-lobby:has(.gl-prev-c) .live-h,.gl-lobby:has(.gl-prev-c) .empty{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.6)}
 .gl-lobby:has(.gl-prev-c) .gl-start{background:rgba(10,10,10,.38);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(255,255,255,.14)}
+.me-btn{flex:none;display:grid;place-items:center;border-radius:50%}
+.drw{position:fixed;inset:0;z-index:180;background:rgba(0,0,0,.45);animation:fade .2s}
+.drw-p{position:absolute;left:0;top:0;bottom:0;width:min(84vw,330px);background:var(--bg);padding:calc(18px + env(safe-area-inset-top,0px)) 26px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;overflow-y:auto;animation:drwin .26s cubic-bezier(.2,.9,.3,1);touch-action:pan-y}
+@keyframes drwin{from{transform:translateX(-100%)}}
+.drw-top{display:flex;align-items:center;gap:10px}.drw-other{opacity:.9}.drw-more{width:34px;height:34px;border-radius:50%;border:1.6px solid var(--ink);display:grid;place-items:center}
+.drw-more .orbs3{gap:3px}.drw-more .orbs3 i{width:4px;height:4px;background:var(--ink);box-shadow:none}
+.drw-name{font-size:19px;font-weight:800;margin-top:12px}.drw-handle{color:var(--muted);font-size:15px}
+.drw-f{display:flex;gap:18px;margin:12px 0 10px;color:var(--muted);font-size:15px}.drw-f b{color:var(--ink)}
+.drw-nav{display:grid}.drw-nav button{display:flex;align-items:center;gap:20px;padding:14px 0;font-size:21px;font-weight:800;text-align:left}.drw-nav.sm button{font-size:16.5px;font-weight:700;padding:12px 0}
+.drw hr{border:0;border-top:1px solid var(--line);margin:10px 0;width:100%}
+.acc-row{display:flex;align-items:center;gap:12px;width:100%;padding:10px 4px;text-align:left}.acc-row .sub{display:block}
+.acc-on{width:26px;height:26px;border-radius:50%;background:var(--orange);color:var(--on-orange);display:grid;place-items:center}
+.acc-add{color:var(--orange);font-weight:700;font-size:16px;padding:14px 4px}
+.set-search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px;margin:4px 0 10px;color:var(--muted)}.set-search input{flex:1;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-width:0;outline:none}
+.set-list{display:grid}.set-row{display:flex;align-items:center;gap:16px;padding:16px 6px;text-align:left;width:100%;border-bottom:1px solid var(--line)}.set-row:last-child{border-bottom:0}
+.sr-ico{flex:none;width:28px;display:grid;place-items:center;color:var(--ink)}.sr-t{flex:1;min-width:0;display:grid;gap:3px}.sr-t b{font-size:16.5px;font-weight:800}.sr-t span{font-size:14px;color:var(--muted);line-height:1.35}
 .fx-load{position:absolute;z-index:2;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font-weight:800;font-size:13px;padding:8px 14px;border-radius:14px;white-space:nowrap}
 .fx-rows{display:grid;gap:6px;min-width:0}.fx-lbl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin:2px 2px 0}
 .fx-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:100%;padding:2px}.fx-chips::-webkit-scrollbar{display:none}
@@ -1069,7 +1085,8 @@ html:has(.gl-prev-c){padding-top:0}body:has(.gl-prev-c)::before{display:none}
   filter:blur(.4px);opacity:0;animation:tongue var(--t) cubic-bezier(.3,.2,.6,1) infinite;animation-delay:var(--d)}
 .fire-licks i:not(.hot) b{background:radial-gradient(ellipse 50% 80% at 50% 92%,#ffb347 0%,#ff4a0a 35%,rgba(220,30,0,.85) 65%,rgba(150,10,0,0) 100%);filter:blur(.7px)}
 @keyframes tongue{0%{opacity:0;transform:translateY(25%) scale(.5,.35) skewX(0)}18%{opacity:1}55%{opacity:.95;transform:translateY(-8%) scale(1,1) skewX(var(--sw))}100%{opacity:0;transform:translateY(-42%) scale(.35,.75) skewX(calc(var(--sw)*-2))}}
-.prof-orb{width:104px;height:104px;border:4px solid var(--card);box-sizing:content-box}
+.prof-orb{width:96px;height:96px;padding:3px;border:4px solid var(--card);box-sizing:content-box;animation:none}
+.prof-orb>.av{border-width:3px!important}
 .n-name{font-weight:800;font-size:inherit;color:inherit;padding:0;display:inline}
 .sv-burn{display:inline-flex;align-items:center;gap:3px;background:rgba(0,0,0,.35);color:#fff;border-radius:15px;padding:5px 9px;font-weight:800;font-size:12px;align-self:center}
 .vt-area{position:absolute;inset:0;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -1260,6 +1277,14 @@ const P={
   bag:'<path d="M5 8h14l-1 12.5H6zM9 8V6.5a3 3 0 0 1 6 0V8"/>',
   crown:'<path d="M4 17.5L3 7l5 4 4-6 4 6 5-4-1 10.5z M4 20.5h16"/>',
   smile:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5v.5M15 9.5v.5"/>',
+  spark:'<path d="M12 3c.6 4.6 2.3 6.4 7 7-4.7.6-6.4 2.4-7 7-.6-4.6-2.3-6.4-7-7 4.7-.6 6.4-2.4 7-7Z"/><path d="M19 16.5c.2 1.4.7 2 2 2.2-1.3.2-1.8.8-2 2.2-.2-1.4-.7-2-2-2.2 1.3-.2 1.8-.8 2-2.2Z"/>',
+  wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/><path d="M6 6V5a2 2 0 0 1 2-2h9"/>',
+  music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  speed:'<path d="M12 14l4-4"/><path d="M3.5 18a9 9 0 1 1 17 0"/>',
+  expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+  pip:'<rect x="2" y="4" width="20" height="16" rx="3"/><rect x="12" y="12" width="7" height="5" rx="1"/>',
+  rocket:'<path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9-.8-.8-2.1-.8-2.9-.1Z"/><path d="M12 15l-3-3a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2Z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/>',
+  list:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/>',
   thermo:'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/>',
 };
 function Icon({n,s=22,w=1.9,fill}){
@@ -2578,6 +2603,44 @@ function EditProfile({s,dispatch,onClose}){
 
 /* ---------- settings ---------- */
 const Toggle=({on,label,onChange})=>html`<button className="switch" role="switch" aria-checked=${on} aria-label=${label} onClick=${()=>onChange(!on)}></button>`;
+/* ---------- accounts on this device (switch like X) ---------- */
+const ACC_KEY='temp-accounts';
+const accList=()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'[]')}catch(e){return []}};
+const accSave=l=>{try{localStorage.setItem(ACC_KEY,JSON.stringify(l.slice(0,5)))}catch(e){}};
+function accRemember(ses,prof){if(!ses||!ses.user)return;const l=accList();const old=l.find(a=>a.id===ses.user.id)||{};
+  accSave([{...old,id:ses.user.id,rt:ses.refresh_token,...(prof?{handle:prof.handle,name:prof.name,avatar:prof.avatar||null,color:prof.color}:{})},...l.filter(a=>a.id!==ses.user.id)])}
+async function accSwitch(a){const {error}=await sb.auth.refreshSession({refresh_token:a.rt});if(error){accSave(accList().filter(x=>x.id!==a.id));throw new Error('That account was signed out. Add it again.')}}
+
+/* ---------- side menu (tap your picture) ---------- */
+function Drawer({s,open,onClose,setView,toast}){
+  const me=s.users.me;const following=Object.values(s.users).filter(x=>x.following).length;const [acc,setAcc]=useState(false);const [x,setX]=useState(0);const g=useRef(null);
+  const go=f=>{onClose();setTimeout(f,60)};
+  const items=[['user','Profile',()=>open.profile('me')],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['flame','Fire Sale',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
+  const others=accList().filter(a=>a.id!==myId);
+  return html`<div className="drw" onClick=${onClose}>
+    <aside className="drw-p" style=${{transform:x<0?'translateX('+x+'px)':undefined}} onClick=${e=>e.stopPropagation()}
+      onPointerDown=${e=>{g.current=e.clientX}} onPointerMove=${e=>{if(g.current!=null)setX(Math.min(0,e.clientX-g.current))}} onPointerUp=${()=>{g.current=null;if(x<-90)onClose();setX(0)}}>
+      <div className="drw-top"><button onClick=${()=>go(()=>open.profile('me'))} aria-label="Your profile"><${Avatar} u=${me} size=${46}/></button>
+        <span style=${{flex:1}}></span>
+        ${others.slice(0,1).map(a=>html`<button key=${a.id} className="drw-other" aria-label=${'Switch to @'+a.handle} onClick=${async()=>{try{onClose();await accSwitch(a)}catch(e){toast(e.message)}}}><${Avatar} u=${{name:a.name,avatar:a.avatar,color:a.color||'#ff5500'}} size=${30}/></button>`)}
+        <button className="drw-more" aria-label="Accounts" onClick=${()=>setAcc(true)}><span className="orbs3"><i></i><i></i><i></i></span></button></div>
+      <b className="drw-name">${me.name||'You'}</b><span className="drw-handle">@${me.handle}</span>
+      <div className="drw-f"><span><b>${following}</b> Following</span><span><b>${kfmt(me.followers||0)}</b> Followers</span></div>
+      <nav className="drw-nav">${items.map(([ic,l,f])=>html`<button key=${l} onClick=${()=>go(f)}><${Icon} n=${ic} s=${26}/><span>${l}</span></button>`)}</nav>
+      <hr/>
+      <nav className="drw-nav sm"><button onClick=${()=>go(open.settings)}><${Icon} n="gear" s=${22}/><span>Settings and privacy</span></button>
+        <button onClick=${()=>go(()=>{open.settings();open.settingsSub&&open.settingsSub('help')})}><${Icon} n="help" s=${22}/><span>Help Center</span></button></nav>
+    </aside>
+    ${acc&&html`<div className="sheet-wrap" onClick=${e=>{e.stopPropagation();setAcc(false)}}><div className="sheet acc-sheet" role="dialog" aria-label="Accounts" onClick=${e=>e.stopPropagation()}>
+      <div className="grab"></div><h3 style=${{textAlign:'center'}}>Accounts</h3>
+      ${[{id:myId,handle:me.handle,name:me.name,avatar:me.avatar,color:me.color},...others].map(a=>html`<button key=${a.id} className="acc-row" onClick=${async()=>{if(a.id===myId){setAcc(false);return}try{onClose();await accSwitch(a)}catch(e){toast(e.message)}}}>
+        <${Avatar} u=${{name:a.name,avatar:a.avatar,color:a.color||'#ff5500'}} size=${46}/><span className="grow"><b>${a.name||a.handle}</b><span className="sub">@${a.handle}</span></span>
+        ${a.id===myId&&html`<span className="acc-on"><${Icon} n="check" s=${15} w=${3}/></span>`}</button>`)}
+      <button className="acc-add" onClick=${async()=>{onClose();await sb.auth.signOut({scope:'local'})}}>Add an account</button>
+    </div></div>`}
+  </div>`;
+}
+
 function SItem({icon,label,val,onClick,right,warn}){
   return html`<${onClick?'button':'div'} className=${'set-item'+(warn?' warn':'')} onClick=${onClick}>
     ${icon&&html`<span className="si"><${Icon} n=${icon} s=${18}/></span>`}<span className="grow">${label}</span>
@@ -2646,46 +2709,46 @@ function SettingsView({s,dispatch,sub,setSub,open,replay,logout}){
   </div>`;
   if(sub==='about')return html`<div className="set-group" style=${{padding:20,textAlign:'center'}}>
     <div className="logo" style=${{justifyContent:'center',fontSize:40}}>temp<i></i></div><p className="sub">Version 0.9 prototype</p></div>`;
-  return html`<div>
-    <div className="set-group">
-      <${SItem} icon="crown" label="Temp+" val="Coming soon" onClick=${open.plus}/>
-      <${SItem} icon="flame" label="Fire Sale" val=${s.points.toLocaleString()} onClick=${open.shop}/>
-    </div>
-    <div className="set-label">Account</div>
+  const confirmSheet=confirm&&html`<${Sheet} onClose=${()=>setConfirm(null)} label="Confirm"><h3>${confirm==='logout'?'Log out of Temp?':'Delete your account?'}</h3>
+      <div style=${{display:'flex',gap:8}}><button className="btn ghost" style=${{flex:1}} onClick=${()=>setConfirm(null)}>Cancel</button>
+      <button className="btn orange" style=${{flex:1}} onClick=${()=>logout(confirm)}>${confirm==='logout'?'Log out':'Delete'}</button></div><//>`;
+  if(sub==='account')return html`<div>
     <div className="set-group">
       <${SItem} icon="user" label="Edit profile" onClick=${open.edit}/>
       <div className="set-item"><span className="si"><${Icon} n="clock" s=${18}/></span><label htmlFor="bday" className="grow">Birthday</label>
         <input id="bday" type="date" value=${me.birth||''} onChange=${e=>dispatch({type:'profile',patch:{birth:e.target.value||null},silent:true})} style=${{border:0,background:'transparent',fontWeight:600,color:'var(--muted)',minWidth:0}}/></div>
       <${SItem} icon="save" label="Saved" onClick=${()=>open.profile('me','saved')}/>
     </div>
-    <div className="set-label">How you use Temp</div>
-    <div className="set-group">
-      <${SItem} icon="bell" label="Notifications" val=${S.notif.pause?'Paused':''} onClick=${()=>setSub('notifications')}/>
-      <${SItem} icon="clock" label="Your time" val=${S.breakMins?`${S.breakMins} min`:''} onClick=${()=>setSub('time')}/>
-    </div>
-    <div className="set-label">Who can see your content</div>
-    <div className="set-group">
-      <${SItem} icon="shield" label="Privacy" val=${S.private?'Private':'Public'} onClick=${()=>setSub('privacy')}/>
-      <${SItem} icon="block" label="Blocked" val=${String(blocked.length)} onClick=${()=>setSub('privacy')}/>
-    </div>
-    <div className="set-label">What you see</div>
-    <div className="set-group">
-      <${SItem} icon="mute" label="Muted words and content" val=${S.muted.length?String(S.muted.length):''} onClick=${()=>setSub('content')}/>
-      <${SItem} icon="moon" label="Appearance" val=${themeLabel[S.theme]} onClick=${()=>setSub('appearance')}/>
-    </div>
-    <div className="set-label">Support</div>
-    <div className="set-group">
-      <${SItem} icon="replay" label="Tutorial" onClick=${replay}/>
-      <${SItem} icon="flag" label="Report a problem" onClick=${()=>dispatch({type:'toast',msg:'Report sent'})}/>
-      <${SItem} icon="info" label="About" onClick=${()=>setSub('about')}/>
-    </div>
     <div className="set-group">
       <${SItem} icon="logout" label="Log out" onClick=${()=>setConfirm('logout')}/>
       <${SItem} icon="trash" label="Delete account" warn=${true} onClick=${()=>setConfirm('delete')}/>
-    </div>
-    ${confirm&&html`<${Sheet} onClose=${()=>setConfirm(null)} label="Confirm"><h3>${confirm==='logout'?'Log out of Temp?':'Delete your account?'}</h3>
-      <div style=${{display:'flex',gap:8}}><button className="btn ghost" style=${{flex:1}} onClick=${()=>setConfirm(null)}>Cancel</button>
-      <button className="btn orange" style=${{flex:1}} onClick=${()=>logout(confirm)}>${confirm==='logout'?'Log out':'Delete'}</button></div><//>`}
+    </div>${confirmSheet}</div>`;
+  if(sub==='help')return html`<div><div className="set-group">
+      <${SItem} icon="replay" label="Tutorial" onClick=${replay}/>
+      <${SItem} icon="info" label="User agreement" onClick=${()=>open.terms&&open.terms()}/>
+      <${SItem} icon="flag" label="Report a problem" onClick=${()=>dispatch({type:'toast',msg:'Report sent'})}/>
+      <${SItem} icon="info" label="About" onClick=${()=>setSub('about')}/></div></div>`;
+  // X-style main list: icon, bold title, one-line description, chevron, and a search box that also finds the settings inside each page
+  const rows=[
+    ['account','user','Your account','Edit your profile, birthday and saved posts, or log out and delete your account.',['edit profile','birthday','saved','log out','delete']],
+    ['earnings','spark','Creator Studio','See the Sparks you’ve earned from gifts, your history, and cash out.',['earnings','cash out','sparks','gifts','payout']],
+    ['shop','flame','Fire Sale and Temp+','Spend your '+s.points.toLocaleString()+' points on themes, rings and headers.',['points','shop','themes','rings','premium']],
+    ['notifications','bell','Notifications','Choose which heat, comments, follows and messages you hear about.',['pause','heat','freeze','comments','likes','follows','messages']],
+    ['privacy','shield','Privacy and safety','Private account, activity status, read receipts, who can message you, and blocked accounts.',['private','activity','read receipts','message','blocked','hide counts']],
+    ['content','mute','Muted and content','Muted words, sensitive content, autoplay and data saver.',['muted','words','18+','sensitive','autoplay','data saver']],
+    ['time','clock','Your time','Break reminders and quiet mode.',['break','quiet']],
+    ['appearance','moon','Display and languages','Theme and language.',['theme','dark','light','language']],
+    ['help','info','Help Center','Tutorial, user agreement, report a problem and about Temp.',['tutorial','agreement','terms','report','about']],
+  ];
+  const ql=word.trim().toLowerCase();
+  const shown=ql?rows.filter(r=>(r[2]+' '+r[3]+' '+r[4].join(' ')).toLowerCase().includes(ql)):rows;
+  const go=k=>k==='shop'?open.shop():k==='earnings'?(open.earnings?open.earnings():setSub('earnings')):setSub(k);
+  return html`<div>
+    <div className="set-search"><${Icon} n="search" s=${18}/><label htmlFor="set-q" className="vh">Search settings</label><input id="set-q" placeholder="Search settings" value=${word} onChange=${e=>setWord(e.target.value)}/>${word&&html`<button aria-label="Clear" onClick=${()=>setWord('')}><${Icon} n="x" s=${16}/></button>`}</div>
+    <div className="set-list">${shown.map(([k,ic,t,d])=>html`<button key=${k} className="set-row" onClick=${()=>go(k)}>
+      <span className="sr-ico"><${Icon} n=${ic} s=${22}/></span><span className="sr-t"><b>${t}</b><span>${d}</span></span><span className="chev"><${Icon} n="chev" s=${18}/></span></button>`)}
+      ${!shown.length&&html`<div className="empty">No settings match “${word}”</div>`}</div>
+    ${confirmSheet}
   </div>`;
 }
 
@@ -2997,7 +3060,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${20}/></button>`}
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);if(!st)return html`<${Avatar} u=${u} size=${96}/>`;const un=st.items.some(i=>!s.seen[i.id]);
-        return html`<button className=${'orb prof-orb'+(un?'':' seen')} onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${92} noRing=${true}/></button>`})()}
+        return html`<button className=${'orb prof-orb'+(un?'':' seen')} onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${96} noRing=${true}/></button>`})()}
         <div className="prof-btns">
           ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${16} w=${2.2}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
@@ -3913,14 +3976,14 @@ function App(){
 
   useEffect(()=>{
     sb.auth.getSession().then(({data})=>setSession(data.session||null));
-    const {data:sub}=sb.auth.onAuthStateChange((ev,ses)=>{if(ev==='PASSWORD_RECOVERY')setRecovery(true);setSession(ses||null)});
+    const {data:sub}=sb.auth.onAuthStateChange((ev,ses)=>{if(ev==='PASSWORD_RECOVERY')setRecovery(true);if(ses)accRemember(ses);setSession(ses||null)});
     return()=>sub.subscription.unsubscribe();
   },[]);
   const uidKey=session&&session.user.id;
   useEffect(()=>{
     if(!uidKey){myId=null;setReady(false);raw({type:'hydrate',st:emptyState()});return}
     myId=uidKey;let alive=true;
-    loadAll().then(st=>{if(!alive)return;raw({type:'hydrate',st});setReady(true);
+    loadAll().then(st=>{if(!alive)return;raw({type:'hydrate',st});setReady(true);sb.auth.getSession().then(({data})=>accRemember(data.session,st.users&&st.users.me));
       // the tour is for brand-new accounts only, and once it's been shown it's remembered on the account (not just this browser)
       const fresh=session.user.created_at&&Date.now()-new Date(session.user.created_at).getTime()<36*HOUR;
       if(fresh&&!(st.settings&&st.settings.tourDone)&&!store.get('temp-tour-'+myId)){store.set('temp-tour-'+myId,'1');dispatch({type:'set',key:'tourDone',value:true});setTimeout(()=>startTourRef.current&&startTourRef.current(),600)}
@@ -3956,9 +4019,11 @@ function App(){
   function endTour(){setTour(null);setTourIds({});raw({type:'tourPosts',on:false});scrollTo({top:0,behavior:'smooth'})}
   async function logout(kind){
     try{if(kind==='delete'){const {error}=await sb.rpc('delete_me');if(error)throw error}}catch(e){raw({type:'toast',msg:friendly(e)});return}
-    await sb.auth.signOut();setView({tab:'home'});setSetSub(null);setTour(null);
+    const rest=accList().filter(a=>a.id!==myId);accSave(rest);setView({tab:'home'});setSetSub(null);setTour(null);
+    await sb.auth.signOut({scope:'local'});if(rest[0])accSwitch(rest[0]).catch(()=>{});
   }
 
+  const [drawer,setDrawer]=useState(false);
   const lastTab=useRef({tab:'home'});
   useEffect(()=>{if(view.tab!=='replay')lastTab.current=view},[view]);
   const open={
@@ -3978,6 +4043,9 @@ function App(){
     compose:reel=>setSheet({kind:'compose',reel}),
     record:m=>setSheet({kind:'record',mode:m||'replay'}),
     shop:()=>setView({tab:'shop'}),
+    earnings:()=>{setSetSub('earnings');setView({tab:'settings'})},
+    settingsSub:k=>setSetSub(k),
+    drawer:()=>setDrawer(true),
     plus:()=>setView({tab:'plus'}),
   };
   const guard=fn=>(...a)=>{if(tour!==null)return;fn(...a)};
@@ -4004,6 +4072,7 @@ function App(){
   if(view.tab==='home'){
     body=html`<${Home} s=${s} dispatch=${dispatch} open=${openSafe} tourIds=${tourIds} addStory=${addStory}/>`;
     top=html`<div className="top"><div className="top-row">
+        <button className="me-btn" aria-label="Open menu" onClick=${guard(()=>setDrawer(true))}><${Avatar} u=${s.users.me} size=${34} noRing=${true}/></button>
         <h1 className="logo"><button className="logo-btn" aria-label="Temp home — back to the top" onClick=${()=>{setView({tab:'home'});scrollTo({top:0,behavior:'smooth'})}}>temp<i></i></button></h1>
         <div className="top-actions">
           <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${Icon} n="heart"/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
@@ -4026,7 +4095,7 @@ function App(){
       <button style=${{display:'flex',alignItems:'center',gap:10,minWidth:0,textAlign:'left'}} onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${36} online=${s.settings.activity&&u.online}/>
         <span style=${{minWidth:0}}><span className="top-title" style=${{display:'block',fontSize:16}}>${u.name}</span><span className="sub">${s.typing[u.id]?'typing…':s.settings.activity&&u.online?'Active now':'@'+u.handle}</span></span></button></div></div>`;
   } else if(view.tab==='settings'){
-    const titles={privacy:'Privacy',notifications:'Notifications',content:'Muted and content',time:'Your time',appearance:'Appearance',about:'About'};
+    const titles={account:'Your account',help:'Help Center',earnings:'Creator Studio',privacy:'Privacy and safety',notifications:'Notifications',content:'Muted and content',time:'Your time',appearance:'Display and languages',about:'About'};
     body=html`<${SettingsView} s=${s} dispatch=${dispatch} sub=${setSub} setSub=${setSetSub} open=${open} replay=${startTour} logout=${logout}/>`;
     top=html`<div className="top"><div className="top-row">${backBtn(()=>setSub?setSetSub(null):setView({tab:'me'}))}<span className="top-title">${setSub?titles[setSub]:'Settings'}</span></div></div>`;
   } else if(view.tab==='shop'||view.tab==='plus'){
@@ -4051,6 +4120,7 @@ function App(){
     <${BarsOnScroll} on=${view.tab==='home'}/>
     ${top}
     ${body}
+    ${drawer&&html`<${Drawer} s=${s} open=${open} setView=${setView} onClose=${()=>setDrawer(false)} toast=${m=>raw({type:'toast',msg:m})}/>`}
 
     ${view.tab==='home'&&html`<button className=${'gl-peek'+(peek?' show':'')} onClick=${()=>{setPeek(false);setSide(true)}} aria-label="Open Go Live"><b>GO LIVE</b></button>`}
     <div className=${'gl-side'+(side?' open':'')} aria-hidden=${!side} onTouchStart=${e=>{const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${side&&html`<${GoLivePage} key=${sideWatch||'lobby'} me=${myId} startWatch=${sideWatch} onClose=${()=>{setSide(false);setSideWatch(null)}}/>`}</div>

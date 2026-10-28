@@ -887,7 +887,7 @@ img,video{max-width:100%;display:block}
 .earn-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.earn-stats span{display:grid;font-size:12.5px;color:var(--muted)}.earn-stats b{font-size:16px;color:var(--ink)}
 .earn-methods{display:flex;gap:6px;flex-wrap:wrap}.earn-methods button{padding:8px 14px;border-radius:13px;background:var(--bg);font-weight:700}.earn-methods button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .earn-in{border:0;background:var(--bg);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;color:var(--ink)}
-.earn-plus{color:var(--orange)}.earn-st{font-size:12.5px;font-weight:800;padding:4px 9px;border-radius:9px;background:var(--bg)}.earn-st.paid{background:var(--orange);color:var(--on-orange)}
+.earn-plus{color:var(--orange)}.earn-goal{height:10px;border-radius:6px;background:var(--bg);margin-top:14px;overflow:hidden}.earn-goal i{display:block;height:100%;border-radius:6px;background:var(--orange)}.earn-link{margin-top:10px;font-weight:700;color:var(--muted);font-size:14px}.earn-st{font-size:12.5px;font-weight:800;padding:4px 9px;border-radius:9px;background:var(--bg)}.earn-st.paid{background:var(--orange);color:var(--on-orange)}
 .nav.nav-off{display:none}
 .pp{padding-bottom:90px}.pp-media{margin:0 -16px 12px;background:#000}.pp-head{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
 .pp-text{font-size:21px;line-height:1.38;margin:4px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere}.pp-img{margin-bottom:10px}
@@ -984,6 +984,14 @@ html.blackout .lifebar span.orb>b{color:var(--on-orange)}
 .gl-bar input{height:48px;box-sizing:border-box;background:rgba(14,14,14,.5)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16)!important;--r:16px;border-radius:var(--r)!important}
 .gl-bar button{width:48px!important;height:48px!important;--r:16px;border-radius:var(--r)!important;background:rgba(14,14,14,.5)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16)}
 .gl-bar .gl-giftbtn{background:linear-gradient(135deg,#ff2d55,#ff8a2b)!important;border:0}
+/* TikTok-style bottom bar: a long pill to chat in, everything else tucked into one button that opens a column */
+.gl-bar .gl-type input{border-radius:999px!important;--r:999px;animation:none;padding-left:18px}
+.gl-bar .gl-more{transition:transform .2s}.gl-bar .gl-more svg{transform:rotate(90deg);transition:transform .25s}.gl-bar .gl-more.on svg{transform:rotate(0deg)}.gl-bar .gl-more.on{background:rgba(255,255,255,.9)!important;color:#0a0a0a}
+.gl-tools{position:absolute;right:0;bottom:58px;display:flex;flex-direction:column-reverse;gap:10px}
+.gl-tools>button{animation:toolin .26s cubic-bezier(.2,1.4,.4,1) both}
+.gl-tools>button:nth-child(2){animation-delay:.03s}.gl-tools>button:nth-child(3){animation-delay:.06s}.gl-tools>button:nth-child(4){animation-delay:.09s}.gl-tools>button:nth-child(5){animation-delay:.12s}
+@keyframes toolin{from{opacity:0;transform:translateY(24px) scale(.6)}}
+
 .gl-chat p{background:rgba(14,14,14,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);--r:12px;border-radius:var(--r);padding:5px 10px;justify-self:start;max-width:100%;box-sizing:border-box;text-shadow:none}
 /* hidden left page on home */
 .gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
@@ -2848,16 +2856,19 @@ function Drawer({s,open,onClose,setView,toast,at}){
 
 /* ---------- Creator Studio: Sparks you earned from gifts, and cash out ---------- */
 const money=c=>'$'+(Math.max(0,+c||0)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-const PAYOUT=[['paypal','PayPal','PayPal email'],['cashapp','Cash App','$Cashtag'],['venmo','Venmo','@username'],['bank','Bank','Name, bank, routing and account']];
+const PAYOUT=[['paypal','PayPal','PayPal email'],['cashapp','Cash App','$Cashtag'],['venmo','Venmo','@username'],['zelle','Zelle','Zelle email or phone'],['bank','Bank','Bank']];
 function Earnings({s,toast}){
-  const [d,setD]=useState(null);const [err,setErr]=useState('');const [form,setForm]=useState(false);
-  const [m,setM]=useState('paypal');const [h,setH]=useState('');const [amt,setAmt]=useState('');const [busy,setBusy]=useState(false);const [msg,setMsg]=useState('');
+  const [d,setD]=useState(null);const [err,setErr]=useState('');const [edit,setEdit]=useState(false);const [pick,setPick]=useState(false);
+  const [m,setM]=useState('paypal');const [h,setH]=useState('');const [nm,setNm]=useState('');const [amt,setAmt]=useState('');const [busy,setBusy]=useState(false);const [msg,setMsg]=useState('');
   const load=async()=>{const {data,error}=await sb.rpc('my_earnings');if(error){setErr(/function|schema cache|does not exist/i.test(error.message)?'Creator Studio is being set up. Check back soon.':friendly(error));return}setD(data)};
   useEffect(()=>{load()},[]);
-  const submit=async()=>{setMsg('');const cents=Math.round(parseFloat(String(amt).replace(/[^0-9.]/g,''))*100);
-    if(!(cents>=1000))return setMsg('The smallest cash out is $10.');if(d&&cents>d.balance)return setMsg('That’s more than your balance.');
-    setBusy(true);const {data,error}=await sb.rpc('request_cashout',{method:m,handle:h,amount_cents:cents});setBusy(false);
-    if(error)return setMsg(friendly(error));setD(data);setForm(false);setAmt('');toast('Cash out requested. You’ll be paid within 30 days.')};
+  const startEdit=()=>{const p=d&&d.payout;setM(p?p.method:'paypal');setH(p?p.handle:'');setNm(p?p.legal_name:'');setMsg('');setEdit(true)};
+  const save=async()=>{setMsg('');setBusy(true);const {data,error}=await sb.rpc('set_payout_details',{method:m,handle:h,legal_name:nm});setBusy(false);
+    if(error)return setMsg(friendly(error));setD(data);setEdit(false);toast('Payout details saved')};
+  const cash=async all=>{setMsg('');let cents=null;
+    if(!all){cents=Math.round(parseFloat(String(amt).replace(/[^0-9.]/g,''))*100);if(!(cents>=1000))return setMsg('The smallest cash out is $10.');if(cents>d.balance)return setMsg('That’s more than your balance.')}
+    setBusy(true);const {data,error}=await sb.rpc('request_cashout',{amount_cents:cents});setBusy(false);
+    if(error)return setMsg(friendly(error));setD(data);setPick(false);setAmt('');toast('Cashed out! It’s on its way to you.')};
   if(err)return html`<div className="empty">${err}</div>`;
   if(!d)return html`<div className="empty">Loading…</div>`;
   const bal=Math.round(+d.balance),gname=id=>(GIFTS_LOCAL.find(g=>g.id===id)||{}).name||'Gift';
@@ -2865,17 +2876,28 @@ function Earnings({s,toast}){
     <div className="earn-hero"><span className="sub">Your balance</span><b>${money(bal)}</b>
       <div className="earn-stats"><span><b>${(+d.sparks||0).toLocaleString()}</b>Sparks received</span><span><b>${money(d.lifetime)}</b>Earned all time</span><span><b>${money(d.paid)}</b>Paid out</span></div>
       ${d.pending>0&&html`<p className="sub" style=${{margin:'10px 0 0'}}>${money(d.pending)} on its way to you.</p>`}
-      <button className="btn orange wide" style=${{marginTop:14}} disabled=${bal<1000} onClick=${()=>{setForm(true);setAmt((bal/100).toFixed(2))}}>${bal<1000?'Cash out at '+money(1000):'Cash out'}</button></div>
-    ${form&&html`<div className="set-group" style=${{padding:16,display:'grid',gap:10}}>
-      ${!d.adult&&html`<p className="a-err">You need to be 18 or older to cash out. Check your birthday in Settings → Your account.</p>`}
-      <b>Send it to</b>
-      <div className="earn-methods">${PAYOUT.map(([k,l])=>html`<button key=${k} aria-pressed=${m===k} onClick=${()=>setM(k)}>${l}</button>`)}</div>
-      <input className="earn-in" placeholder=${PAYOUT.find(x=>x[0]===m)[2]} value=${h} onChange=${e=>setH(e.target.value)} maxLength=${120}/>
-      <input className="earn-in" inputMode="decimal" placeholder="Amount" value=${amt} onChange=${e=>setAmt(e.target.value)}/>
+      ${bal<1000?html`<div className="earn-goal"><i style=${{width:Math.max(2,bal/10)+'%'}}></i></div><p className="sub" style=${{margin:'8px 0 0'}}>${money(1000-Math.max(0,bal))} to go. You can cash out the moment you hit ${money(1000)}, any time, as often as you want.</p>`
+        :html`<button className="btn orange wide" style=${{marginTop:14}} disabled=${busy||!d.adult||!d.payout} onClick=${()=>cash(true)}>${busy?'One sec…':'Cash out '+money(bal)+' now'}</button>
+          ${d.payout&&d.adult&&html`<button className="earn-link" onClick=${()=>{setPick(!pick);setAmt((bal/100).toFixed(2))}}>Cash out a different amount</button>`}`}
+      ${pick&&bal>=1000&&html`<div style=${{display:'flex',gap:8,marginTop:10}}><input className="earn-in" style=${{flex:1,minWidth:0}} inputMode="decimal" placeholder="Amount" value=${amt} onInput=${e=>setAmt(e.target.value)} aria-label="Amount"/><button className="btn orange" disabled=${busy} onClick=${()=>cash(false)}>Cash out</button></div>`}
+      ${!d.adult&&html`<p className="a-err" style=${{marginTop:10}}>You need to be 18 or older to cash out. Check your birthday in Settings → Your account.</p>`}
+      ${bal>=1000&&d.adult&&!d.payout&&html`<p className="sub" style=${{margin:'10px 0 0'}}>Add where to send your money below, then cash out.</p>`}
+      ${msg&&!edit&&html`<p className="a-err" style=${{marginTop:10}}>${msg}</p>`}</div>
+    <div className="set-label">Payout details</div>
+    ${!edit?html`<div className="set-group"><button className="set-item" onClick=${startEdit}><span className="si"><${Icon} n="wallet" s=${18}/></span>
+        ${d.payout?html`<span className="grow"><b>${(PAYOUT.find(x=>x[0]===d.payout.method)||[0,d.payout.method])[1]}</b> · ${d.payout.handle}<span className="sub" style=${{display:'block'}}>${d.payout.legal_name}</span></span><span className="val">Edit</span>`
+          :html`<span className="grow"><b>Add payout details</b><span className="sub" style=${{display:'block'}}>PayPal, Cash App, Venmo or Zelle</span></span>`}
+        <span className="chev"><${Icon} n="chev" s=${18}/></span></button></div>`
+    :html`<div className="set-group" style=${{padding:16,display:'grid',gap:10}}>
+      <b>Send my money to</b>
+      <div className="earn-methods">${PAYOUT.filter(x=>x[0]!=='bank').map(([k,l])=>html`<button key=${k} aria-pressed=${m===k} onClick=${()=>setM(k)}>${l}</button>`)}</div>
+      <input className="earn-in" placeholder=${PAYOUT.find(x=>x[0]===m)[2]} value=${h} onInput=${e=>setH(e.target.value)} maxLength=${120} autoCapitalize="off" autoCorrect="off" aria-label=${PAYOUT.find(x=>x[0]===m)[2]}/>
+      <input className="earn-in" placeholder="Full name on that account" value=${nm} onInput=${e=>setNm(e.target.value)} maxLength=${100} autoComplete="name" aria-label="Full name on that account"/>
+      <p className="sub" style=${{margin:0,fontSize:13}}>Only you can see this. Double check it, we send your money exactly here.</p>
       ${msg&&html`<p className="a-err">${msg}</p>`}
-      <div style=${{display:'flex',gap:8}}><button className="btn ghost" style=${{flex:1}} onClick=${()=>setForm(false)}>Cancel</button><button className="btn orange" style=${{flex:1}} disabled=${busy||!d.adult} onClick=${submit}>${busy?'One sec…':'Request cash out'}</button></div></div>`}
+      <div style=${{display:'flex',gap:8}}><button className="btn ghost" style=${{flex:1}} onClick=${()=>setEdit(false)}>Cancel</button><button className="btn orange" style=${{flex:1}} disabled=${busy} onClick=${save}>${busy?'One sec…':'Save'}</button></div></div>`}
     <div className="set-label">How it works</div>
-    <div className="set-group" style=${{padding:'14px 16px'}}><p style=${{margin:0,lineHeight:1.45}}>When someone sends you a gift on Live with Sparks they bought, you keep <b>${Math.round((d.rate||.6)*100)}%</b> of what those Sparks are worth and Temp keeps the rest to run the app. Gifts made with free daily Sparks show up here but don’t earn money. Cash outs start at $10 and are paid within 30 days. <a href="/terms.html" target="_blank" style=${{color:'var(--orange)',fontWeight:700}}>Full terms</a></p></div>
+    <div className="set-group" style=${{padding:'14px 16px'}}><p style=${{margin:0,lineHeight:1.45}}>When someone sends you a gift on Live with Sparks they bought, you keep <b>${Math.round((d.rate||.6)*100)}%</b> of what those Sparks are worth and Temp keeps the rest to run the app. Gifts made with free daily Sparks show up here but don’t earn money. Cash out any time once you have $10. No waiting periods, no monthly limits, no fees from Temp. We send it as fast as we can, usually within 2 business days. <a href="/terms.html" target="_blank" style=${{color:'var(--orange)',fontWeight:700}}>Full terms</a></p></div>
     <div className="set-label">History</div>
     <div className="set-group">${(d.history||[]).length?d.history.map(r=>html`<div className="set-item" key=${r.id}>
       <span className="si"><${Icon} n=${r.kind==='gift'?'spark':'wallet'} s=${18}/></span>
@@ -4046,7 +4068,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   const pend=useRef({likes:0,t:null});const comboRef=useRef(null);const seenIds=useRef(null);
   const [dbViewers,setDbViewers]=useState([]);const [streak,setStreak]=useState(0);const [sent,setSent]=useState(null);const streakT=useRef(null);const streakN=useRef(0);const [conn,setConn]=useState('ok');const lastGiftId=useRef(0);const heard=useRef({});const giftRows=useRef([]);
   const isHost=row&&row.host_id===me;const isGuest=row&&row.guest_id===me;const onCam=isHost||isGuest;
-  const [fol,setFol]=useState(null);const [shares,setShares]=useState(0);const likedBy=useRef(new Set());
+  const [fol,setFol]=useState(null);const [tools,setTools]=useState(false);const [shares,setShares]=useState(0);const likedBy=useRef(new Set());
   useEffect(()=>{if(!row||isHost)return;sb.from('follows').select('followee').eq('follower',me).eq('followee',row.host_id).maybeSingle().then(({data})=>setFol(!!data))},[row&&row.host_id]);
   const followHost=async()=>{setFol(true);const {error}=await sb.from('follows').insert({followee:row.host_id});if(error&&!/duplicate/i.test(error.message)){setFol(false);setErr(friendly(error))}};
   const loadRow=async(n=0)=>{const {data,error}=await sb.from('live_streams').select('*').eq('id',id).maybeSingle();
@@ -4210,15 +4232,15 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
     <div className="gl-bar" onClick=${e=>e.stopPropagation()}>
       <div className="gl-type"><input placeholder="Type…" maxLength=${150} value=${txt} onInput=${e=>{setTxt(e.target.value);setErr('')}} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Comment"/>
         <button className="gl-emo" onClick=${()=>setPanel(panel==='emoji'?null:'emoji')} aria-label="Emoji"><${Icon} n="smile" s=${22}/></button></div>
-      ${onCam?html`${isHost&&html`<button onClick=${()=>setPanel(panel==='host'?null:'host')} aria-label="Live tools"><${Icon} n="more" s=${20}/></button>`}
+      ${!onCam&&html`<button className="gl-giftbtn" onClick=${()=>{setPanel(panel==='gifts'?null:'gifts');loadWallet()}} aria-label="Send a gift"><${GiftBox} s=${24}/></button>`}
+      <button className=${'gl-more'+(tools?' on':'')} onClick=${()=>setTools(!tools)} aria-label=${tools?'Hide options':'More options'} aria-expanded=${tools}><${Icon} n="more" s=${20}/></button>
+      ${tools&&html`<div className="gl-tools" onClick=${()=>setTools(false)}>${onCam?html`${isHost&&html`<button onClick=${()=>setPanel(panel==='host'?null:'host')} aria-label="Live tools"><${Icon} n="gear" s=${20}/></button>`}
         <button onClick=${()=>{const v=!mic;setMic(v);eng.current.setMic(v)}} aria-label=${mic?'Mute':'Unmute'}><${Icon} n=${mic?'mic':'mute'} s=${20}/></button>
         <button onClick=${()=>{const v=!cam;setCam(v);eng.current.setCam(v)}} aria-label=${cam?'Turn camera off':'Turn camera on'}><${Icon} n=${cam?'reels':'eye'} s=${20}/></button>
         <button onClick=${()=>setPanel(panel==='fx'?null:'fx')} aria-label="Effects"><${Icon} n="star" s=${20}/></button>
-        <button onClick=${()=>eng.current.flip().catch(()=>{})} aria-label="Flip camera"><${Icon} n="replay" s=${20}/></button>`
-      :html`<button className=${asked?'on':''} onClick=${()=>{if(asked)return;eng.current.send('req',{});setAsked(true);setErr('Asked the host to join. Hang tight.')}} aria-label=${asked?'Asked to join':'Ask to join as a guest'}><${Icon} n="user" s=${21}/>${!asked&&html`<i className="gl-plus">+</i>`}</button>
+        <button onClick=${()=>eng.current.flip().catch(()=>{})} aria-label="Flip camera"><${Icon} n="replay" s=${20}/></button>`:html`<button className=${asked?'on':''} onClick=${()=>{if(asked)return;eng.current.send('req',{});setAsked(true);setErr('Asked the host to join. Hang tight.')}} aria-label=${asked?'Asked to join':'Ask to join as a guest'}><${Icon} n="user" s=${21}/>${!asked&&html`<i className="gl-plus">+</i>`}</button>
         <button className="gl-quick" onClick=${()=>{loadWallet();sendGift(giftById('rose'))}} aria-label="Send an Ember Rose"><${GiftArt} id="rose" size=${30}/></button>
-        <button className="gl-giftbtn" onClick=${()=>{setPanel(panel==='gifts'?null:'gifts');loadWallet()}} aria-label="Send a gift"><${GiftBox} s=${24}/></button>
-        <button className="gl-share" onClick=${()=>setPanel(panel==='share'?null:'share')} aria-label="Share"><${Icon} n="share" s=${21}/>${shares>0&&html`<em>${shares}</em>`}</button>`}
+        <button className="gl-share" onClick=${()=>setPanel(panel==='share'?null:'share')} aria-label="Share"><${Icon} n="share" s=${21}/>${shares>0&&html`<em>${shares}</em>`}</button>`}</div>`}
     </div>
   </div>`;
 }

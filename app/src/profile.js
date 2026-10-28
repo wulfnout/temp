@@ -206,18 +206,21 @@ export function SettingsScreen({ start }) {
 
 /* ---------------- Creator Studio: Sparks you earned from gifts, and cash out ---------------- */
 const money = (c) => '$' + (Math.max(0, +c || 0) / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-const PAYOUT = [['paypal', 'PayPal', 'PayPal email'], ['cashapp', 'Cash App', '$Cashtag'], ['venmo', 'Venmo', '@username'], ['bank', 'Bank', 'Name, bank, routing and account']];
+const PAYOUT = [['paypal', 'PayPal', 'PayPal email'], ['cashapp', 'Cash App', '$Cashtag'], ['venmo', 'Venmo', '@username'], ['zelle', 'Zelle', 'Zelle email or phone'], ['bank', 'Bank', 'Bank']];
 const GIFT_NAMES = { spark: 'Spark', ember: 'Ember', icecube: 'Ice Cube', hotsauce: 'Hot Sauce', rose: 'Ember Rose', thermo: 'Heat Check', heart: 'Molten Heart', mic: 'Mic Drop', crown: 'Fire Crown', volcano: 'Volcano', meteor: 'Meteor', phoenix: 'Phoenix' };
 export function EarningsScreen() {
-  const { C, nav } = useApp(); const [d, setD] = useState(null); const [err, setErr] = useState(''); const [form, setForm] = useState(false);
-  const [m, setM] = useState('paypal'); const [h, setH] = useState(''); const [amt, setAmt] = useState(''); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
+  const { C, nav } = useApp(); const [d, setD] = useState(null); const [err, setErr] = useState(''); const [edit, setEdit] = useState(false); const [pick, setPick] = useState(false);
+  const [m, setM] = useState('paypal'); const [h, setH] = useState(''); const [nm, setNm] = useState(''); const [amt, setAmt] = useState(''); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
   const load = async () => { const { data, error } = await sb.rpc('my_earnings'); if (error) { setErr(/function|schema cache|does not exist/i.test(error.message) ? 'Creator Studio is being set up. Check back soon.' : friendly(error)); return; } setD(data); };
   useEffect(() => { load(); }, []);
-  const submit = async () => { setMsg(''); const cents = Math.round(parseFloat(String(amt).replace(/[^0-9.]/g, '')) * 100);
-    if (!(cents >= 1000)) return setMsg('The smallest cash out is $10.'); if (d && cents > d.balance) return setMsg('That’s more than your balance.');
-    setBusy(true); const { data, error } = await sb.rpc('request_cashout', { method: m, handle: h, amount_cents: cents }); setBusy(false);
-    if (error) return setMsg(friendly(error)); setD(data); setForm(false); setAmt(''); nav.toast('Cash out requested. You’ll be paid within 30 days.'); };
-  const bal = d ? Math.round(+d.balance) : 0;
+  const startEdit = () => { const p = d && d.payout; setM(p ? p.method : 'paypal'); setH(p ? p.handle : ''); setNm(p ? p.legal_name : ''); setMsg(''); setEdit(true); };
+  const save = async () => { setMsg(''); setBusy(true); const { data, error } = await sb.rpc('set_payout_details', { method: m, handle: h, legal_name: nm }); setBusy(false);
+    if (error) return setMsg(friendly(error)); setD(data); setEdit(false); nav.toast('Payout details saved'); };
+  const cash = async (all) => { setMsg(''); let cents = null;
+    if (!all) { cents = Math.round(parseFloat(String(amt).replace(/[^0-9.]/g, '')) * 100); if (!(cents >= 1000)) return setMsg('The smallest cash out is $10.'); if (cents > d.balance) return setMsg('That’s more than your balance.'); }
+    setBusy(true); const { data, error } = await sb.rpc('request_cashout', { amount_cents: cents }); setBusy(false);
+    if (error) return setMsg(friendly(error)); setD(data); setPick(false); setAmt(''); nav.toast('Cashed out! It’s on its way to you.'); };
+  const bal = d ? Math.round(+d.balance) : 0; const INP = { backgroundColor: C.bg, borderRadius: 14, padding: 13, color: C.ink, fontFamily: F.body, fontSize: 16 };
   const Row = ({ left, sub, right, plus }) => <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line, marginTop: -1 }}>
     <View style={{ flex: 1 }}>{left}{sub ? <T muted style={{ fontSize: 13, marginTop: 2 }}>{sub}</T> : null}</View><T h style={{ color: plus ? C.orange : C.ink }}>{right}</T></View>;
   return (
@@ -230,19 +233,34 @@ export function EarningsScreen() {
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>{[[(+d.sparks || 0).toLocaleString(), 'Sparks received'], [money(d.lifetime), 'Earned all time'], [money(d.paid), 'Paid out']].map(([a, b]) =>
               <View key={b} style={{ flex: 1 }}><T h style={{ fontSize: 16 }}>{a}</T><T muted style={{ fontSize: 12.5 }}>{b}</T></View>)}</View>
             {d.pending > 0 ? <T muted style={{ marginTop: 10 }}>{money(d.pending)} on its way to you.</T> : null}
-            <Btn kind="orange" title={bal < 1000 ? 'Cash out at $10.00' : 'Cash out'} disabled={bal < 1000} onPress={() => { setForm(true); setAmt((bal / 100).toFixed(2)); }} style={{ marginTop: 14 }} />
+            {bal < 1000 ? <>
+              <View style={{ height: 10, borderRadius: 6, backgroundColor: C.bg, marginTop: 14, overflow: 'hidden' }}><View style={{ width: Math.max(2, bal / 10) + '%', height: '100%', borderRadius: 6, backgroundColor: C.orange }} /></View>
+              <T muted style={{ marginTop: 8 }}>{money(1000 - Math.max(0, bal))} to go. You can cash out the moment you hit $10.00, any time, as often as you want.</T></>
+            : <>
+              <Btn kind="orange" title={busy ? 'One sec…' : 'Cash out ' + money(bal) + ' now'} disabled={busy || !d.adult || !d.payout} onPress={() => cash(true)} style={{ marginTop: 14 }} />
+              {d.payout && d.adult ? <Pressable onPress={() => { setPick(!pick); setAmt((bal / 100).toFixed(2)); }} style={{ marginTop: 10, alignSelf: 'center' }}><T h muted style={{ fontSize: 14 }}>Cash out a different amount</T></Pressable> : null}
+              {pick ? <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}><TextInput value={amt} onChangeText={setAmt} placeholder="Amount" placeholderTextColor={C.muted} keyboardType="decimal-pad" style={[INP, { flex: 1 }]} /><Btn kind="orange" title="Cash out" disabled={busy} onPress={() => cash(false)} /></View> : null}</>}
+            {!d.adult ? <T b style={{ color: C.orange, marginTop: 10 }}>You need to be 18 or older to cash out. Check your birthday in Settings.</T> : null}
+            {bal >= 1000 && d.adult && !d.payout ? <T muted style={{ marginTop: 10 }}>Add where to send your money below, then cash out.</T> : null}
+            {msg && !edit ? <T b style={{ color: C.orange, marginTop: 10 }}>{msg}</T> : null}
           </FlowBox>
-          {form ? <FlowBox r={24} style={{ backgroundColor: C.card, padding: 16, marginTop: 12, gap: 10 }}>
-            {!d.adult ? <T b style={{ color: C.orange }}>You need to be 18 or older to cash out. Check your birthday in Settings.</T> : null}
-            <T h>Send it to</T>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{PAYOUT.map(([k, l]) => <Pressable key={k} onPress={() => setM(k)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 13, backgroundColor: m === k ? C.ink : C.bg }}><T h style={{ color: m === k ? C.bg : C.ink }}>{l}</T></Pressable>)}</View>
-            <TextInput value={h} onChangeText={setH} placeholder={PAYOUT.find((x) => x[0] === m)[2]} placeholderTextColor={C.muted} autoCapitalize="none" maxLength={120} style={{ backgroundColor: C.bg, borderRadius: 14, padding: 13, color: C.ink, fontFamily: F.body, fontSize: 16 }} />
-            <TextInput value={amt} onChangeText={setAmt} placeholder="Amount" placeholderTextColor={C.muted} keyboardType="decimal-pad" style={{ backgroundColor: C.bg, borderRadius: 14, padding: 13, color: C.ink, fontFamily: F.body, fontSize: 16 }} />
+          <T b muted style={{ marginTop: 18, marginBottom: 6, marginLeft: 4 }}>PAYOUT DETAILS</T>
+          {!edit ? <Pressable onPress={startEdit}><FlowBox r={24} style={{ backgroundColor: C.card, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Ionicons name="wallet-outline" size={20} color={C.ink} />
+            <View style={{ flex: 1 }}>{d.payout ? <><T h>{(PAYOUT.find((x) => x[0] === d.payout.method) || [0, d.payout.method])[1]} · {d.payout.handle}</T><T muted style={{ fontSize: 13, marginTop: 2 }}>{d.payout.legal_name}</T></>
+              : <><T h>Add payout details</T><T muted style={{ fontSize: 13, marginTop: 2 }}>PayPal, Cash App, Venmo or Zelle</T></>}</View>
+            <T muted>{d.payout ? 'Edit' : ''}</T><Ionicons name="chevron-forward" size={18} color={C.muted} /></FlowBox></Pressable>
+          : <FlowBox r={24} style={{ backgroundColor: C.card, padding: 16, gap: 10 }}>
+            <T h>Send my money to</T>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{PAYOUT.filter((x) => x[0] !== 'bank').map(([k, l]) => <Pressable key={k} onPress={() => setM(k)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 13, backgroundColor: m === k ? C.ink : C.bg }}><T h style={{ color: m === k ? C.bg : C.ink }}>{l}</T></Pressable>)}</View>
+            <TextInput value={h} onChangeText={setH} placeholder={PAYOUT.find((x) => x[0] === m)[2]} placeholderTextColor={C.muted} autoCapitalize="none" autoCorrect={false} maxLength={120} style={INP} />
+            <TextInput value={nm} onChangeText={setNm} placeholder="Full name on that account" placeholderTextColor={C.muted} autoComplete="name" textContentType="name" maxLength={100} style={INP} />
+            <T muted style={{ fontSize: 13 }}>Only you can see this. Double check it, we send your money exactly here.</T>
             {msg ? <T b style={{ color: C.orange }}>{msg}</T> : null}
-            <View style={{ flexDirection: 'row', gap: 8 }}><Btn kind="ghost" title="Cancel" onPress={() => setForm(false)} style={{ flex: 1 }} /><Btn kind="orange" title={busy ? 'One sec…' : 'Request cash out'} disabled={busy || !d.adult} onPress={submit} style={{ flex: 1 }} /></View>
-          </FlowBox> : null}
+            <View style={{ flexDirection: 'row', gap: 8 }}><Btn kind="ghost" title="Cancel" onPress={() => setEdit(false)} style={{ flex: 1 }} /><Btn kind="orange" title={busy ? 'One sec…' : 'Save'} disabled={busy} onPress={save} style={{ flex: 1 }} /></View>
+          </FlowBox>}
           <T b muted style={{ marginTop: 18, marginBottom: 6, marginLeft: 4 }}>HOW IT WORKS</T>
-          <FlowBox r={24} style={{ backgroundColor: C.card, padding: 16 }}><T style={{ lineHeight: 21 }}>When someone sends you a gift on Live with Sparks they bought, you keep <T h>{Math.round((d.rate || 0.6) * 100)}%</T> of what those Sparks are worth and Temp keeps the rest to run the app. Gifts made with free daily Sparks show up here but don’t earn money. Cash outs start at $10 and are paid within 30 days.</T></FlowBox>
+          <FlowBox r={24} style={{ backgroundColor: C.card, padding: 16 }}><T style={{ lineHeight: 21 }}>When someone sends you a gift on Live with Sparks they bought, you keep <T h>{Math.round((d.rate || 0.6) * 100)}%</T> of what those Sparks are worth and Temp keeps the rest to run the app. Gifts made with free daily Sparks show up here but don’t earn money. Cash out any time once you have $10. No waiting periods, no monthly limits, no fees from Temp. We send it as fast as we can, usually within 2 business days.</T></FlowBox>
           <T b muted style={{ marginTop: 18, marginBottom: 6, marginLeft: 4 }}>HISTORY</T>
           <FlowBox r={24} style={{ backgroundColor: C.card, paddingHorizontal: 16 }}>
             {(d.history || []).length ? d.history.map((r) => <Row key={r.id} left={<T h>{r.kind === 'gift' ? (GIFT_NAMES[r.gift_id] || 'Gift') + ' from @' + (r.from_handle || 'someone') : r.kind === 'cashout' ? 'Cash out' : r.kind === 'refund' ? 'Cash out returned' : 'Adjustment'}</T>}

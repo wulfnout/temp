@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video } from './posts';
-import { Header, pickMedia, ReplayGrid } from './screens';
+import { Header, pickMedia, ReplayGrid, Drawer } from './screens';
 import { GifPicker } from './gif';
 import { act } from './data';
 import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
@@ -17,7 +17,7 @@ import { StoryPhoto, StoryPhotoEditor } from './storyframe';
 export function ProfileScreen({ id, isTab }) {
   const { s, C, nav, run } = useApp(); const ins = useSafeAreaInsets();
   const uid = id || s.me; const u = s.users[uid]; const isMe = uid === s.me;
-  const [tab, setTab] = useState('posts'); const [pick, setPick] = useState(false); const [edit, setEdit] = useState(false); const [more, setMore] = useState(false);
+  const [tab, setTab] = useState('posts'); const [pick, setPick] = useState(false); const [edit, setEdit] = useState(false); const [more, setMore] = useState(false); const [menuAt, setMenuAt] = useState(null);
   if (!u) return <View style={{ flex: 1, backgroundColor: C.bg }}><Header back /><Empty text="Loading…" /></View>;
   const blocked = s.blocked[uid];
   const all = s.posts.filter((p) => p.userId === uid);
@@ -39,9 +39,12 @@ export function ProfileScreen({ id, isTab }) {
               {[0, 1, 2].map((i) => <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' }} />)}</Pressable> : null}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -46 }}>
-            {(() => { const story = s.stories.find((x) => x.userId === uid); if (!story) return <View style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></View>;
+            {(() => { const story = s.stories.find((x) => x.userId === uid);
+              // your own picture opens your menu as a drop-down card
+              const openMenu = (e) => { const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMenuAt({ top: pageY - locationY + 104, left: Math.max(12, pageX - locationX) }); };
+              if (!story) return isMe ? <Pressable onPress={openMenu} accessibilityLabel="Your menu" style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></Pressable> : <View style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></View>;
               const unseen = story.items.some((i) => !s.seen[i.id]);
-              return <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><StoryOrb u={u} size={96} seen={!unseen} onPress={() => nav.sheet('story', { userId: uid })} label={'Story from @' + u.handle} /></View>; })()}
+              return <Pressable onPress={isMe ? openMenu : undefined} style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><View pointerEvents={isMe ? 'none' : 'auto'}><StoryOrb u={u} size={96} seen={!unseen} onPress={() => nav.sheet('story', { userId: uid })} label={'Story from @' + u.handle} /></View></Pressable>; })()}
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
               {isMe ? <>
                 <Pressable onPress={() => nav.push('shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.ink, borderRadius: 15, paddingHorizontal: 14, paddingVertical: 10 }}>
@@ -75,6 +78,7 @@ export function ProfileScreen({ id, isTab }) {
       {pick ? <Sheet visible onClose={() => setPick(false)} title="Add a sticker" right={<Btn small kind="ghost" title="Fire Sale" onPress={() => { setPick(false); nav.push('shop'); }} />}>
         <StickerPicker onPick={(e) => { setPick(false); setStickers([...(u.stickers || []), e].slice(0, 3)); }} /></Sheet> : null}
       {edit ? <EditProfile onClose={() => setEdit(false)} /> : null}
+      {menuAt ? <Drawer at={menuAt} onClose={() => setMenuAt(null)} /> : null}
       {more ? <Sheet visible onClose={() => setMore(false)} title={'@' + u.handle}>
         <View style={{ gap: 8, paddingTop: 4 }}>
           <Pressable onPress={() => { setMore(false); setTimeout(() => Alert.alert('Block @' + u.handle + '?', 'Their posts, stories, comments and messages will be hidden from you.', [

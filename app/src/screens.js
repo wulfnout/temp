@@ -41,31 +41,32 @@ export async function accRemember(ses, prof) { if (!ses || !ses.user) return; co
   try { await AsyncStorage.setItem(ACC_KEY, JSON.stringify(next)); } catch (e) {} }
 export async function accSwitch(a) { const { error } = await sb.auth.refreshSession({ refresh_token: a.rt });
   if (error) { const l = (await accList()).filter((x) => x.id !== a.id); await AsyncStorage.setItem(ACC_KEY, JSON.stringify(l)); throw new Error('That account was signed out. Add it again.'); } }
-function Drawer({ onClose }) {
+export function Drawer({ onClose, at }) {
   const { s, C, nav } = useApp(); const ins = useSafeAreaInsets(); const me = s.users[s.me] || {}; const W = Math.min(Dimensions.get('window').width * 0.84, 330);
-  const x = useRef(new Animated.Value(-W)).current; const [accts, setAccts] = useState([]); const [accOpen, setAccOpen] = useState(false);
-  useEffect(() => { Animated.spring(x, { toValue: 0, damping: 24, stiffness: 240, useNativeDriver: true }).start(); accList().then(setAccts); }, []);
-  const close = (then) => Animated.timing(x, { toValue: -W, duration: 180, useNativeDriver: true }).start(() => { onClose(); then && then(); });
-  const pan = useRef(PanResponder.create({ onMoveShouldSetPanResponder: (e, d) => d.dx < -8 && Math.abs(d.dx) > Math.abs(d.dy),
-    onPanResponderMove: (e, d) => x.setValue(Math.min(0, d.dx)), onPanResponderRelease: (e, d) => (d.dx < -80 || d.vx < -0.5 ? close() : Animated.spring(x, { toValue: 0, useNativeDriver: true }).start()) })).current;
+  const k = useRef(new Animated.Value(0)).current; const [accts, setAccts] = useState([]); const [accOpen, setAccOpen] = useState(false);
+  useEffect(() => { Animated.spring(k, { toValue: 1, damping: 20, stiffness: 300, useNativeDriver: true }).start(); accList().then(setAccts); }, []);
+  const close = (then) => Animated.timing(k, { toValue: 0, duration: 140, useNativeDriver: true }).start(() => { onClose(); then && then(); });
   const following = Object.values(s.users).filter((u) => u.following).length; const others = accts.filter((a) => a.id !== s.me);
   const sw = async (a) => { close(); try { await accSwitch(a); } catch (e) { nav.toast(e.message); } };
-  const items = [['person-outline', 'Profile', () => nav.tab('me')], ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['flame-outline', 'Fire Sale', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
+  const hasStory = s.stories.some((x) => x.userId === s.me);
+  const items = [...(hasStory ? [['eye-outline', 'Your story', () => nav.sheet('story', { userId: s.me })]] : []), ['person-outline', 'Profile', () => nav.tab('me')], ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['flame-outline', 'Fire Sale', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
   return (
     <Modal transparent visible animationType="none" onRequestClose={() => close()}>
-      <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,.45)', opacity: x.interpolate({ inputRange: [-W, 0], outputRange: [0, 1] }) }}><Pressable style={{ flex: 1 }} onPress={() => close()} /></Animated.View>
-      <Animated.View {...pan.panHandlers} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: W, backgroundColor: C.bg, paddingTop: ins.top + 16, paddingHorizontal: 24, paddingBottom: ins.bottom + 16, transform: [{ translateX: x }] }}>
+      <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,.18)', opacity: k }}><Pressable style={{ flex: 1 }} onPress={() => close()} /></Animated.View>
+      <Animated.View style={{ position: 'absolute', left: (at && at.left) || 16, top: Math.max(ins.top + 10, Math.min((at && at.top) || ins.top + 80, Dimensions.get('window').height - 560)), width: Math.min(290, Dimensions.get('window').width - 32), backgroundColor: C.card, borderRadius: 26, paddingTop: 18, paddingHorizontal: 20, paddingBottom: 10,
+        shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 25, shadowOffset: { width: 0, height: 14 }, elevation: 12,
+        opacity: k, transform: [{ scale: k.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }, { translateY: k.interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) }] }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Pressable onPress={() => close(() => nav.tab('me'))}><Avatar u={me} size={48} /></Pressable><View style={{ flex: 1 }} />
+          <Pressable onPress={() => close(() => nav.tab('me'))}><Avatar u={me} size={40} /></Pressable><View style={{ flex: 1 }} />
           {others.slice(0, 1).map((a) => <Pressable key={a.id} onPress={() => sw(a)} accessibilityLabel={'Switch to @' + a.handle}><Avatar u={{ name: a.name, avatar: a.avatar, color: a.color || C.orange }} size={30} /></Pressable>)}
           <Pressable onPress={() => setAccOpen(true)} accessibilityLabel="Accounts" style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1.6, borderColor: C.ink, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="ellipsis-horizontal" size={16} color={C.ink} /></Pressable>
         </View>
-        <T h style={{ fontSize: 19, marginTop: 12 }}>{me.name || 'You'}</T><T muted style={{ fontSize: 15 }}>@{me.handle}</T>
-        <View style={{ flexDirection: 'row', gap: 18, marginVertical: 12 }}><T muted><T h>{following}</T> Following</T><T muted><T h>{kfmt(me.followers || 0)}</T> Followers</T></View>
-        {items.map(([ic, l, f]) => <Pressable key={l} onPress={() => close(f)} style={{ flexDirection: 'row', alignItems: 'center', gap: 20, paddingVertical: 13 }}><Ionicons name={ic} size={26} color={C.ink} /><T h style={{ fontSize: 21 }}>{l}</T></Pressable>)}
+        <T h style={{ fontSize: 17, marginTop: 8 }}>{me.name || 'You'}</T><T muted style={{ fontSize: 15 }}>@{me.handle}</T>
+        <View style={{ flexDirection: 'row', gap: 18, marginTop: 8, marginBottom: 4 }}><T muted><T h>{following}</T> Following</T><T muted><T h>{kfmt(me.followers || 0)}</T> Followers</T></View>
+        {items.map(([ic, l, f]) => <Pressable key={l} onPress={() => close(f)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 10 }}><Ionicons name={ic} size={22} color={C.ink} /><T h style={{ fontSize: 17 }}>{l}</T></Pressable>)}
         <View style={{ height: 1, backgroundColor: C.line, marginVertical: 10 }} />
-        <Pressable onPress={() => close(() => nav.push('settings'))} style={{ flexDirection: 'row', alignItems: 'center', gap: 20, paddingVertical: 11 }}><Ionicons name="settings-outline" size={22} color={C.ink} /><T h style={{ fontSize: 16.5 }}>Settings and privacy</T></Pressable>
-        <Pressable onPress={() => close(() => nav.push('terms'))} style={{ flexDirection: 'row', alignItems: 'center', gap: 20, paddingVertical: 11 }}><Ionicons name="help-circle-outline" size={22} color={C.ink} /><T h style={{ fontSize: 16.5 }}>Help Center</T></Pressable>
+        <Pressable onPress={() => close(() => nav.push('settings'))} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 9 }}><Ionicons name="settings-outline" size={20} color={C.ink} /><T h style={{ fontSize: 15 }}>Settings and privacy</T></Pressable>
+        <Pressable onPress={() => close(() => nav.push('terms'))} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 9 }}><Ionicons name="help-circle-outline" size={20} color={C.ink} /><T h style={{ fontSize: 15 }}>Help Center</T></Pressable>
       </Animated.View>
       {accOpen ? <Sheet visible onClose={() => setAccOpen(false)} title="Accounts">
         {[{ id: s.me, handle: me.handle, name: me.name, avatar: me.avatar, color: me.color }, ...others].map((a) => (
@@ -82,7 +83,7 @@ function Drawer({ onClose }) {
 /* ---------------- home ---------------- */
 export function HomeScreen() {
   const { s, C, nav, reload, run } = useApp(); const ins = useSafeAreaInsets();
-  const [refreshing, setRefreshing] = useState(false); const [drawer, setDrawer] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const posts = s.posts.filter((p) => !p.reel && !s.blocked[p.userId]);
   const unreadN = s.notifs.filter((n) => !n.read).length, unreadDM = Object.keys(s.unread).filter((k) => !s.blocked[k]).length;
   const viewed = useRef(new Set());
@@ -103,7 +104,6 @@ export function HomeScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Animated.View onLayout={(e) => setHh(e.nativeEvent.layout.height)} style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5, backgroundColor: C.bg, paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center',
         transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, -hh] }) }] }}>
-        <Pressable onPress={() => setDrawer(true)} accessibilityLabel="Open menu" hitSlop={6} style={{ marginRight: 10 }}><Avatar u={{ ...(s.users[s.me] || {}), ring: null }} size={34} /></Pressable>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, flex: 1 }}>
           <T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6, ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } } : null) }} /></View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -132,7 +132,6 @@ export function HomeScreen() {
         ListEmptyComponent={<Empty text={s.loaded ? 'Nothing here yet. Tap + to post the first take.' : 'Loading…'} />}
         extraData={onScreen} renderItem={({ item }) => <PostCard p={item} active={!!onScreen[item.id]} />} />
       <GoLiveSide />
-      {drawer ? <Drawer onClose={() => setDrawer(false)} /> : null}
     </View>
   );
 }

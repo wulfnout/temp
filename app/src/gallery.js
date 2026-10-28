@@ -4,16 +4,20 @@ import { View, ScrollView, Text } from 'react-native';
 import { Ctx, Avatar, Sticker, StoryOrb } from './ui';
 import { HeaderFx, ClockKeeper } from './fx';
 import { THEMES, GLOW, STICKER_PACKS, useColors, F } from './lib';
+import { useFonts, Unbounded_700Bold, Unbounded_800ExtraBold } from '@expo-google-fonts/unbounded';
+import { Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold } from '@expo-google-fonts/figtree';
 
 const HEADERS = ['templogo', 'lava', 'aurora', 'static', 'embers', 'hazard', 'sunburst', 'snow', 'thermal', 'disco', 'checker', 'synth', 'rain', 'wildfire', 'heatwave', 'blizzard', 'glitchtv', 'starfield', 'lavalamp', 'haunted', 'pumpkinpatch', 'ghosts'];
 const RINGS = ['fire', 'ice', 'morph', 'gold', 'glitch', 'plus'];
 
 export function Gallery() {
+  const [ok] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
   const C = useColors('ember', 'light');
   const only = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('gallery')) || '';
   const u = (ring) => ({ name: 'Wulf', handle: 'wulf', color: '#222', ring });
   const H = ({ children }) => <Text style={{ fontFamily: F.display, fontSize: 18, marginTop: 18, marginBottom: 8, color: C.ink }}>{children}</Text>;
   const L = ({ children }) => <Text style={{ fontSize: 12, color: C.muted, textAlign: 'center' }}>{children}</Text>;
+  if (!ok) return null;
   return (
     <Ctx.Provider value={{ C, s: { users: {}, priv: {}, posts: [] }, nav: {}, run: () => {} }}>
       <ClockKeeper />

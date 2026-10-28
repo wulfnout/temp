@@ -106,28 +106,25 @@ export function FireRing({ size, children, bg }) {
   );
 }
 
+// Glitch ring: same as the website's .ring-glitch — a pink/cyan band that jumps in 4 steps a second with a 1px shake,
+// plus a cyan and a pink outline that tear off in slices (the website's gl1/gl2 keyframes, frame for frame)
+const GL1 = [[0, 0, 0, 0, 0], [0.12, -4, 1, 0.15, 0.55], [0.24, 3, -1, 0.6, 0.08], [0.36, 0, 0, 0, 0], [0.58, 2, 2, 0.35, 0.4], [0.7, -3, 0, 0, 0.75], [0.82, 0, 0, 0, 0]];
+const GL2 = [[0, 0, 0, 0, 0], [0.18, 4, -1, 0.45, 0.3], [0.3, -2, 1, 0.05, 0.7], [0.44, 0, 0, 0, 0], [0.66, -4, -2, 0.7, 0.05], [0.78, 2, 0, 0.25, 0.5], [0.9, 0, 0, 0, 0]];
+const glFrame = (tab, p) => { let f = tab[0]; for (const k of tab) if (p >= k[0]) f = k; return f; };
 export function GlitchRing({ size, children, bg }) {
-  useClockKick();
-  const c = clock(1100), c2 = clock(1700);
-  const bw = Math.max(2, size * 0.06);
-  const ring = (color, dx, dy, op) => <Animated.View pointerEvents="none" style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: bw, borderColor: color, opacity: op,
-    transform: [{ translateX: dx }, { translateY: dy }] }} />;
-  const bars = size < 40 ? 2 : 4;
+  const [now, setNow] = React.useState(Date.now());
+  React.useEffect(() => { const i = setInterval(() => setNow(Date.now()), 50); return () => clearInterval(i); }, []);
+  const q = Math.floor(((now % 1000) / 1000) * 4); const jit = [[0, 0], [1, -1], [-1, 1], [1, 1]][q];
+  const off = -(((2 * size * (q * 0.5)) % (3 * size)));
+  const slice = (tab, ms, color) => { const f = glFrame(tab, (now % ms) / ms); const top = f[3] * size, h = size * (1 - f[3] - f[4]);
+    return <View pointerEvents="none" style={{ position: 'absolute', left: -size * 0.2, top, width: size * 1.4, height: h, overflow: 'hidden', transform: [{ translateX: f[1] }, { translateY: f[2] }], opacity: 0.9 }}>
+      <View style={{ position: 'absolute', left: size * 0.2, top: -top, width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: color }} /></View>; };
+  const band = (x) => <LinearGradient key={x} colors={['#ff2d55', '#00e5ff', '#ff2d55', '#00e5ff']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: 'absolute', top: 0, bottom: 0, left: x, width: 3 * size }} />;
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <LinearGradient colors={['#ff2d55', '#0a0a0a', '#00e5ff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2 }} />
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', transform: [{ translateX: jit[0] }, { translateY: jit[1] }] }}>
+      <View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>{band(off)}{band(off + 3 * size)}</View>
       <View style={{ padding: 1, borderRadius: size, backgroundColor: bg }}>{children}</View>
-      {/* split color channels jumping around */}
-      {ring('#00e5ff', jitter(c, 11, -size * 0.06, size * 0.06, 12, true), jitter(c, 12, -size * 0.03, size * 0.03, 12, true), jitter(c, 21, 0.4, 0.95, 12, true))}
-      {ring('#ff2d55', jitter(c2, 31, -size * 0.06, size * 0.06, 12, true), jitter(c2, 32, -size * 0.03, size * 0.03, 12, true), jitter(c2, 41, 0.4, 0.95, 12, true))}
-      {/* torn scanline slices */}
-      {Array.from({ length: bars }).map((_, i) => {
-        const r = rng(i * 17 + 3);
-        return <Animated.View key={i} pointerEvents="none" style={{ position: 'absolute', left: -size * 0.06, top: size * (0.1 + r() * 0.8), width: size * (0.5 + r() * 0.6), height: Math.max(1.5, size * (0.03 + r() * 0.05)),
-          backgroundColor: ['#00e5ff', '#ff2d55', '#ffffff', '#00e5ff'][i % 4],
-          opacity: clamp01(jitter(i % 2 ? c : c2, i * 7 + 50, -1.2, 0.9, 14, true)),
-          transform: [{ translateX: jitter(i % 2 ? c2 : c, i * 9 + 60, 0, size * 0.55, 14, true) }] }} />;
-      })}
+      {slice(GL1, 1100, '#00e5ff')}{slice(GL2, 900, '#ff2d55')}
     </View>
   );
 }

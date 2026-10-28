@@ -81,25 +81,32 @@ export function Avatar({ u, size = 40 }) {
     ? <Image source={{ uri: u.avatar }} style={{ width: s, height: s, borderRadius: s / 2 }} />
     : <View style={{ width: s, height: s, borderRadius: s / 2, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>;
   if (!u.ring) return inner(size);
-  if (u.ring === 'fire') return <FireRing size={size} bg={C.card}>{inner(size - 6)}</FireRing>;
+  if (u.ring === 'fire') return <FireRing size={size} bg={C.card}>{inner(size - 8)}</FireRing>;
   if (u.ring === 'morph') return <MorphRing size={size} bg={C.card}>{(s) => u.avatar ? <Image source={{ uri: u.avatar }} style={{ width: s, height: s }} />
     : <View style={{ width: s, height: s, backgroundColor: u.color, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#fff', fontFamily: F.heavy, fontSize: s * 0.38 }}>{initials}</Text></View>}</MorphRing>;
-  if (u.ring === 'glitch') return <GlitchRing size={size} bg={C.card}>{inner(size - 6)}</GlitchRing>;
+  if (u.ring === 'glitch') return <GlitchRing size={size} bg={C.card}>{inner(size - 8)}</GlitchRing>;
   return (
-    <SpinRing size={size} ring={u.ring} bg={C.card} accent={[C.orange, C.orange2]}>{inner(size - 6)}</SpinRing>
+    <SpinRing size={size} ring={u.ring} bg={C.card} accent={[C.orange, C.orange2]}>{inner(size - 8)}</SpinRing>
   );
 }
 
 export function Sticker({ v, size = 58, fit }) {
   if (!v) return null;
   if (v.startsWith('T|')) {
+    // same as the website's .tsticker: heavy display type, uppercase, white die-cut border, hard + soft shadow, slight tilt
     const [, t, c] = v.split('|'); const [bg, fg] = STICKER_COLORS[c] || STICKER_COLORS.o; const rot = (Math.abs(hashStr(t)) % 9) - 4;
-    return <View style={{ maxWidth: fit ? '100%' : undefined, transform: [{ rotate: rot + 'deg' }], backgroundColor: bg, borderColor: '#fff', borderWidth: 3, borderRadius: 12, paddingVertical: size * 0.1, paddingHorizontal: size * 0.2, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3, alignSelf: 'flex-start' }}>
-      <Text numberOfLines={fit ? 1 : undefined} adjustsFontSizeToFit={!!fit} minimumFontScale={0.5} style={{ color: fg, fontFamily: F.display, fontSize: Math.max(10, size * 0.26) }}>{t}</Text></View>;
+    const fs = Math.max(10, size * 0.27); const grad = c === 'f' ? ['#ff2d00', '#ffb347'] : c === 'c' ? ['#ffffff', '#b9c6d0'] : null;
+    return <View style={{ maxWidth: fit ? '100%' : undefined, transform: [{ rotate: rot + 'deg' }], alignSelf: 'flex-start', borderRadius: fs * 0.75 + 3, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 5 }, elevation: 4 }}>
+      <View style={{ backgroundColor: grad ? grad[0] : bg, borderColor: c === 'w' ? '#0a0a0a' : '#fff', borderWidth: 3, borderRadius: fs * 0.75 + 3, paddingVertical: fs * 0.45, paddingHorizontal: fs * 0.8, overflow: 'hidden' }}>
+        {grad ? <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} /> : null}
+        <Text numberOfLines={fit ? 1 : undefined} adjustsFontSizeToFit={!!fit} minimumFontScale={0.5} style={{ color: fg, fontFamily: F.display, fontSize: fs, lineHeight: fs * 1.15, letterSpacing: -0.02 * fs, textTransform: 'uppercase', ...(c === 'f' ? { textShadowColor: 'rgba(0,0,0,.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 0 } : null) }}>{t}</Text></View>
+      <View pointerEvents="none" style={{ position: 'absolute', left: 2, right: 2, bottom: -3, height: 6, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, backgroundColor: 'rgba(0,0,0,.14)', zIndex: -1 }} /></View>;
   }
   if (v.startsWith('G|')) return <Image source={{ uri: v.slice(2) }} style={{ width: 200, height: 160, borderRadius: 14 }} resizeMode="cover" accessibilityLabel="GIF" />;
   if (v.startsWith('I|')) return <Image source={{ uri: v.slice(2) }} style={{ width: size * 1.2, height: size * 1.2, borderRadius: size * 0.3, borderWidth: 3, borderColor: '#fff', transform: [{ rotate: '-4deg' }] }} />;
-  return <Text style={{ fontSize: size * 0.9 }}>{v}</Text>;
+  // emoji: white die-cut outline + soft drop shadow, tilted, like the website
+  return <View style={{ transform: [{ rotate: '-5deg' }], shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 6 } }}>
+    <Text style={{ fontSize: size, lineHeight: size * 1.1, textShadowColor: '#fff', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 4 }}>{v}</Text></View>;
 }
 export const stickerLabel = (v) => (!v ? '' : v.startsWith('G|') ? 'a GIF' : v.startsWith('T|') ? '“' + v.split('|')[1] + '” sticker' : v.startsWith('I|') ? 'a sticker' : v + ' sticker');
 

@@ -3,14 +3,14 @@ import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, An
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
+import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, GradRing, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video, QuoteCard } from './posts';
 import { Header, pickMedia, ReplayGrid, Drawer } from './screens';
 import { GifPicker } from './gif';
 import { act } from './data';
 import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
 
-import { HEADER_FX, HeaderFx, FlowRing } from './fx';
+import { HEADER_FX, HeaderFx } from './fx';
 import { AshBurn } from './ash';
 import { StoryPhoto, StoryPhotoEditor } from './storyframe';
 
@@ -43,7 +43,7 @@ export function ProfileScreen({ id, isTab }) {
               // your own picture opens your menu as a drop-down card
               const openMenu = (e) => { const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMenuAt({ top: pageY - locationY + 104, left: Math.max(12, pageX - locationX) }); };
               const unseen = story ? story.items.some((i) => !s.seen[i.id]) : false;
-              const pic = story ? <View style={{ backgroundColor: C.card, borderRadius: 64, padding: 4 }}><FlowRing size={110} colors={unseen ? [C.orange, C.orange2, '#ffd27a', C.orange2, C.orange] : [C.line]} bg={C.card}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</FlowRing></View>
+              const pic = story ? <View style={{ backgroundColor: C.card, borderRadius: 64, padding: 4 }}><GradRing size={118} ring={4} gap={3} seen={!unseen} bg={C.card}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing></View>
                 : <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><Avatar u={u} size={100} /></View>;
               if (isMe) return <Pressable onPress={openMenu} accessibilityLabel="Your menu">{pic}</Pressable>;
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}

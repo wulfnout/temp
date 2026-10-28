@@ -26,15 +26,15 @@
 @property --spin{syntax:'<angle>';inherits:false;initial-value:0deg}
 :root{
   --bg:#eeedeb; --card:#ffffff; --soft:#f4f3f1; --ink:#0a0a0a; --muted:#7c7671; --line:#e2dfdb;
-  --orange:#ff5500; --orange-2:#ff8a2b; --on-orange:#ffffff; --orange-soft:#ffeadf; --scrim:rgba(10,10,10,.14); --ok:#22c55e;
+  --orange:#ff5500; --orange-2:#ff8a2b; --orange-3:#ffd27a; --on-orange:#ffffff; --orange-soft:#ffeadf; --scrim:rgba(10,10,10,.14); --ok:#22c55e;
   --display:"Unbounded",system-ui,sans-serif; --body:"Figtree",system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#000000; --card:#111111; --soft:#1c1c1c; --ink:#ffffff; --muted:#8d8883; --line:#252525;
-  --orange:#ff5c0a; --orange-2:#ff8f33; --on-orange:#ffffff; --orange-soft:#2a1206; --scrim:rgba(0,0,0,.28); --ok:#22c55e; color-scheme:dark}}
+  --orange:#ff5c0a; --orange-2:#ff8f33; --orange-3:#ffd27a; --on-orange:#ffffff; --orange-soft:#2a1206; --scrim:rgba(0,0,0,.28); --ok:#22c55e; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#000000; --card:#111111; --soft:#1c1c1c; --ink:#ffffff; --muted:#8d8883; --line:#252525;
-  --orange:#ff5c0a; --orange-2:#ff8f33; --on-orange:#ffffff; --orange-soft:#2a1206; --scrim:rgba(0,0,0,.28); --ok:#22c55e; color-scheme:dark}
+  --orange:#ff5c0a; --orange-2:#ff8f33; --orange-3:#ffd27a; --on-orange:#ffffff; --orange-soft:#2a1206; --scrim:rgba(0,0,0,.28); --ok:#22c55e; color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4;
@@ -68,10 +68,10 @@ img,video{max-width:100%;display:block}
 .stories::-webkit-scrollbar{display:none}
 .story{display:grid;justify-items:center;gap:7px;flex:none;width:76px}
 .story > span{font-size:12px;font-weight:600;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
-.orb{width:74px;height:74px;padding:3px;position:relative;display:block;
-  background:var(--orange);animation:morphsoft 7s ease-in-out infinite;border-radius:50%}
+.orb{width:74px;height:74px;padding:3px;position:relative;display:block;border-radius:50%;
+  background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange));animation:spin 3.5s linear infinite}
 @keyframes morphsoft{0%,100%{border-radius:52% 48% 51% 49%/49% 52% 48% 51%}33%{border-radius:48% 52% 49% 51%/52% 48% 51% 49%}66%{border-radius:51% 49% 52% 48%/48% 51% 49% 52%}}
-.orb.seen{background:var(--line);animation:morphsoft 11s ease-in-out infinite}
+.orb.seen{background:var(--line);animation:none}
 .orb > .av{width:100%;height:100%;border-radius:inherit;border:3px solid var(--bg)}
 .orb .add{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:8px;background:var(--orange);color:var(--on-orange);display:grid;place-items:center;border:3px solid var(--bg)}
 .story:nth-child(2n) .orb{animation-delay:-2s,-1s}.story:nth-child(3n) .orb{animation-delay:-4s,-2s}.story:nth-child(5n) .orb{animation-duration:9s,4.5s}
@@ -940,9 +940,9 @@ html.art-only,html.art-only body{background:transparent!important;margin:0;paddi
 .rl-meta{display:inline-flex;align-items:center;gap:5px;font-weight:800;font-size:13px;opacity:.85}
 .rl-join{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(40px + env(safe-area-inset-bottom,0px));padding:14px 34px;font-size:16px}
 /* Blackout (free): every accent turns black — or white when the phone is in dark mode — logo included */
-html.blackout{--orange:#0a0a0a;--orange-2:#3a3a3a;--on-orange:#fff;--orb:#0a0a0a}
-@media (prefers-color-scheme:dark){html.blackout:not([data-theme="light"]){--orange:#fff;--orange-2:#cfcfcf;--on-orange:#000;--orb:#fff}}
-html.blackout[data-theme="dark"]{--orange:#fff;--orange-2:#cfcfcf;--on-orange:#000;--orb:#fff}
+html.blackout{--orange:#0a0a0a;--orange-2:#3a3a3a;--orange-3:#8a8a8a;--on-orange:#fff;--orb:#0a0a0a}
+@media (prefers-color-scheme:dark){html.blackout:not([data-theme="light"]){--orange:#fff;--orange-2:#cfcfcf;--orange-3:#7a7a7a;--on-orange:#000;--orb:#fff}}
+html.blackout[data-theme="dark"]{--orange:#fff;--orange-2:#cfcfcf;--orange-3:#7a7a7a;--on-orange:#000;--orb:#fff}
 html.blackout .btn.orange{color:var(--on-orange);text-shadow:none}
 html.blackout .verified,html.blackout .lifebar span,html.blackout .n-ico,html.blackout .seg .cnt,html.blackout .off,html.blackout .ed-ok,html.blackout .tool-rec,html.blackout .voice.mine,html.blackout .live-mic.on{color:var(--on-orange)!important}
 
@@ -1165,11 +1165,10 @@ html:has(.gl-prev-c){padding-top:0}body:has(.gl-prev-c)::before{display:none}
   filter:blur(.4px);opacity:0;animation:tongue var(--t) cubic-bezier(.3,.2,.6,1) infinite;animation-delay:var(--d)}
 .fire-licks i:not(.hot) b{background:radial-gradient(ellipse 50% 80% at 50% 92%,#ffb347 0%,#ff4a0a 35%,rgba(220,30,0,.85) 65%,rgba(150,10,0,0) 100%);filter:blur(.7px)}
 @keyframes tongue{0%{opacity:0;transform:translateY(25%) scale(.5,.35) skewX(0)}18%{opacity:1}55%{opacity:.95;transform:translateY(-8%) scale(1,1) skewX(var(--sw))}100%{opacity:0;transform:translateY(-42%) scale(.35,.75) skewX(calc(var(--sw)*-2))}}
-.prof-orb{width:104px;height:104px;padding:3px;border:4px solid var(--card);box-sizing:content-box}
-.prof-orb>.av{border-width:3px!important}
-/* the original flowing story ring: theme-colour gradient flowing around a liquid shape */
-.prof-orb.flow{background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),#ffd27a,var(--orange-2),var(--orange));animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite;border-radius:60% 40% 55% 45%/50% 60% 40% 50%}
-.prof-orb.flow.seen{background:var(--line);animation:morph 11s ease-in-out infinite}.prof-orb.flow>.av{border-radius:inherit}.prof-pic{border-radius:50%;display:block}
+.prof-orb{width:110px;height:110px;padding:4px;border:4px solid var(--card);box-sizing:content-box}
+.prof-orb>.av{border-width:3px!important;border-color:var(--card)!important}
+/* the flowing story ring: theme-colour gradient spinning around a round ring */
+.prof-orb.flow>.av{border-radius:50%}
 .n-name{font-weight:800;font-size:inherit;color:inherit;padding:0;display:inline}
 .sv-burn{display:inline-flex;align-items:center;gap:3px;background:rgba(0,0,0,.35);color:#fff;border-radius:15px;padding:5px 9px;font-weight:800;font-size:12px;align-self:center}
 .vt-area{position:absolute;inset:0;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -3308,7 +3307,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
         // the profile picture always has the flowing ring (solid theme colour); grey once you've watched their story
-        const pic=st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${92} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
+        const pic=st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${110} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
         if(isMe){const tap=e=>{const r=e.currentTarget.getBoundingClientRect();open.drawer({top:Math.max(60,Math.min(r.bottom+8,innerHeight-500)),left:Math.max(12,r.left)})};
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
@@ -4255,6 +4254,8 @@ function GoLiveEmbed(){
   return html`<div className="gl-embed"><${GoLivePage} me=${me} startWatch=${sw} onClose=${()=>{try{window.ReactNativeWebView.postMessage('close')}catch(e){}}}/></div>`;
 }
 
+// a paler tone of a theme colour (half way to white), the third colour in story rings
+function paler(h){const n=parseInt(h.slice(1),16);return 'rgb('+[n>>16,n>>8&255,n&255].map(v=>Math.round(v+(255-v)*.5)).join(',')+')'}
 function App(){
   const [s,raw]=useReducer(reducer,null,emptyState);
   const [view,setView]=useState({tab:'home'});
@@ -4309,7 +4310,7 @@ function App(){
   useEffect(()=>{const r=document.documentElement;if(s.settings.theme==='system')delete r.dataset.theme;else r.dataset.theme=s.settings.theme},[s.settings.theme]);
   useEffect(()=>{const t=SHOP.themes.find(x=>x.id===s.theme);const r=document.documentElement.style;
     document.documentElement.classList.toggle('glowing',!!(t&&t.glow));document.documentElement.classList.toggle('blackout',!!(t&&t.mono));
-    if(!t||t.id==='ember'||t.mono){r.removeProperty('--orange');r.removeProperty('--orange-2')}else{r.setProperty('--orange',t.c[0]);r.setProperty('--orange-2',t.c[1])}},[s.theme]);
+    if(!t||t.id==='ember'||t.mono){r.removeProperty('--orange');r.removeProperty('--orange-2');r.removeProperty('--orange-3')}else{r.setProperty('--orange',t.c[0]);r.setProperty('--orange-2',t.c[1]);r.setProperty('--orange-3',paler(t.c[1]))}},[s.theme]);
   useEffect(()=>{if(!s.settings.breakMins)return;const t=setTimeout(()=>setBreakOpen(true),s.settings.breakMins*60e3);return()=>clearTimeout(t)},[s.settings.breakMins,breakOpen]);
 
   const onTyping=useCallback(id=>{const now=Date.now();if(now-lastTyping.current<1500||!liveCh||id==='temp')return;lastTyping.current=now;

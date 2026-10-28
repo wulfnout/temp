@@ -36,8 +36,13 @@ export function useColors(theme, mode) {
   const base = dark ? DARK : LIGHT;
   const t = THEMES[theme] || THEMES.ember;
   // Blackout (free): every accent is black, or white when the phone is in dark mode — logo included
-  if (theme === 'blackout') return { ...base, orange: dark ? '#ffffff' : '#0a0a0a', orange2: dark ? '#cfcfcf' : '#3a3a3a', onOrange: dark ? '#000000' : '#ffffff', dark, glow: false, mono: true };
-  return { ...base, orange: t[0], orange2: t[1], dark, glow: !!GLOW[theme] };
+  if (theme === 'blackout') return { ...base, orange: dark ? '#ffffff' : '#0a0a0a', orange2: dark ? '#cfcfcf' : '#3a3a3a', orange3: dark ? '#7a7a7a' : '#8a8a8a', onOrange: dark ? '#000000' : '#ffffff', dark, glow: false, mono: true };
+  return { ...base, orange: t[0], orange2: t[1], orange3: t === THEMES.ember || !THEMES[theme] ? '#ffd27a' : paler(t[1]), dark, glow: !!GLOW[theme] };
+}
+// a paler tone of a theme colour (half way to white), the third colour in story rings
+function paler(h) {
+  const n = parseInt(h.slice(1), 16);
+  return 'rgb(' + [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(v + (255 - v) * 0.5)).join(',') + ')';
 }
 export const F = { display: 'Unbounded_800ExtraBold', displayB: 'Unbounded_700Bold', body: 'Figtree_500Medium', bold: 'Figtree_700Bold', heavy: 'Figtree_800ExtraBold' };
 

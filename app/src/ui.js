@@ -138,26 +138,36 @@ function Pill({ bg, fg, icon, text }) {
 }
 
 /* morphing, spinning story orb */
-export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
+// the story ring: the theme colour flowing round and round a round ring (same as the website's .orb)
+export function GradRing({ size, ring = 3, gap = 3, seen, bg, children }) {
   const { C } = useApp();
-  const spin = useRef(new Animated.Value(0)).current, breathe = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: seen ? 9000 : 3500, easing: Easing.linear, useNativeDriver: true }));
-    const b = Animated.loop(Animated.sequence([
-      Animated.timing(breathe, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      Animated.timing(breathe, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true })]));
-    a.start(); b.start(); return () => { a.stop(); b.stop(); };
+    if (seen) return;
+    const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 3500, easing: Easing.linear, useNativeDriver: true }));
+    a.start(); return () => a.stop();
   }, [seen]);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const sx = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }), sy = breathe.interpolate({ inputRange: [0, 1], outputRange: [1.01, 0.99] });
+  const pic = size - ring * 2 - gap * 2;
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: seen ? C.line : C.orange,
+      ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
+      {!seen ? <Animated.View style={{ position: 'absolute', width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
+        <LinearGradient colors={[C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ flex: 1 }} />
+      </Animated.View> : null}
+      <View style={{ width: size - ring * 2, height: size - ring * 2, borderRadius: size / 2, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center' }}>
+        {children(pic)}
+      </View>
+    </View>
+  );
+}
+
+export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
+  const { C } = useApp();
   return (
     <Pressable onPress={onPress} accessibilityLabel={label} style={{ width: size + 4, alignItems: 'center', gap: 6 }}>
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: 3.5,
-          borderColor: seen ? C.line : C.orange,
-          ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null),
-          transform: [{ scaleX: sx }, { scaleY: sy }] }} />
-        <Avatar u={{ ...u, ring: null }} size={size - 12} />
+        <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={14} color={C.onOrange} /></Pressable> : null}
       </View>

@@ -836,6 +836,11 @@ img,video{max-width:100%;display:block}
 @keyframes drwin{from{transform:translateX(-100%)}}
 .drw-top{display:flex;align-items:center;gap:10px}.drw-other{opacity:.9}.drw-more{width:34px;height:34px;border-radius:50%;border:1.6px solid var(--ink);display:grid;place-items:center}
 .drw-more .orbs3{gap:3px}.drw-more .orbs3 i{width:4px;height:4px;background:var(--ink);box-shadow:none}
+.drw.pop{background:rgba(0,0,0,.18);animation:fade .15s}
+.drw.pop .drw-p{top:calc(80px + env(safe-area-inset-top,0px));left:16px;bottom:auto;width:min(290px,calc(100vw - 32px));max-height:calc(100dvh - 120px);border-radius:26px;padding:18px 20px 12px;box-shadow:0 18px 50px rgba(0,0,0,.28);animation:dropin .2s cubic-bezier(.2,.9,.3,1);transform-origin:top left;background:var(--card)}
+@keyframes dropin{from{opacity:0;transform:scale(.85) translateY(-8px)}}
+.drw.pop .drw-nav button{font-size:17px;gap:14px;padding:10px 0}.drw.pop .drw-nav button svg{width:22px;height:22px}.drw.pop .drw-nav.sm button{font-size:15px;padding:9px 0}
+.drw.pop .drw-name{font-size:17px;margin-top:8px}.drw.pop .drw-f{margin:8px 0 6px;font-size:14px}.drw.pop .drw-top .av{width:40px!important;height:40px!important}
 .drw-name{font-size:19px;font-weight:800;margin-top:12px}.drw-handle{color:var(--muted);font-size:15px}
 .drw-f{display:flex;gap:18px;margin:12px 0 10px;color:var(--muted);font-size:15px}.drw-f b{color:var(--ink)}
 .drw-nav{display:grid}.drw-nav button{display:flex;align-items:center;gap:20px;padding:14px 0;font-size:21px;font-weight:800;text-align:left}.drw-nav.sm button{font-size:16.5px;font-weight:700;padding:12px 0}
@@ -2784,14 +2789,14 @@ function accRemember(ses,prof){if(!ses||!ses.user)return;const l=accList();const
 async function accSwitch(a){const {error}=await sb.auth.refreshSession({refresh_token:a.rt});if(error){accSave(accList().filter(x=>x.id!==a.id));throw new Error('That account was signed out. Add it again.')}}
 
 /* ---------- side menu (tap your picture) ---------- */
-function Drawer({s,open,onClose,setView,toast}){
+function Drawer({s,open,onClose,setView,toast,at}){
   const me=s.users.me;const following=Object.values(s.users).filter(x=>x.following).length;const [acc,setAcc]=useState(false);const [x,setX]=useState(0);const g=useRef(null);
   const go=f=>{onClose();setTimeout(f,60)};
-  const items=[['user','Profile',()=>open.profile('me')],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['flame','Fire Sale',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
+  const hasStory=s.stories.some(x=>x.userId==='me');
+  const items=[...(hasStory?[['eye','Your story',()=>open.story('me')]]:[]),['user','Profile',()=>open.profile('me')],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['flame','Fire Sale',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
   const others=accList().filter(a=>a.id!==myId);
-  return html`<div className="drw" onClick=${onClose}>
-    <aside className="drw-p" style=${{transform:x<0?'translateX('+x+'px)':undefined}} onClick=${e=>e.stopPropagation()}
-      onPointerDown=${e=>{g.current=e.clientX}} onPointerMove=${e=>{if(g.current!=null)setX(Math.min(0,e.clientX-g.current))}} onPointerUp=${()=>{g.current=null;if(x<-90)onClose();setX(0)}}>
+  return html`<div className="drw pop" onClick=${onClose}>
+    <aside className="drw-p" style=${{top:at?at.top:undefined,left:at?at.left:undefined}} onClick=${e=>e.stopPropagation()}>
       <div className="drw-top"><button onClick=${()=>go(()=>open.profile('me'))} aria-label="Your profile"><${Avatar} u=${me} size=${46}/></button>
         <span style=${{flex:1}}></span>
         ${others.slice(0,1).map(a=>html`<button key=${a.id} className="drw-other" aria-label=${'Switch to @'+a.handle} onClick=${async()=>{try{onClose();await accSwitch(a)}catch(e){toast(e.message)}}}><${Avatar} u=${{name:a.name,avatar:a.avatar,color:a.color||'#ff5500'}} size=${30}/></button>`)}
@@ -3272,7 +3277,10 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${back&&html`<button className="header-btn l" onClick=${back} aria-label="Back"><${Icon} n="back" s=${20}/></button>`}
         ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${20}/></button>`}
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
-      <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);if(!st)return html`<${Avatar} u=${u} size=${96}/>`;const un=st.items.some(i=>!s.seen[i.id]);
+      <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);
+        if(isMe){const tap=e=>{const r=e.currentTarget.getBoundingClientRect();open.drawer({top:Math.max(60,Math.min(r.bottom+8,innerHeight-500)),left:Math.max(12,r.left)})};
+          return st?html`<button className=${'orb prof-orb'+(st.items.some(i=>!s.seen[i.id])?'':' seen')} onClick=${tap} aria-label="Your menu"><${Avatar} u=${u} size=${96} noRing=${true}/></button>`:html`<button onClick=${tap} aria-label="Your menu" style=${{borderRadius:'50%'}}><${Avatar} u=${u} size=${96}/></button>`}
+        if(!st)return html`<${Avatar} u=${u} size=${96}/>`;const un=st.items.some(i=>!s.seen[i.id]);
         return html`<button className=${'orb prof-orb'+(un?'':' seen')} onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${96} noRing=${true}/></button>`})()}
         <div className="prof-btns">
           ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${16} w=${2.2}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
@@ -4279,7 +4287,7 @@ function App(){
     terms:()=>window.open('/terms.html','_blank'),
     earnings:()=>{setSetSub('earnings');setView({tab:'settings'})},
     settingsSub:k=>setSetSub(k),
-    drawer:()=>setDrawer(true),
+    drawer:at=>setDrawer(at||true),
     plus:()=>setView({tab:'plus'}),
   };
   const guard=fn=>(...a)=>{if(tour!==null)return;fn(...a)};
@@ -4316,7 +4324,6 @@ function App(){
   if(view.tab==='home'){
     body=html`<${Home} s=${s} dispatch=${dispatch} open=${openSafe} tourIds=${tourIds} addStory=${addStory}/>`;
     top=html`<div className="top"><div className="top-row">
-        <button className="me-btn" aria-label="Open menu" onClick=${guard(()=>setDrawer(true))}><${Avatar} u=${s.users.me} size=${34} noRing=${true}/></button>
         <h1 className="logo"><button className="logo-btn" aria-label="Temp home — back to the top" onClick=${()=>{setView({tab:'home'});scrollTo({top:0,behavior:'smooth'})}}>temp<i></i></button></h1>
         <div className="top-actions">
           <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${Icon} n="heart"/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
@@ -4364,7 +4371,7 @@ function App(){
     <${BarsOnScroll} on=${view.tab==='home'}/>
     ${top}
     ${body}
-    ${drawer&&html`<${Drawer} s=${s} open=${open} setView=${setView} onClose=${()=>setDrawer(false)} toast=${m=>raw({type:'toast',msg:m})}/>`}
+    ${drawer&&html`<${Drawer} s=${s} open=${open} at=${typeof drawer==='object'?drawer:null} setView=${setView} onClose=${()=>setDrawer(false)} toast=${m=>raw({type:'toast',msg:m})}/>`}
 
     ${view.tab==='home'&&html`<button className=${'gl-peek'+(peek?' show':'')} onClick=${()=>{setPeek(false);setSide(true)}} aria-label="Open Go Live"><b>GO LIVE</b></button>`}
     <div className=${'gl-side'+(side?' open':'')+(mini?' mini':'')} aria-hidden=${!side} onClickCapture=${e=>{if(mini){e.stopPropagation();e.preventDefault();setMini(false)}}} onTouchStart=${e=>{if(mini)return;const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${mini&&html`<button className="gl-mini-x" aria-label="Close live" onClickCapture=${e=>{e.stopPropagation();setMini(false);setSide(false);setSideWatch(null)}}><${Icon} n="x" s=${16}/></button>`}${side&&html`<${GoLivePage} key=${sideWatch||'lobby'} me=${myId} startWatch=${sideWatch} onClose=${()=>{setSide(false);setSideWatch(null)}}/>`}</div>

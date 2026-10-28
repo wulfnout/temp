@@ -866,6 +866,15 @@ img,video{max-width:100%;display:block}
 .post-replies{margin-top:6px}.pr-head{display:flex;align-items:baseline;justify-content:space-between;padding:8px 0}.pr-head b{font-size:16px}
 .reply-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;border-radius:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));gap:8px}
 .reply-bar input{background:var(--card);border-radius:999px;padding:11px 16px}
+.fullv-top{gap:10px}
+.xv-bottom{position:absolute;left:0;right:0;bottom:0;padding:60px 16px max(12px,env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.75) 40%);color:#fff;display:grid;gap:10px}
+.xv-who{display:flex;align-items:center;gap:10px}.xv-id{display:grid;text-align:left;min-width:0;flex:1}.xv-id b{font-size:16px;display:flex;align-items:center;gap:4px}.xv-id span{opacity:.75;font-size:14px}
+.xv-follow{background:rgba(255,255,255,.18);color:#fff;font-weight:800;padding:9px 18px;border-radius:999px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.xv-cap{margin:0;font-size:15.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.xv-acts{display:flex;gap:8px}.xv-acts button{display:flex;align-items:center;justify-content:center;gap:7px;flex:1;height:46px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-weight:700;font-size:15px}.xv-acts button.sq{flex:0 0 46px}.xv-acts button.on{color:var(--orange)}
+.xv-seek{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:linear-gradient(90deg,#fff var(--p),rgba(255,255,255,.3) var(--p));margin:6px 0 0}
+.xv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff}.xv-seek::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff}
+.xv-ctl{display:flex;align-items:center;gap:14px}.xv-ctl button{color:#fff;display:grid;place-items:center;min-width:32px;height:36px}.xv-time{font-variant-numeric:tabular-nums;opacity:.8;font-size:15px}.xv-speed{font-weight:800;font-size:18px}
 .set-search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px;margin:4px 0 10px;color:var(--muted)}.set-search input{flex:1;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-width:0;outline:none}
 .set-list{display:grid}.set-row{display:flex;align-items:center;gap:16px;padding:16px 6px;text-align:left;width:100%;border-bottom:1px solid var(--line)}.set-row:last-child{border-bottom:0}
 .sr-ico{flex:none;width:28px;display:grid;place-items:center;color:var(--ink)}.sr-t{flex:1;min-width:0;display:grid;gap:3px}.sr-t b{font-size:16.5px;font-weight:800}.sr-t span{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1883,8 +1892,8 @@ function useVidTaps(getV,{onSingle,onCenterDouble}={}){
     ${flash&&html`<span className=${'vt-seek '+flash.side}><b>${flash.side==='L'?'−':'+'}${flash.n}s</b></span>`}`;
   return {handlers:{onPointerDown:down,onPointerUp:up,onPointerCancel:cancel,onPointerLeave:cancel,onContextMenu:e=>e.preventDefault()},overlay};
 }
-function FullVideo({url,at,onClose,p,s,dispatch}){
-  const v=useRef();const [landPick,setLand]=useState(false);const [panel,setPanel]=useState(0);const [txt,setTxt]=useState('');const [dy,setDy]=useState(0);const sw=useRef(null);
+function FullVideo({url,at,onClose,p,s,dispatch,open}){
+  const v=useRef();const [rate,setRate]=useState(1);const [landPick,setLand]=useState(false);const [panel,setPanel]=useState(0);const [txt,setTxt]=useState('');const [dy,setDy]=useState(0);const sw=useRef(null);
   const land=landPick&&!panel;const [ui,setUi]=useState(true);const [paused,setPaused]=useState(false);const [muted,setMuted]=useState(false);const [t,setT]=useState(at||0);const [dur,setDur]=useState(0);
   useEffect(()=>{const el=v.current;if(!el)return;el.currentTime=at||0;el.muted=false;el.play().catch(()=>{el.muted=true;setMuted(true);el.play().catch(()=>{})})},[]);
   useEffect(()=>{const el=v.current;if(el){paused?el.pause():el.play().catch(()=>{})}},[paused]);
@@ -1906,19 +1915,38 @@ function FullVideo({url,at,onClose,p,s,dispatch}){
         <span className="fp-stat"><${Icon} n="flame" s=${15} fill="#ff5500"/>${p?p.heat:0}</span><button className="fp-stat" onClick=${()=>setPanel(2)}><${Icon} n="comment" s=${15}/>${cs.length}</button></div>
       ${panel===2&&html`<b className="fp-label">COMMENTS</b>`}${panel===2&&html`<div className="fp-list">${cs.length?cs.map(c=>{const cu=s.users[c.userId]||{};return html`<div className="fp-c" key=${c.id}><${Avatar} u=${cu} size=${26}/><div><b>${cu.handle}</b> <span>${ago(s.now-c.at)}</span>${c.sticker?html`<${Sticker} v=${c.sticker} size=${40}/>`:html`<p>${c.text}</p>`}</div></div>`}):html`<p className="fp-empty">${frozen?'Comments are off while frozen':'No comments yet'}</p>`}</div>`}
       ${!frozen&&html`<div className="fp-input"><input placeholder="Add a comment…" maxLength=${280} value=${txt} onInput=${e=>setTxt(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&send()} aria-label="Add a comment"/>${txt.trim()&&html`<button onClick=${send} aria-label="Post comment"><${Icon} n="share" s=${16}/></button>`}</div>`}
-    </div>`:ui&&html`<span className="fp-hint" aria-hidden="true">⌃</span>`}
+    </div>`:null}
     <div className=${'fullv-box'+(land?' land':'')}>
     <div className="vt-area" data-rot=${land?'1':'0'} ...${g.handlers}></div>${g.overlay}
     <video ref=${v} src=${url} playsInline loop onTimeUpdate=${e=>{setT(e.target.currentTime);setDur(e.target.duration||0)}}></video>
     ${ui&&html`<div className="fullv-ui" onClick=${stop}>
-      <div className="fullv-top"><button onClick=${close} aria-label="Close"><${Icon} n="x" s=${22}/></button><button onClick=${()=>setLand(!land)} aria-label=${land?'Turn upright':'Turn sideways'}><${Icon} n="replay" s=${20}/></button></div>
-      <button className="fullv-play" onClick=${()=>setPaused(!paused)} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${30} fill=${paused?'#fff':null}/></button>
-      ${!panel&&p&&html`<div className="fullv-cap"><b>@${(s.users[p.userId]||{}).handle}</b>${p.text&&html`<p>${p.text}</p>`}</div>`}
-      <div className="fullv-bar"><b>${fmt(t)}</b><input type="range" min="0" max=${dur||1} step="0.1" value=${t} aria-label="Seek" onInput=${e=>{const x=+e.target.value;if(v.current)v.current.currentTime=x;setT(x)}}/><b>${fmt(dur)}</b>
-        <button onClick=${()=>setMuted(!muted)} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${20}/></button></div></div>`}
+      <div className="fullv-top"><button onClick=${close} aria-label="Back"><${Icon} n="back" s=${22}/></button><span style=${{flex:1}}></span>
+        <button onClick=${()=>setLand(!land)} aria-label=${land?'Turn upright':'Turn sideways'}><${Icon} n="replay" s=${19}/></button>
+        ${p&&open&&html`<button onClick=${()=>{close();setTimeout(()=>open.menu(p.id),60)}} aria-label="More"><${Icon} n="more" s=${20}/></button>`}</div>
+      ${paused&&html`<button className="fullv-play" onClick=${()=>setPaused(false)} aria-label="Play"><${Icon} n="play" s=${30} fill="#fff"/></button>`}
+      ${!panel&&html`<div className="xv-bottom">
+        ${p&&html`<div className="xv-who"><button onClick=${()=>{if(open){close();open.profile(u.id)}}}><${Avatar} u=${u} size=${40}/></button>
+          <button className="xv-id" onClick=${()=>{if(open){close();open.profile(u.id)}}}><b>${u.name||u.handle}<${Check} u=${u}/></b><span>@${u.handle}</span></button>
+          ${p.userId!=='me'&&!u.following&&html`<button className="xv-follow" onClick=${()=>dispatch({type:'follow',id:u.id})}>Follow</button>`}</div>
+        ${p.text&&html`<p className="xv-cap" onClick=${()=>setPanel(1)}>${p.text}</p>`}
+        <div className="xv-acts">
+          <button onClick=${()=>setPanel(2)} aria-label="Comments"><${Icon} n="comment" s=${20}/>${cs.length||''}</button>
+          ${open&&html`<button className=${p.myRepost?'on':''} onClick=${()=>open.reflame(p.id)} aria-label="Reflame"><${Icon} n="reflame" s=${20}/>${p.reposts||''}</button>`}
+          <button className=${p.myHeat?'on':''} onClick=${()=>dispatch({type:'heat',id:p.id})} aria-label="Heat"><${Icon} n="flame" s=${20} fill=${p.myHeat?'currentColor':null}/>${kfmt(p.heat||0)}</button>
+          <button className=${'sq'+(p.saved?' on':'')} onClick=${()=>dispatch({type:'save',id:p.id})} aria-label="Save"><${Icon} n="save" s=${20} fill=${p.saved?'currentColor':null}/></button>
+          ${open&&html`<button className="sq" onClick=${()=>open.share(p.id)} aria-label="Share"><${Icon} n="share" s=${19}/></button>`}</div>`}
+        <input className="xv-seek" type="range" min="0" max=${dur||1} step="0.05" value=${t} aria-label="Seek" style=${{'--p':(dur?t/dur*100:0)+'%'}} onInput=${e=>{const x=+e.target.value;if(v.current)v.current.currentTime=x;setT(x)}}/>
+        <div className="xv-ctl">
+          <button onClick=${()=>setPaused(!paused)} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${24} fill=${paused?'#fff':null}/></button>
+          <span className="xv-time">-${fmt(Math.max(0,dur-t))}</span><span style=${{flex:1}}></span>
+          <button className="xv-speed" onClick=${()=>{const r=[1,1.5,2,0.5];const nx=r[(r.indexOf(rate)+1)%r.length];setRate(nx);if(v.current)v.current.playbackRate=nx}} aria-label="Playback speed">${rate}x</button>
+          <button onClick=${()=>setMuted(!muted)} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${22}/></button>
+          <button onClick=${()=>{const el=v.current;try{if(el&&el.webkitEnterFullscreen)el.webkitEnterFullscreen();else if(el&&el.requestFullscreen)el.requestFullscreen()}catch(e){}}} aria-label="Full screen"><${Icon} n="expand" s=${21}/></button>
+          ${typeof document!=='undefined'&&(document.pictureInPictureEnabled||(v.current&&v.current.webkitSupportsPresentationMode))&&html`<button onClick=${()=>{const el=v.current;try{if(el.requestPictureInPicture)el.requestPictureInPicture();else el.webkitSetPresentationMode('picture-in-picture')}catch(e){}}} aria-label="Picture in picture"><${Icon} n="pip" s=${21}/></button>`}
+        </div></div>`}</div>`}
   </div></div>`;
 }
-function FeedVideo({url,auto,p,s,dispatch}){
+function FeedVideo({url,auto,p,s,dispatch,open}){
   const v=useRef();const [muted,setMuted]=useState(true);const [paused,setPaused]=useState(!auto);const [left,setLeft]=useState(null);const [seen,setSeen]=useState(false);
   useEffect(()=>{const el=v.current;if(!el)return;const io=new IntersectionObserver(([e])=>setSeen(e.isIntersecting&&e.intersectionRatio>=.5),{threshold:[0,.5,1]});io.observe(el);return()=>io.disconnect()},[]);
   useEffect(()=>{const el=v.current;if(!el)return;if(seen&&!paused)el.play().catch(()=>{});else el.pause()},[seen,paused]);
@@ -1927,7 +1955,7 @@ function FeedVideo({url,auto,p,s,dispatch}){
   const stop=e=>e.stopPropagation();const [full,setFull]=useState(null);const tp=useRef({t:0,k:null});
   useEffect(()=>{if(full&&v.current)v.current.pause();else if(!full&&seen&&!paused&&v.current)v.current.play().catch(()=>{})},[full]);
   const tap=e=>{if(e&&e.nativeEvent&&e.nativeEvent.pointerType==='mouse'||e&&e.detail&&!('ontouchstart' in window)){setFull({at:v.current?v.current.currentTime:0});return}const now=Date.now();clearTimeout(tp.current.k);if(now-tp.current.t<300){tp.current.t=0;return}tp.current.t=now;tp.current.k=setTimeout(()=>setFull({at:v.current?v.current.currentTime:0}),300)};
-  return html`<div className="fv" onClick=${tap}>${full&&ReactDOM.createPortal(html`<${FullVideo} url=${url} at=${full.at} p=${p} s=${s} dispatch=${dispatch} onClose=${at=>{setFull(null);if(v.current&&at!=null)v.current.currentTime=at}}/>`,document.body)}<video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
+  return html`<div className="fv" onClick=${tap}>${full&&ReactDOM.createPortal(html`<${FullVideo} url=${url} at=${full.at} p=${p} s=${s} dispatch=${dispatch} open=${open} onClose=${at=>{setFull(null);if(v.current&&at!=null)v.current.currentTime=at}}/>`,document.body)}<video ref=${v} src=${url} playsInline muted loop preload="metadata" onTimeUpdate=${e=>{const d=e.target.duration;if(d)setLeft(d-e.target.currentTime)}} onLoadedMetadata=${e=>setLeft(e.target.duration)}></video>
     ${left!=null&&isFinite(left)&&html`<span className="fv-time">${fmt(left)}</span>`}
     <div className="fv-btns" onDoubleClick=${stop} onClick=${stop}><button onClick=${e=>{stop(e);setPaused(!paused)}} aria-label=${paused?'Play':'Pause'}><${Icon} n=${paused?'play':'pause'} s=${14} fill=${paused?'#fff':null}/></button>
       <button onClick=${e=>{stop(e);setMuted(!muted)}} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${15}/></button></div>
@@ -1939,7 +1967,7 @@ function PostPage({p,s,dispatch,open}){
   useEffect(()=>{if(!s.viewed[p.id])dispatch({type:'view',id:p.id})},[]);
   const cs=p.comments.filter(c=>cvis(s,c)==='show');
   return html`<div className="pp">
-    ${p.media&&p.media.type==='video'&&html`<div className="pp-media"><${FeedVideo} url=${p.media.url} auto=${true} p=${p} s=${s} dispatch=${dispatch} big=${true}/></div>`}
+    ${p.media&&p.media.type==='video'&&html`<div className="pp-media"><${FeedVideo} url=${p.media.url} auto=${true} p=${p} s=${s} dispatch=${dispatch} open=${open} big=${true}/></div>`}
     <div className="pp-head"><button onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${48}/></button>
       <button className="p-id" onClick=${()=>open.profile(u.id)}><span className="p-name">${u.name}<${Check} u=${u}/></span><span className="p-sub">@${u.handle}</span></button>
       <span style=${{flex:1}}></span><${Timer} p=${p} now=${s.now}/><button className="p-more" aria-label="Post options" onClick=${()=>open.menu(p.id)}><${Icon} n="more" s=${20}/></button></div>
@@ -2007,7 +2035,7 @@ function Post({p,s,dispatch,open}){
         ${p.text&&html`<p className=${'p-text'+(!p.media&&!p.quoteOf&&p.text.length<90?' big':'')} onClick=${()=>open.post&&open.post(p.id)} style=${{cursor:'pointer'}}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
         ${p.quoteOf&&html`<${QuoteCard} id=${p.quoteOf} s=${s} open=${open}/>`}
         ${p.media&&html`<div className="media" onDoubleClick=${dbl}>
-            ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver} p=${p} s=${s} dispatch=${dispatch}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
+            ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
             ${p.media.gif&&html`<span className="gif-tag">GIF</span>`}
             ${burst>0&&Date.now()-burst<950&&html`<div className="burst" key=${burst}><svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P.flame}}></svg></div>`}
           </div>`}

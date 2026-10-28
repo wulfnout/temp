@@ -843,6 +843,8 @@ img,video{max-width:100%;display:block}
 .acc-row{display:flex;align-items:center;gap:12px;width:100%;padding:10px 4px;text-align:left}.acc-row .sub{display:block}
 .acc-on{width:26px;height:26px;border-radius:50%;background:var(--orange);color:var(--on-orange);display:grid;place-items:center}
 .acc-add{color:var(--orange);font-weight:700;font-size:16px;padding:14px 4px}
+.a-agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;line-height:1.4;color:var(--muted)}.a-agree input{width:20px;height:20px;flex:none;accent-color:var(--orange);margin-top:1px}.a-agree a{color:var(--orange);font-weight:700}
+.terms-frame{width:100%;height:46vh;border:0;border-radius:16px;background:var(--card)}
 .set-search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px;margin:4px 0 10px;color:var(--muted)}.set-search input{flex:1;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-width:0;outline:none}
 .set-list{display:grid}.set-row{display:flex;align-items:center;gap:16px;padding:16px 6px;text-align:left;width:100%;border-bottom:1px solid var(--line)}.set-row:last-child{border-bottom:0}
 .sr-ico{flex:none;width:28px;display:grid;place-items:center;color:var(--ink)}.sr-t{flex:1;min-width:0;display:grid;gap:3px}.sr-t b{font-size:16.5px;font-weight:800}.sr-t span{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1379,6 +1381,7 @@ const DEFAULT_SETTINGS={theme:'system',private:false,activity:true,receipts:true
 
 /* ================= live backend ================= */
 // ?embed=live is the Live Takes page the app shows in its Live tab; the app hands over its sign-in token
+const IN_APP=!!window.TEMP_APP||/[?&]app=/.test(location.search);if(IN_APP)document.documentElement.classList.add('in-app');
 const EMBED_KIND=new URLSearchParams(location.search).get('embed');const EMBED=EMBED_KIND==='live'||EMBED_KIND==='golive';
 let EMBED_TOKEN=EMBED?decodeURIComponent((location.hash.match(/t=([^&]+)/)||[])[1]||''):'';
 if(EMBED)history.replaceState(null,'',location.pathname+location.search);
@@ -3177,7 +3180,7 @@ function PwField({id,label,value,onChange,auto}){
 function Splash(){return html`<div className="welcome"><div className="welcome-in" style=${{justifyContent:'center'}}><div className="w-hero" style=${{paddingTop:0}}><h1 className="w-mark">temp<i></i></h1><div className="w-orbs"><span></span><span></span><span></span></div></div></div></div>`}
 function Auth(){
   const [mode,setMode]=useState('signup');
-  const [f,setF]=useState({name:'',handle:'',email:'',pw:'',birth:''});
+  const [f,setF]=useState({name:'',handle:'',email:'',pw:'',birth:'',agree:false});
   const [err,setErr]=useState('');const [note,setNote]=useState('');const [busy,setBusy]=useState(false);
   const up=(k,v)=>{setF({...f,[k]:v});setErr('')};
   const go=m=>{setMode(m);setErr('');setNote('')};
@@ -3195,9 +3198,10 @@ function Auth(){
         if(!f.birth)return setErr('Enter your birthday.');
         const age=(Date.now()-new Date(f.birth))/31557600000;if(!(age>=13))return setErr('You need to be 13 or older to use Temp.');
         if(f.pw.length<8)return setErr('Passwords need at least 8 characters.');
+        if(!f.agree)return setErr('Read and agree to the User Agreement to create your account.');
         const {data:free,error:e1}=await sb.rpc('handle_available',{h:handle});if(e1)throw e1;
         if(!free)return setErr(`@${handle} is taken. Try another.`);
-        const {data,error}=await sb.auth.signUp({email,password:f.pw,options:{data:{name:f.name.trim(),handle,birth:f.birth},emailRedirectTo:location.origin+location.pathname}});
+        const {data,error}=await sb.auth.signUp({email,password:f.pw,options:{data:{name:f.name.trim(),handle,birth:f.birth,terms_version:TERMS_V,terms_at:new Date().toISOString()},emailRedirectTo:location.origin+location.pathname}});
         if(error){if(/registered|exists/i.test(error.message))return setErr('That email already has an account. Sign in instead.');if(/database error/i.test(error.message))return setErr('Couldn’t create that account. Try a different username.');throw error}
         if(!data.session){setMode('signin');setNote(`Check ${email} for a link to confirm your account, then sign in.`)}
       } else if(mode==='signin'){
@@ -3224,12 +3228,28 @@ function Auth(){
       <div className="field"><label htmlFor="a-email">Email</label><input id="a-email" type="email" autoComplete="email" autoCapitalize="none" value=${f.email} onChange=${e=>up('email',e.target.value)}/></div>
       ${mode==='signup'&&html`<div className="field"><label htmlFor="a-birth">Birthday</label><input id="a-birth" type="date" autoComplete="bday" value=${f.birth} onChange=${e=>up('birth',e.target.value)}/></div>`}
       ${mode!=='forgot'&&html`<${PwField} id="a-pw" label="Password" auto=${mode==='signup'?'new-password':'current-password'} value=${f.pw} onChange=${v=>up('pw',v)}/>`}
+      ${mode==='signup'&&html`<label className="a-agree"><input type="checkbox" checked=${f.agree} onChange=${e=>up('agree',e.target.checked)}/><span>I'm at least 13 and I agree to the <a href="/terms.html" target="_blank" rel="noopener">User Agreement</a>, including the Community Rules.</span></label>`}
       ${mode==='signin'&&html`<button type="button" className="a-link" onClick=${()=>go('forgot')}>Forgot password?</button>`}
       ${err&&html`<p className="a-err" role="alert">${err}</p>`}
       ${note&&html`<p className="a-note" role="status">${note}</p>`}
       <button type="submit" className="btn orange wide" disabled=${busy} style=${{marginTop:18}}>${busy?'One sec…':mode==='signup'?'Create account':mode==='signin'?'Sign in':'Send reset link'}</button>
       ${mode==='forgot'&&html`<button type="button" className="a-link" style=${{justifySelf:'center',marginTop:10}} onClick=${()=>go('signin')}>Back to sign in</button>`}
     </form>
+  </div></div>`;
+}
+const TERMS_V='2026-10-28';
+function TermsGate({onDone}){
+  const [ok,setOk]=useState(false);const [busy,setBusy]=useState(false);const [err,setErr]=useState('');
+  async function accept(){setBusy(true);const {error}=await sb.auth.updateUser({data:{terms_version:TERMS_V,terms_at:new Date().toISOString()}});setBusy(false);if(error)return setErr(friendly(error));onDone()}
+  return html`<div className="welcome"><div className="welcome-in">
+    <div className="w-hero"><h1 className="w-mark">temp<i></i></h1></div>
+    <div className="w-form"><h2 className="top-title" style=${{fontSize:22,margin:'0 0 4px'}}>User Agreement</h2>
+      <p className="sub" style=${{margin:'0 0 10px'}}>Before you keep going, read and accept Temp's User Agreement and Community Rules.</p>
+      <iframe className="terms-frame" src="/terms.html" title="User Agreement"></iframe>
+      <label className="a-agree"><input type="checkbox" checked=${ok} onChange=${e=>setOk(e.target.checked)}/><span>I'm at least 13 and I agree to the User Agreement.</span></label>
+      ${err&&html`<p className="a-err" role="alert">${err}</p>`}
+      <button className="btn orange wide" disabled=${!ok||busy} style=${{marginTop:14}} onClick=${accept}>${busy?'One sec…':'Agree and continue'}</button>
+      <button className="a-link" style=${{justifySelf:'center',marginTop:10}} onClick=${()=>sb.auth.signOut({scope:'local'})}>Log out</button></div>
   </div></div>`;
 }
 function NewPassword({onDone}){
@@ -4043,6 +4063,7 @@ function App(){
     compose:reel=>setSheet({kind:'compose',reel}),
     record:m=>setSheet({kind:'record',mode:m||'replay'}),
     shop:()=>setView({tab:'shop'}),
+    terms:()=>window.open('/terms.html','_blank'),
     earnings:()=>{setSetSub('earnings');setView({tab:'settings'})},
     settingsSub:k=>setSetSub(k),
     drawer:()=>setDrawer(true),
@@ -4060,11 +4081,19 @@ function App(){
   const [side,setSide]=useState(false);const [peek,setPeek]=useState(false);const [sideWatch,setSideWatch]=useState(null);
   useEffect(()=>{window.__openLive=id=>{setSideWatch(id);setSide(true)};return()=>{window.__openLive=null}},[]);
   useEffect(()=>{window.__openGoLive=view.tab==='home'?()=>setSide(true):null;return()=>{window.__openGoLive=null}},[view.tab]);
+  // inside the Temp phone app: Android back button, status bar colour, and refreshing when the app comes back
+  const backRef=useRef();backRef.current=()=>{
+    if(drawer){setDrawer(false);return true}if(storyUser){setStoryUser(null);return true}if(sheet){setSheet(null);return true}if(side){setSide(false);return true}
+    if(view.tab==='settings'&&setSub){setSetSub(null);return true}if(view.tab==='thread'){setView({tab:'dms'});return true}if(view.tab==='post'){setView({tab:'activity'});return true}
+    if(view.tab!=='home'){setView({tab:'home'});return true}return false};
+  useEffect(()=>{window.__tempBack=()=>backRef.current();const r=()=>{if(myId)reload()};const f=e=>{if(e.detail==='active')r()};addEventListener('temp-app-state',f);return()=>removeEventListener('temp-app-state',f)},[]);
+  useEffect(()=>{if(!window.tempNative)return;const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;window.tempNative({type:'theme',dark})},[s.settings.theme,ready]);
   useEffect(()=>{if(view.tab!=='home'||side)return;let t,h;const plan=()=>{t=setTimeout(()=>{if(Math.random()<.4){setPeek(true);h=setTimeout(()=>setPeek(false),2600)}plan()},(90+Math.random()*330)*1000)};plan();
     return()=>{clearTimeout(t);clearTimeout(h);setPeek(false)}},[view.tab,side]);
   if(session===undefined)return html`<${Splash}/>`;
   if(recovery)return html`<${NewPassword} onDone=${()=>setRecovery(false)}/>`;
   if(!session)return html`<${Auth}/>`;
+  if(((session.user||{}).user_metadata||{}).terms_version!==TERMS_V)return html`<${TermsGate} onDone=${()=>sb.auth.refreshSession()}/>`;
   if(!ready)return html`<${Splash}/>`;
 
   const backBtn=fn=>html`<button className="circle" onClick=${fn} aria-label="Back"><${Icon} n="back"/></button>`;

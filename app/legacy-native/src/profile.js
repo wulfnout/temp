@@ -119,9 +119,11 @@ function EditProfile({ onClose }) {
 }
 
 /* ---------------- settings ---------------- */
-export function SettingsScreen() {
+export function SettingsScreen({ start }) {
   const { s, C, nav, run } = useApp(); const me = s.users[s.me] || {}; const st = s.priv.settings || {};
+  const [sub, setSub] = useState(start || null); const [q, setQ] = useState(''); const [editing, setEditing] = useState(false);
   const setSetting = (k, v) => run(() => act.settings(s.me, { ...st, [k]: v }));
+  const notif = st.notif || {}; const setNotif = (k, v) => setSetting('notif', { ...notif, [k]: v });
   const Group = ({ children }) => <FlowBox r={24} style={{ backgroundColor: C.card, overflow: 'hidden', marginTop: 12 }}>{children}</FlowBox>;
   const Item = ({ icon, label, val, onPress, right, warn }) => (
     <Pressable onPress={onPress} disabled={!onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 56, borderTopWidth: 1, borderTopColor: C.line, marginTop: -1 }}>
@@ -129,30 +131,68 @@ export function SettingsScreen() {
       <T h style={{ flex: 1, color: warn ? C.orange : C.ink }}>{label}</T>{val ? <T b muted>{val}</T> : null}
       {right ? <View style={{ alignSelf: 'stretch', justifyContent: 'center' }}>{right}</View> : null}
       {onPress && !right ? <Ionicons name="chevron-forward" size={18} color={C.muted} /> : null}</Pressable>);
+  const Sw = ({ v, on }) => <Switch value={!!v} onValueChange={on} trackColor={{ true: C.orange }} />;
   const dmFrom = st.dmFrom || 'everyone'; const dmNext = { everyone: 'following', following: 'none', none: 'everyone' }; const dmLabel = { everyone: 'Everyone', following: 'People you follow', none: 'No one' };
+  const titles = { account: 'Your account', notifications: 'Notifications', privacy: 'Privacy and safety', display: 'Display and languages', help: 'Help Center' };
+  const page = (children) => (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Header title={titles[sub]} back onBack={() => setSub(null)} />
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>{children}</ScrollView>
+    </View>);
+  if (sub === 'account') return page(<>
+    {editing ? <EditProfile onClose={() => setEditing(false)} /> : null}
+    <Group><Item icon="person-outline" label="Edit profile" onPress={() => setEditing(true)} />
+      <Item icon="bookmark-outline" label="Saved" onPress={() => nav.push('profile', { id: s.me, tab: 'saved' })} /></Group>
+    <Group>
+      <Item icon="log-out-outline" label="Log out" onPress={() => Alert.alert('Log out of Temp?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Log out', onPress: () => sb.auth.signOut() }])} />
+      <Item icon="trash-outline" label="Delete account" warn onPress={() => Alert.alert('Delete your account?', 'This removes your profile and everything you posted. It can’t be undone.', [
+        { text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => run(async () => { const { error } = await sb.rpc('delete_me'); if (error) throw error; await sb.auth.signOut(); }) }])} />
+    </Group></>);
+  if (sub === 'notifications') return page(<>
+    <Group><Item icon="notifications-off-outline" label="Pause all" right={<Sw v={notif.pause} on={(v) => setNotif('pause', v)} />} /></Group>
+    <Group>{[['heat', 'flame-outline', 'Heat on your posts'], ['freeze', 'snow-outline', 'Freezes on your posts'], ['comments', 'chatbubble-outline', 'Comments and replies'], ['likes', 'heart-outline', 'Likes on your comments'], ['follows', 'person-add-outline', 'New followers'], ['messages', 'paper-plane-outline', 'Messages']].map(([k, ic, l]) =>
+      <Item key={k} icon={ic} label={l} right={<Sw v={notif[k] !== false} on={(v) => setNotif(k, v)} />} />)}</Group></>);
+  if (sub === 'privacy') return page(<Group>
+    <Item icon="lock-closed-outline" label="Private account" right={<Sw v={me.isPrivate} on={(v) => run(() => act.profile(s.me, { isPrivate: v }))} />} />
+    <Item icon="chatbubbles-outline" label="Who can message you" val={dmLabel[dmFrom]} onPress={() => setSetting('dmFrom', dmNext[dmFrom])} />
+    <Item icon="eye-off-outline" label="Hide counts" right={<Sw v={st.hideCounts} on={(v) => setSetting('hideCounts', v)} />} />
+  </Group>);
+  if (sub === 'display') return page(<Group>
+    <Item icon="contrast-outline" label="Theme" val={{ system: 'Match phone', light: 'Light', dark: 'Dark' }[st.theme || 'system']} onPress={() => setSetting('theme', { system: 'light', light: 'dark', dark: 'system' }[st.theme || 'system'])} />
+  </Group>);
+  if (sub === 'help') return page(<Group>
+    <Item icon="document-text-outline" label="User agreement" onPress={() => nav.push('terms')} />
+    <Item icon="flag-outline" label="Report a problem" onPress={() => nav.toast('Report sent')} />
+    <Item icon="information-circle-outline" label="About" val="Temp 1.0" />
+  </Group>);
+  // X-style main list: icon, bold title, one-line description, chevron, with a search box
+  const rows = [
+    ['account', 'person-outline', 'Your account', 'Edit your profile and saved posts, or log out and delete your account.', 'edit profile saved log out delete'],
+    ['earnings', 'sparkles-outline', 'Creator Studio', 'See the Sparks you’ve earned from gifts, your history, and cash out.', 'earnings cash out sparks gifts payout'],
+    ['shop', 'flame-outline', 'Fire Sale and Temp+', 'Spend your ' + kfmt(s.priv.points) + ' points on themes, rings and headers.', 'points shop themes rings premium'],
+    ['notifications', 'notifications-outline', 'Notifications', 'Choose which heat, comments, follows and messages you hear about.', 'pause heat freeze comments likes follows messages'],
+    ['privacy', 'shield-checkmark-outline', 'Privacy and safety', 'Private account, who can message you, and hidden counts.', 'private message hide counts'],
+    ['display', 'contrast-outline', 'Display and languages', 'Theme and appearance.', 'theme dark light appearance'],
+    ['help', 'help-circle-outline', 'Help Center', 'User agreement, report a problem and about Temp.', 'agreement terms report about'],
+  ];
+  const ql = q.trim().toLowerCase(); const shown = ql ? rows.filter((r) => (r[2] + ' ' + r[3] + ' ' + r[4]).toLowerCase().includes(ql)) : rows;
+  const go = (k) => (k === 'shop' ? nav.push('shop') : k === 'earnings' ? nav.push('earnings') : setSub(k));
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Header title="Settings" back />
-      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
-        <Group>
-          <Item icon="star-outline" label="Temp+" val="Coming soon" />
-          <Item icon="flame-outline" label="Fire Sale" val={kfmt(s.priv.points) + ' pts'} onPress={() => nav.push('shop')} />
-        </Group>
-        <Group>
-          <Item icon="lock-closed-outline" label="Private account" right={<Switch value={!!me.isPrivate} onValueChange={(v) => run(() => act.profile(s.me, { isPrivate: v }))} trackColor={{ true: C.orange }} />} />
-          <Item icon="chatbubbles-outline" label="Who can message you" val={dmLabel[dmFrom]} onPress={() => setSetting('dmFrom', dmNext[dmFrom])} />
-          <Item icon="contrast-outline" label="Appearance" val={{ system: 'Match phone', light: 'Light', dark: 'Dark' }[st.theme || 'system']}
-            onPress={() => setSetting('theme', { system: 'light', light: 'dark', dark: 'system' }[st.theme || 'system'])} />
-          <Item icon="eye-off-outline" label="Hide counts" right={<Switch value={!!st.hideCounts} onValueChange={(v) => setSetting('hideCounts', v)} trackColor={{ true: C.orange }} />} />
-        </Group>
-        <Group>
-          <Item icon="information-circle-outline" label="About" val="Temp 1.0" />
-        </Group>
-        <Group>
-          <Item icon="log-out-outline" label="Log out" onPress={() => Alert.alert('Log out of Temp?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Log out', onPress: () => sb.auth.signOut() }])} />
-          <Item icon="trash-outline" label="Delete account" warn onPress={() => Alert.alert('Delete your account?', 'This removes your profile and everything you posted. It can’t be undone.', [
-            { text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => run(async () => { const { error } = await sb.rpc('delete_me'); if (error) throw error; await sb.auth.signOut(); }) }])} />
-        </Group>
+      <Header title="Settings" sub={'@' + (me.handle || '')} back />
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.card, borderRadius: 999, paddingHorizontal: 16, height: 46, marginTop: 4, marginBottom: 6 }}>
+          <Ionicons name="search" size={18} color={C.muted} />
+          <TextInput value={q} onChangeText={setQ} placeholder="Search settings" placeholderTextColor={C.muted} style={{ flex: 1, color: C.ink, fontSize: 16, fontFamily: F.b }} />
+          {q ? <Pressable onPress={() => setQ('')} hitSlop={8}><Ionicons name="close" size={18} color={C.muted} /></Pressable> : null}
+        </View>
+        {shown.map(([k, ic, t, d]) => (
+          <Pressable key={k} onPress={() => go(k)} style={{ flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.line }}>
+            <Ionicons name={ic} size={24} color={C.ink} />
+            <View style={{ flex: 1 }}><T h style={{ fontSize: 16.5 }}>{t}</T><T muted style={{ fontSize: 14, marginTop: 3, lineHeight: 19 }}>{d}</T></View>
+            <Ionicons name="chevron-forward" size={18} color={C.muted} />
+          </Pressable>))}
+        {!shown.length ? <Empty text={'No settings match “' + q + '”'} /> : null}
       </ScrollView>
     </View>
   );

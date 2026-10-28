@@ -1,7 +1,8 @@
 // Animated rings and headers. Everything runs off a few shared clocks on the native driver,
 // so dozens of animated avatars in a feed cost almost nothing.
 import React from 'react';
-import { View, Text, Animated, Easing, StyleSheet, AppState } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet, AppState, Platform } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { F } from './lib';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -659,7 +660,24 @@ function GhostTown() {
   </View>;
 }
 
+// Headers are drawn by the website's own artwork (temptakes.com/?art=header&id=...) so the app and the site look and move exactly the same.
+// The native drawing below is only used if the artwork can't load (and for the web preview build).
+const ART_IDS = { templogo: 1, lava: 1, aurora: 1, static: 1, embers: 1, hazard: 1, sunburst: 1, snow: 1, thermal: 1, disco: 1, checker: 1, synth: 1, rain: 1, wildfire: 1, heatwave: 1, blizzard: 1, glitchtv: 1, starfield: 1, lavalamp: 1, haunted: 1, pumpkinpatch: 1, ghosts: 1 };
 export function HeaderFx({ id, fallback }) {
+  const [failed, setFailed] = React.useState(false); const [shown, setShown] = React.useState(false);
+  if (Platform.OS !== 'web' && ART_IDS[id] && !failed) {
+    const cols = HEADER_FX[id] || fallback || ['#0a0a0a', '#1a0a03'];
+    return <View style={[fill, { overflow: 'hidden' }]} pointerEvents="none">
+      <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={fill} />
+      <WebView source={{ uri: 'https://temptakes.com/?art=header&id=' + id }} style={[fill, { backgroundColor: 'transparent', opacity: shown ? 1 : 0 }]} containerStyle={fill}
+        originWhitelist={['*']} scrollEnabled={false} bounces={false} overScrollMode="never" javaScriptEnabled domStorageEnabled cacheEnabled
+        allowsInlineMediaPlayback mediaPlaybackRequiresUserAction showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}
+        onLoadEnd={() => setTimeout(() => setShown(true), 120)} onError={() => setFailed(true)} onHttpError={() => setFailed(true)} />
+    </View>;
+  }
+  return <NativeHeaderFx id={id} fallback={fallback} />;
+}
+function NativeHeaderFx({ id, fallback }) {
   useClockKick();
   const cols = HEADER_FX[id] || fallback;
   const base = <LinearGradient colors={cols} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={fill} />;

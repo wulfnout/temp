@@ -1,0 +1,37 @@
+# Builds the native app's screens for the web (not used by people) so they can be screenshotted
+# next to the website and checked for identical designs. Output goes to the "app-web" branch.
+name: App web preview
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/app-web.yml']
+  workflow_dispatch:
+concurrency:
+  group: app-web
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build
+        run: |
+          { npm install --no-audit --no-fund || npm install --no-audit --no-fund --legacy-peer-deps; } > ../web.log 2>&1
+          { npx expo install react-dom react-native-web @expo/metro-runtime || npx expo install react-dom react-native-web @expo/metro-runtime -- --legacy-peer-deps; } >> ../web.log 2>&1
+          npx expo export --platform web --output-dir dist >> ../web.log 2>&1 || { tail -60 ../web.log; exit 1; }
+      - name: Publish
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p /tmp/out && cp -r app/dist/. /tmp/out/ 2>/dev/null || true; cp web.log /tmp/out/ 2>/dev/null || true
+          echo "${{ job.status }} ${GITHUB_SHA::7}" > /tmp/out/status.txt
+          cd /tmp/out && git init -q -b app-web && git add -A && git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm "app web ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" app-web

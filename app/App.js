@@ -31,7 +31,10 @@ class AndroidBoundary extends React.Component {
   }
 }
 
+import { Gallery } from './src/gallery';
+const GALLERY = Platform.OS === 'web' && typeof location !== 'undefined' && /[?&]gallery/.test(location.search);
 export default function App() {
+  if (GALLERY) return <SafeAreaProvider><Gallery /></SafeAreaProvider>;
   const [fontsLoaded] = useFonts({ Unbounded_700Bold, Unbounded_800ExtraBold, Figtree_500Medium, Figtree_700Bold, Figtree_800ExtraBold });
   const [ready, setReady] = useState(false); const [intro, setIntro] = useState(true);
   useEffect(() => { const t = setTimeout(() => setReady(true), 2500); return () => clearTimeout(t); }, []);

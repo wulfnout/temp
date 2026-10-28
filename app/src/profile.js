@@ -4,13 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
-import { PostCard, Video } from './posts';
+import { PostCard, Video, QuoteCard } from './posts';
 import { Header, pickMedia, ReplayGrid, Drawer } from './screens';
 import { GifPicker } from './gif';
 import { act } from './data';
 import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
 
-import { HEADER_FX, HeaderFx } from './fx';
+import { HEADER_FX, HeaderFx, FlowRing } from './fx';
 import { AshBurn } from './ash';
 import { StoryPhoto, StoryPhotoEditor } from './storyframe';
 
@@ -42,13 +42,14 @@ export function ProfileScreen({ id, isTab }) {
             {(() => { const story = s.stories.find((x) => x.userId === uid);
               // your own picture opens your menu as a drop-down card
               const openMenu = (e) => { const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMenuAt({ top: pageY - locationY + 104, left: Math.max(12, pageX - locationX) }); };
-              if (!story) return isMe ? <Pressable onPress={openMenu} accessibilityLabel="Your menu" style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></Pressable> : <View style={{ borderWidth: 5, borderColor: C.card, borderRadius: 60 }}><Avatar u={u} size={92} /></View>;
-              const unseen = story.items.some((i) => !s.seen[i.id]);
-              return <Pressable onPress={isMe ? openMenu : undefined} style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><View pointerEvents={isMe ? 'none' : 'auto'}><StoryOrb u={u} size={96} seen={!unseen} onPress={() => nav.sheet('story', { userId: uid })} label={'Story from @' + u.handle} /></View></Pressable>; })()}
+              const unseen = story ? story.items.some((i) => !s.seen[i.id]) : false;
+              const pic = <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 4 }}><FlowRing size={100} color={story && !unseen ? C.line : C.orange} bg={C.card}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</FlowRing></View>;
+              if (isMe) return <Pressable onPress={openMenu} accessibilityLabel="Your menu">{pic}</Pressable>;
+              return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
               {isMe ? <>
                 <Pressable onPress={() => nav.push('shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.ink, borderRadius: 15, paddingHorizontal: 14, paddingVertical: 10 }}>
-                  <Ionicons name="flame" size={15} color={C.orange} /><T h style={{ color: C.bg, fontSize: 14 }}>{kfmt(s.priv.points)}</T></Pressable>
+                  <Ionicons name="flame" size={15} color={C.mono ? C.bg : C.orange} /><T h style={{ color: C.bg, fontSize: 14 }}>{kfmt(s.priv.points)}</T></Pressable>
                 <Btn kind="ghost" title="Edit profile" onPress={() => setEdit(true)} /></>
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
                 : <>
@@ -69,7 +70,7 @@ export function ProfileScreen({ id, isTab }) {
             onRemoveSticker={(i) => setStickers(u.stickers.filter((_, j) => j !== i))} /> : null}
         </View>
         {blocked ? <Empty text="Blocked" /> : <View style={{ paddingHorizontal: 16 }}>
-          <SegTabs items={[['posts', 'Posts'], ['replays', 'Replays'], ['reposts', 'Reposts'], ...(isMe ? [['saved', 'Saved']] : [])]} value={tab} onChange={setTab} style={{ marginTop: 12, marginBottom: 10 }} />
+          <SegTabs items={[['posts', 'Posts'], ['replays', 'Replays'], ['reposts', 'Reflames'], ...(isMe ? [['saved', 'Saved']] : [])]} value={tab} onChange={setTab} style={{ marginTop: 12, marginBottom: 10 }} />
           {tab === 'replays' ? <ReplayGrid posts={list} /> : <>
             {list.some((p) => p.reel) ? <View style={{ marginBottom: 10 }}><ReplayGrid posts={list.filter((p) => p.reel)} /></View> : null}
             {list.filter((p) => !p.reel).length ? list.filter((p) => !p.reel).map((p) => <PostCard key={p.id} p={p} />) : list.length ? null : <Empty text="Nothing here yet" />}</>}
@@ -202,6 +203,60 @@ export function SettingsScreen({ start }) {
   );
 }
 
+/* ---------------- Creator Studio: Sparks you earned from gifts, and cash out ---------------- */
+const money = (c) => '$' + (Math.max(0, +c || 0) / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const PAYOUT = [['paypal', 'PayPal', 'PayPal email'], ['cashapp', 'Cash App', '$Cashtag'], ['venmo', 'Venmo', '@username'], ['bank', 'Bank', 'Name, bank, routing and account']];
+const GIFT_NAMES = { spark: 'Spark', ember: 'Ember', icecube: 'Ice Cube', hotsauce: 'Hot Sauce', rose: 'Ember Rose', thermo: 'Heat Check', heart: 'Molten Heart', mic: 'Mic Drop', crown: 'Fire Crown', volcano: 'Volcano', meteor: 'Meteor', phoenix: 'Phoenix' };
+export function EarningsScreen() {
+  const { C, nav } = useApp(); const [d, setD] = useState(null); const [err, setErr] = useState(''); const [form, setForm] = useState(false);
+  const [m, setM] = useState('paypal'); const [h, setH] = useState(''); const [amt, setAmt] = useState(''); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
+  const load = async () => { const { data, error } = await sb.rpc('my_earnings'); if (error) { setErr(/function|schema cache|does not exist/i.test(error.message) ? 'Creator Studio is being set up. Check back soon.' : friendly(error)); return; } setD(data); };
+  useEffect(() => { load(); }, []);
+  const submit = async () => { setMsg(''); const cents = Math.round(parseFloat(String(amt).replace(/[^0-9.]/g, '')) * 100);
+    if (!(cents >= 1000)) return setMsg('The smallest cash out is $10.'); if (d && cents > d.balance) return setMsg('That’s more than your balance.');
+    setBusy(true); const { data, error } = await sb.rpc('request_cashout', { method: m, handle: h, amount_cents: cents }); setBusy(false);
+    if (error) return setMsg(friendly(error)); setD(data); setForm(false); setAmt(''); nav.toast('Cash out requested. You’ll be paid within 30 days.'); };
+  const bal = d ? Math.round(+d.balance) : 0;
+  const Row = ({ left, sub, right, plus }) => <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line, marginTop: -1 }}>
+    <View style={{ flex: 1 }}>{left}{sub ? <T muted style={{ fontSize: 13, marginTop: 2 }}>{sub}</T> : null}</View><T h style={{ color: plus ? C.orange : C.ink }}>{right}</T></View>;
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Header title="Creator Studio" back />
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 110 }}>
+        {err ? <Empty text={err} /> : !d ? <Empty text="Loading…" /> : <>
+          <FlowBox r={26} style={{ backgroundColor: C.card, padding: 20 }}>
+            <T muted>Your balance</T><T d style={{ fontSize: 42, letterSpacing: -1.6, marginTop: 4 }}>{money(bal)}</T>
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>{[[(+d.sparks || 0).toLocaleString(), 'Sparks received'], [money(d.lifetime), 'Earned all time'], [money(d.paid), 'Paid out']].map(([a, b]) =>
+              <View key={b} style={{ flex: 1 }}><T h style={{ fontSize: 16 }}>{a}</T><T muted style={{ fontSize: 12.5 }}>{b}</T></View>)}</View>
+            {d.pending > 0 ? <T muted style={{ marginTop: 10 }}>{money(d.pending)} on its way to you.</T> : null}
+            <Btn kind="orange" title={bal < 1000 ? 'Cash out at $10.00' : 'Cash out'} disabled={bal < 1000} onPress={() => { setForm(true); setAmt((bal / 100).toFixed(2)); }} style={{ marginTop: 14 }} />
+          </FlowBox>
+          {form ? <FlowBox r={24} style={{ backgroundColor: C.card, padding: 16, marginTop: 12, gap: 10 }}>
+            {!d.adult ? <T b style={{ color: C.orange }}>You need to be 18 or older to cash out. Check your birthday in Settings.</T> : null}
+            <T h>Send it to</T>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{PAYOUT.map(([k, l]) => <Pressable key={k} onPress={() => setM(k)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 13, backgroundColor: m === k ? C.ink : C.bg }}><T h style={{ color: m === k ? C.bg : C.ink }}>{l}</T></Pressable>)}</View>
+            <TextInput value={h} onChangeText={setH} placeholder={PAYOUT.find((x) => x[0] === m)[2]} placeholderTextColor={C.muted} autoCapitalize="none" maxLength={120} style={{ backgroundColor: C.bg, borderRadius: 14, padding: 13, color: C.ink, fontFamily: F.body, fontSize: 16 }} />
+            <TextInput value={amt} onChangeText={setAmt} placeholder="Amount" placeholderTextColor={C.muted} keyboardType="decimal-pad" style={{ backgroundColor: C.bg, borderRadius: 14, padding: 13, color: C.ink, fontFamily: F.body, fontSize: 16 }} />
+            {msg ? <T b style={{ color: C.orange }}>{msg}</T> : null}
+            <View style={{ flexDirection: 'row', gap: 8 }}><Btn kind="ghost" title="Cancel" onPress={() => setForm(false)} style={{ flex: 1 }} /><Btn kind="orange" title={busy ? 'One sec…' : 'Request cash out'} disabled={busy || !d.adult} onPress={submit} style={{ flex: 1 }} /></View>
+          </FlowBox> : null}
+          <T b muted style={{ marginTop: 18, marginBottom: 6, marginLeft: 4 }}>HOW IT WORKS</T>
+          <FlowBox r={24} style={{ backgroundColor: C.card, padding: 16 }}><T style={{ lineHeight: 21 }}>When someone sends you a gift on Live with Sparks they bought, you keep <T h>{Math.round((d.rate || 0.6) * 100)}%</T> of what those Sparks are worth and Temp keeps the rest to run the app. Gifts made with free daily Sparks show up here but don’t earn money. Cash outs start at $10 and are paid within 30 days.</T></FlowBox>
+          <T b muted style={{ marginTop: 18, marginBottom: 6, marginLeft: 4 }}>HISTORY</T>
+          <FlowBox r={24} style={{ backgroundColor: C.card, paddingHorizontal: 16 }}>
+            {(d.history || []).length ? d.history.map((r) => <Row key={r.id} left={<T h>{r.kind === 'gift' ? (GIFT_NAMES[r.gift_id] || 'Gift') + ' from @' + (r.from_handle || 'someone') : r.kind === 'cashout' ? 'Cash out' : r.kind === 'refund' ? 'Cash out returned' : 'Adjustment'}</T>}
+              sub={(r.kind === 'gift' ? (r.sparks || 0).toLocaleString() + ' Sparks' + (r.note ? ' · ' + r.note : '') : r.note || '') + ' · ' + ago(Date.now() - new Date(r.created_at))}
+              right={+r.cents < 0 ? '−' + money(-r.cents) : '+' + money(r.cents)} plus={+r.cents >= 0} />)
+              : <T muted style={{ paddingVertical: 14 }}>Gifts you receive on Live show up here.</T>}
+          </FlowBox>
+          {(d.cashouts || []).length ? <><T b muted style={{ marginTop: 18, marginBottom: 6, marginLeft: 4 }}>CASH OUTS</T>
+            <FlowBox r={24} style={{ backgroundColor: C.card, paddingHorizontal: 16 }}>{d.cashouts.map((c) => <Row key={c.id} left={<T h>{money(c.cents)} to {(PAYOUT.find((x) => x[0] === c.method) || [0, c.method])[1]}</T>} sub={ago(Date.now() - new Date(c.created_at))} right={c.status === 'pending' ? 'On its way' : c.status === 'paid' ? 'Paid' : 'Returned'} plus={c.status === 'paid'} />)}</FlowBox></> : null}
+        </>}
+      </ScrollView>
+    </View>
+  );
+}
+
 /* ---------------- fire sale ---------------- */
 export function ShopScreen() {
   const { s, C, run } = useApp(); const me = s.users[s.me] || {};
@@ -261,18 +316,18 @@ export function ShopScreen() {
 }
 
 /* ---------------- composer ---------------- */
-export function Composer({ reel: reel0, onClose }) {
+export function Composer({ reel: reel0, onClose, quoteOf }) {
   const { s, C, run, nav } = useApp(); const me = s.users[s.me] || {};
   const [reel, setReel] = useState(!!reel0); const [gifOpen, setGifOpen] = useState(false); const [text, setText] = useState(''); const [asset, setAsset] = useState(null); const [busy, setBusy] = useState(false);
   const max = 280, over = text.length > max;
-  const ok = !over && (reel ? text.trim() || (asset && asset.type === 'video') : text.trim() || asset);
-  const post = async () => { setBusy(true); const done = await run(() => act.post(s.me, { text: text.trim(), asset, reel }), { toast: reel ? 'Replay posted' : 'Posted' }); setBusy(false); if (done) onClose(); };
+  const ok = !over && (reel ? text.trim() || (asset && asset.type === 'video') : text.trim() || asset || quoteOf);
+  const post = async () => { setBusy(true); const done = await run(() => act.post(s.me, { text: text.trim(), asset, reel: reel && !quoteOf, quoteOf }), { toast: quoteOf ? 'Quote reflamed' : reel ? 'Replay posted' : 'Posted' }); setBusy(false); if (done) onClose(); };
   return (
     <Sheet visible onClose={onClose} full>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <Btn small kind="ghost" title="Cancel" onPress={onClose} />
         <FlowBox r={15} style={{ flexDirection: 'row', backgroundColor: C.soft, padding: 3 }}>
-          {[[false, 'Post'], [true, 'Replay']].map(([v, l]) => <Pressable key={l} onPress={() => { setReel(v); if (v && asset && asset.type !== 'video') setAsset(null); }}
+          {(quoteOf ? [[false, 'Quote']] : [[false, 'Post'], [true, 'Replay']]).map(([v, l]) => <Pressable key={l} onPress={() => { setReel(v); if (v && asset && asset.type !== 'video') setAsset(null); }}
             style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 15, backgroundColor: reel === v ? C.card : 'transparent' }}><T h style={{ color: reel === v ? C.ink : C.muted, fontSize: 13 }}>{l}</T></Pressable>)}
           <Pressable onPress={() => { onClose(); setTimeout(() => nav.push('live'), 250); }} accessibilityLabel="Live Takes" style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#ff2d2d' }} /><T h style={{ color: C.muted, fontSize: 13 }}>Live</T></Pressable>
@@ -284,6 +339,7 @@ export function Composer({ reel: reel0, onClose }) {
         <View style={{ flex: 1 }}>
           <TextInput value={text} onChangeText={setText} multiline placeholder={reel ? 'Caption, or a take to animate' : 'What’s your take?'} placeholderTextColor={C.muted}
             style={{ color: C.ink, fontFamily: F.body, fontSize: 19, minHeight: 100, textAlignVertical: 'top', paddingTop: 8 }} />
+          {quoteOf ? <QuoteCard id={quoteOf} /> : null}
           {asset ? <View style={{ borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
             {asset.type === 'video' ? <Video uri={asset.uri} style={{ width: '100%', height: 220 }} /> : <Image source={{ uri: asset.uri }} style={{ width: '100%', height: 220 }} />}
             <Pressable onPress={() => setAsset(null)} accessibilityLabel="Remove" style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,.6)', alignItems: 'center', justifyContent: 'center' }}>

@@ -265,8 +265,7 @@ function Reel({ p, h, active }) {
       <View style={{ position: 'absolute', right: 12, bottom: 22, gap: 18, alignItems: 'center' }}>
         <Rail icon={p.myHeat ? 'flame' : 'flame-outline'} n={p.heat} on={p.myHeat} label="Heat" onPress={heat} />
         <Rail icon="chatbubble-ellipses-outline" n={p.comments.length} label={frozen ? 'Comments are off while frozen' : 'Comments'} disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} />
-        <Rail icon="repeat" n={p.reposts} on={p.myRepost} onColor="#4ade80" label={p.myRepost ? 'Undo repost' : 'Repost'} disabled={mine}
-          onPress={() => run(() => act.repost(p.id, p.myRepost, s.me), { toast: p.myRepost ? 'Repost removed' : 'Reposted to your profile', optimistic: { post: p.id, patch: { myRepost: !p.myRepost, reposts: p.reposts + (p.myRepost ? -1 : 1) } } })} />
+        <Rail icon="flame-outline" n={p.reposts} on={p.myRepost} label={p.myRepost ? 'Undo reflame' : 'Reflame'} onPress={() => nav.sheet('reflame', { post: p })} />
         <Rail icon="paper-plane-outline" label="Send" onPress={() => nav.sheet('share', { post: p })} />
         <Rail icon={p.saved ? 'bookmark' : 'bookmark-outline'} on={p.saved} onColor="#ffd60a" label="Save" onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} />
         <Rail icon="ellipsis-horizontal" label="More" onPress={() => nav.sheet('menu', { post: p })} />
@@ -342,7 +341,7 @@ export function UserRow({ u, right }) {
 }
 
 /* ---------------- activity ---------------- */
-const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact', 'repost'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
+const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact', 'repost', 'reflame', 'quote'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
 export function ActivityScreen() {
   const { s, C, nav, run } = useApp(); const [tab, setTab] = useState('social'); const [seenNow, setSeenNow] = useState({});
   // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
@@ -356,8 +355,8 @@ export function ActivityScreen() {
   const unread = (k) => s.notifs.filter((n) => !n.read && GROUPS[k].includes(n.type)).length;
   const text = (n) => ({ follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
     heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take went viral. ' + n.text,
-    storyComment: 'commented on your story: ' + n.text, repost: 'reposted your post: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
-  const icon = { repost: 'repeat', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
+    storyComment: 'commented on your story: ' + n.text, repost: 'reflamed your take: ' + n.text, reflame: 'reflamed your take: ' + n.text, quote: 'quoted your take: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
+  const icon = { repost: 'flame', reflame: 'flame', quote: 'chatbubble', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
   const Seg = ({ k, label }) => (
     <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 15, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>

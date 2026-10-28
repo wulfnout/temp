@@ -10,8 +10,8 @@ import { loadAll, EMPTY, act } from './src/data';
 import { Ctx, Avatar, tapAway } from './src/ui';
 import { AuthScreen, TermsGate, TermsScreen, TERMS_V } from './src/auth';
 import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen, PostScreen, accRemember } from './src/screens';
-import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft } from './src/profile';
-import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
+import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft, EarningsScreen } from './src/profile';
+import { CommentsSheet, ShareSheet, PostMenu, ReflameSheet } from './src/posts';
 import { Recorder } from './src/recorder';
 import { Intro } from './src/ash';
 import { LiveScreen, GoLiveScreen } from './src/live';
@@ -204,6 +204,7 @@ function Root() {
       case 'activity': return <ActivityScreen />;
       case 'post': return <PostScreen id={r.params.id} />;
       case 'terms': return <TermsScreen />;
+      case 'earnings': return <EarningsScreen />;
       case 'dms': return <DMListScreen />;
       case 'thread': return <ThreadScreen id={r.params.id} />;
       case 'settings': return <SettingsScreen />;
@@ -225,7 +226,8 @@ function Root() {
           style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : null}>
           <TabBar tab={tab.name} stacked={!!top} dark={dark} onTab={(n) => { setBars(false); return n === 'compose' ? nav.sheet('compose', { reel: tab.name === 'replay' }) : nav.tab(n); }} /></Animated.View> : null}
       </View>
-      {sheet && sheet.name === 'compose' ? <Composer reel={sheet.params.reel} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'compose' ? <Composer reel={sheet.params.reel} quoteOf={sheet.params.quoteOf} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet.name === 'reflame' ? <ReflameSheet post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'comments' ? <CommentsSheet id={sheet.params.id} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'share' ? <ShareSheet post={sheet.params.post} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet.name === 'menu' ? <PostMenu post={sheet.params.post} onClose={() => setSheet(null)} /> : null}

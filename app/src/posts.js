@@ -229,6 +229,36 @@ function FullVideo({ postId, uri, start, onClose }) {
   );
 }
 
+// Reflame icon: a flame with two turning arrows (same idea as the website's)
+export function ReflameIcon({ size = 20, color }) {
+  return <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <Ionicons name="flame-outline" size={size * 0.82} color={color} />
+    <Ionicons name="repeat" size={size * 0.5} color={color} style={{ position: 'absolute', right: -size * 0.12, bottom: -size * 0.08 }} /></View>;
+}
+// a quoted take inside a quote (tap to open it)
+export function QuoteCard({ id }) {
+  const { s, C, nav } = useApp(); const q = s.posts.find((x) => x.id === id);
+  if (!q || q.status === 'gone') return <View style={{ borderWidth: 1, borderColor: C.line, borderRadius: 18, padding: 12, marginTop: 10 }}><T muted>This take has burned away.</T></View>;
+  const u = s.users[q.userId] || {};
+  return <Pressable onPress={() => (q.reel ? nav.tab('replay', { startId: q.id }) : nav.push('post', { id: q.id }))} style={{ borderWidth: 1, borderColor: C.line, borderRadius: 18, padding: 12, marginTop: 10, gap: 6, backgroundColor: C.bg }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Avatar u={{ ...u, ring: null }} size={20} /><T h numberOfLines={1} style={{ fontSize: 14 }}>{u.name}</T><T muted numberOfLines={1} style={{ fontSize: 13, flexShrink: 1 }}>@{u.handle} · {ago(Date.now() - q.createdAt)}</T></View>
+    {q.text ? <T numberOfLines={4} style={{ fontSize: 15, lineHeight: 20 }}>{q.text}</T> : null}
+    {q.mediaUrl && q.mediaType !== 'video' ? <Image source={{ uri: q.mediaUrl }} style={{ width: '100%', height: 180, borderRadius: 12 }} resizeMode="cover" /> : null}
+    {q.reel || q.mediaType === 'video' ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="play" size={14} color={C.muted} /><T b muted style={{ fontSize: 13 }}>Video</T></View> : null}
+  </Pressable>;
+}
+// Reflame: keep a take alive past its timer, or quote it with your own words
+export function ReflameSheet({ post, onClose }) {
+  const { s, C, run, nav } = useApp(); const p = s.posts.find((x) => x.id === post.id) || post; const mine = p.userId === s.me;
+  const Opt = ({ icon, title, sub, onPress }) => <Pressable onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12 }}>
+    <View style={{ width: 46, height: 46, borderRadius: 15, backgroundColor: C.soft, alignItems: 'center', justifyContent: 'center' }}>{icon}</View>
+    <View style={{ flex: 1 }}><T h style={{ fontSize: 17 }}>{title}</T><T muted style={{ fontSize: 14, lineHeight: 19 }}>{sub}</T></View></Pressable>;
+  return <Sheet visible onClose={onClose}>
+    {!mine ? <Opt icon={<ReflameIcon size={24} color={C.ink} />} title={p.myRepost ? 'Undo reflame' : 'Reflame'} sub={p.myRepost ? 'Take it off your profile.' : 'Share it to your profile and keep it alive past its timer.'}
+      onPress={() => { onClose(); run(() => act.repost(p.id, p.myRepost, s.me), { toast: p.myRepost ? 'Reflame removed' : 'Reflamed. It lives on past its timer', optimistic: { post: p.id, patch: { myRepost: !p.myRepost, kept: p.kept || !p.myRepost, reposts: Math.max(0, (p.reposts || 0) + (p.myRepost ? -1 : 1)) } } }); }} /> : null}
+    <Opt icon={<Ionicons name="chatbubble-outline" size={22} color={C.ink} />} title="Quote" sub="Add your own take on top. The original lives on too." onPress={() => { onClose(); setTimeout(() => nav.sheet('compose', { quoteOf: p.id }), 250); }} />
+  </Sheet>;
+}
 export function PostCard({ p, active = false }) {
   const { s, C, run, nav, ashing, finishAsh } = useApp();
   const u = s.users[p.userId]; const frozen = p.status === 'frozen';
@@ -255,8 +285,9 @@ export function PostCard({ p, active = false }) {
         <Pressable onPress={() => nav.sheet('menu', { post: p })} hitSlop={10} accessibilityLabel="Post options" style={{ padding: 6 }}><Ionicons name="ellipsis-horizontal" size={20} color={C.muted} /></Pressable>
       </View>
       <View style={{ opacity: frozen ? 0.45 : 1 }}>
-        {p.text ? <RichText text={p.text} onTag={(t) => nav.tab('search', { q: t })}
-          style={!p.mediaUrl && p.text.length < 90 ? { fontFamily: F.displayB, fontSize: 18, lineHeight: 24, marginTop: 12, letterSpacing: -0.5 } : { fontSize: 16.5, lineHeight: 23, marginTop: 12 }} /> : null}
+        {p.text ? <Pressable onPress={() => nav.push('post', { id: p.id })}><RichText text={p.text} onTag={(t) => nav.tab('search', { q: t })}
+          style={!p.mediaUrl && !p.quoteOf && p.text.length < 90 ? { fontFamily: F.displayB, fontSize: 18, lineHeight: 24, marginTop: 12, letterSpacing: -0.5 } : { fontSize: 16.5, lineHeight: 23, marginTop: 12 }} /></Pressable> : null}
+        {p.quoteOf ? <QuoteCard id={p.quoteOf} /> : null}
         {p.mediaUrl ? (
           <Pressable onPress={dbl} style={{ marginTop: 12, borderRadius: 20, overflow: 'hidden', backgroundColor: C.soft }}>
             {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} postId={p.id} active={active} onHeat={heatBurst} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
@@ -274,6 +305,8 @@ export function PostCard({ p, active = false }) {
         <View style={{ flex: 1 }} />
         <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, opacity: frozen ? 0.3 : 1 }}>
           <Ionicons name="chatbubble-outline" size={20} color={C.ink} />{cs.length ? <T muted b>{cs.length}</T> : null}</Pressable>
+        <Pressable onPress={() => nav.sheet('reflame', { post: p })} accessibilityLabel={p.myRepost ? 'Undo reflame' : 'Reflame'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6 }}>
+          <ReflameIcon size={20} color={p.myRepost ? C.orange : C.ink} />{p.reposts ? <T muted b>{p.reposts}</T> : null}</Pressable>
         <Pressable onPress={() => nav.sheet('share', { post: p })} accessibilityLabel="Send" style={{ padding: 6 }}><Ionicons name="paper-plane-outline" size={20} color={C.ink} /></Pressable>
         <Pressable onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} accessibilityLabel="Save" style={{ padding: 6 }}>
           <Ionicons name={p.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={p.saved ? C.orange : C.ink} /></Pressable>
@@ -282,7 +315,7 @@ export function PostCard({ p, active = false }) {
       </View>
       {top && !frozen ? <Pressable onPress={() => nav.sheet('comments', { id: p.id })}><T muted numberOfLines={2} style={{ fontSize: 14, marginTop: 10 }}>
         <T b style={{ fontSize: 14 }}>{(s.users[top.userId] || {}).handle} </T>{top.sticker ? stickerLabel(top.sticker) : top.text}{cs.length > 1 ? ' · View all ' + cs.length : ''}</T></Pressable> : null}
-      {p.status === 'burning' ? <BurnBar p={p} /> : null}
+      {p.status === 'burning' && !p.kept ? <BurnBar p={p} /> : null}
     </View>
   );
 }

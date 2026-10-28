@@ -53,7 +53,7 @@ function GoLiveWeb({ onClose, stream }) {
   // the page draws under the status bar itself (camera preview edge to edge), so no inset band at the top
   return uri ? <WebView ref={web} source={{ uri }} style={{ flex: 1, backgroundColor: '#000' }} contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} originWhitelist={['*']} allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false}
     mediaCapturePermissionGrantType="grant" javaScriptEnabled domStorageEnabled onMessage={(e) => { if (e.nativeEvent.data === 'close') onClose(); }} />
-    : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View>;
+    : <View style={{ flex: 1, backgroundColor: '#000' }} />;
 }
 
 export function GoLiveSide() {

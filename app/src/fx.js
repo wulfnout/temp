@@ -157,14 +157,17 @@ export function SpinRing({ size, ring, bg, accent, children }) {
 }
 
 /* ---- Flowing profile ring: one solid theme colour around the profile picture, wobbling like liquid (same motion as the website) ---- */
-export function FlowRing({ size, color, bg, children }) {
+export function FlowRing({ size, colors, bg, children }) { // the website's flowing story ring: gradient flowing around a liquid shape
   useClockKick();
-  const c = clock(7000), r = jsClock(7000);
+  const c = clock(3500), r = jsClock(7000);
   const corner = (ph, k) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => size * k * (0.5 + 0.11 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
   const radii = (k) => ({ borderTopLeftRadius: corner(0, k), borderTopRightRadius: corner(0.27, k), borderBottomRightRadius: corner(0.55, k), borderBottomLeftRadius: corner(0.8, k) });
-  const inner = size - 8;
+  const inner = size - 12;
   return (
-    <Animated.View style={[{ width: size, height: size, backgroundColor: color, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', transform: [{ rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-3deg', '3deg', '-3deg'] }) }] }, radii(1)]}>
+    <Animated.View style={[{ width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii(1)]}>
+      {colors.length > 1 ? <Animated.View style={{ position: 'absolute', width: size * 1.5, height: size * 1.5, transform: [{ rotate: c.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+        <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} />
+      </Animated.View> : <View style={{ position: 'absolute', width: size, height: size, backgroundColor: colors[0] }} />}
       <Animated.View style={[{ width: size - 6, height: size - 6, backgroundColor: bg, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii((size - 6) / size)]}>
         <Animated.View style={[{ width: inner, height: inner, overflow: 'hidden' }, radii(inner / size)]}>{children(inner)}</Animated.View>
       </Animated.View>

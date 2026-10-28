@@ -875,6 +875,16 @@ img,video{max-width:100%;display:block}
 .xv-seek{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:linear-gradient(90deg,#fff var(--p),rgba(255,255,255,.3) var(--p));margin:6px 0 0}
 .xv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff}.xv-seek::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff}
 .xv-ctl{display:flex;align-items:center;gap:14px}.xv-ctl button{color:#fff;display:grid;place-items:center;min-width:32px;height:36px}.xv-time{font-variant-numeric:tabular-nums;opacity:.8;font-size:15px}.xv-speed{font-weight:800;font-size:18px}
+.snd-pick{display:grid;gap:2px;max-height:52vh;overflow-y:auto;color:#fff}
+.snd-row{display:flex;align-items:center;gap:12px;padding:8px 4px;width:100%;text-align:left;border-radius:14px;color:inherit}.snd-row.on{background:rgba(255,255,255,.1)}
+.snd-row .grow{display:grid;min-width:0;text-align:left}.snd-name{color:inherit}.snd-row .sub{color:rgba(255,255,255,.6);font-size:12.5px}
+.snd-art{flex:none;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,hsl(calc(var(--h) + 18),100%,62%),hsl(var(--h),100%,var(--l,48%)) 60%,#1a0a04);color:#fff}
+.snd-art.none{background:rgba(255,255,255,.12)}.snd-art.up{background:var(--orange)}
+.snd-mix{display:grid;gap:10px;padding:10px 4px 4px}.snd-mix label{display:grid;gap:4px;font-size:13px;font-weight:700}.snd-mix input{accent-color:var(--orange);width:100%}
+.snd-sheet{z-index:30}
+.sv-snd{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;flex:none}.sv-snd.on{background:var(--orange);color:var(--on-orange)}
+.sv-sndtag{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.45);color:#fff;font-weight:700;font-size:13px;padding:6px 11px;border-radius:999px;margin-bottom:8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.sv-sndtag.view{position:absolute;left:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:3;margin:0}
 .set-search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px;margin:4px 0 10px;color:var(--muted)}.set-search input{flex:1;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-width:0;outline:none}
 .set-list{display:grid}.set-row{display:flex;align-items:center;gap:16px;padding:16px 6px;text-align:left;width:100%;border-bottom:1px solid var(--line)}.set-row:last-child{border-bottom:0}
 .sr-ico{flex:none;width:28px;display:grid;place-items:center;color:var(--ink)}.sr-t{flex:1;min-width:0;display:grid;gap:3px}.sr-t b{font-size:16.5px;font-weight:800}.sr-t span{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1530,7 +1540,7 @@ async function remote(a,b){
     case 'view': await sb.rpc('add_view',{pid:a.id});return;
     case 'save':{const p=P(a.id);if(!p)return;
       if(p.saved)await ok(sb.from('saves').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('saves').insert({post_id:a.id}));return}
-    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay)row.overlay=a.overlay;if(a.quoteOf)row.quote_of=a.quoteOf;
+    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay){row.overlay=a.overlay;if(a.overlay.sound&&/^blob:/.test(a.overlay.sound.u))row.overlay={...a.overlay,sound:{...a.overlay.sound,u:await upload(blobFiles[a.overlay.sound.u])}}}if(a.quoteOf)row.quote_of=a.quoteOf;
       if(a.media){const url=a.media.remote?a.media.url:await upload(a.media.file);
         if(a.reel){row.media_url=url;row.media_type='video'}else{row.media_url=url;row.media_type=a.media.type;row.is_gif=!!a.media.gif}}
       else if(a.reel)row.clip_seed=Math.floor(Math.random()*9999)+1;
@@ -1540,7 +1550,7 @@ async function remote(a,b){
       if(c.myLike)await ok(sb.from('comment_likes').delete().eq('comment_id',a.cid).eq('user_id',myId));else await ok(sb.from('comment_likes').insert({comment_id:a.cid}));return}
     case 'follow':{const u=b.users[a.id];if(!u||a.id==='temp')return;
       if(u.following)await ok(sb.from('follows').delete().eq('follower',myId).eq('followee',R(a.id)));else await ok(sb.from('follows').insert({followee:R(a.id)}));return}
-    case 'story':{const url=await upload(a.file);await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype,caption:a.caption||'',layout:a.layout||null}));return {reload:true,toast:'Your story is up'}}
+    case 'story':{const url=await upload(a.file);if(a.layout&&a.layout.sound&&/^blob:/.test(a.layout.sound.u))a={...a,layout:{...a.layout,sound:{...a.layout.sound,u:await upload(blobFiles[a.layout.sound.u])}}};await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype,caption:a.caption||'',layout:a.layout||null}));return {reload:true,toast:'Your story is up'}}
     case 'repost':{const p=P(a.id);if(!p||p.id<0)return;if(p.myRepost)await ok(sb.from('reposts').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('reposts').insert({post_id:a.id}));return 'reload'}
     case 'storyComment': if(a.id<0)return;await ok(sb.from('story_comments').insert({story_id:a.id,text:a.text}));return 'reload';
     case 'storyReact':{if(a.id<0)return;const it=b.stories.flatMap(x=>x.items).find(x=>x.id===a.id);
@@ -2068,7 +2078,8 @@ function Post({p,s,dispatch,open}){
 function StoryPhoto({url,layout}){const L=layout||{s:1,x:0,y:0,fill:true};
   return html`<div className="sp-wrap"><img className="sp-bg" src=${url} alt=""/><img className="sp-fg" src=${url} alt="" style=${{objectFit:L.fill?'cover':'contain',transform:`translate(${(L.x||0)*100}%,${(L.y||0)*100}%) scale(${L.s||1})`}}/></div>`}
 function StoryDraft({draft,onPost,onClose}){
-  const [cap,setCap]=useState('');const [L,setL]=useState({s:1,x:0,y:0,fill:false});const g=useRef({pts:{}});
+  const [cap,setCap]=useState('');const [sound,setSound]=useState(null);const [pickSnd,setPickSnd]=useState(false);const dv=useRef();
+  useTrack(draft.type==='video'?()=>dv.current:null,sound,!!sound);const [L,setL]=useState({s:1,x:0,y:0,fill:false});const g=useRef({pts:{}});
   const box=useRef();
   const pd=e=>{if(draft.type==='video')return;g.current.pts[e.pointerId]={x:e.clientX,y:e.clientY};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(x){}g.current.start={...L};g.current.d0=0};
   const pm=e=>{const p=g.current.pts;if(!p[e.pointerId])return;p[e.pointerId]={...p[e.pointerId],cx:e.clientX,cy:e.clientY};const ids=Object.keys(p);const r=box.current.getBoundingClientRect();const st=g.current.start;
@@ -2078,16 +2089,19 @@ function StoryDraft({draft,onPost,onClose}){
   const pu=e=>{delete g.current.pts[e.pointerId];if(!Object.keys(g.current.pts).length)g.current.d0=0;else{g.current.start={...L};Object.values(g.current.pts).forEach(p=>{p.x=p.cx??p.x;p.y=p.cy??p.y})}};
   const wheel=e=>{if(draft.type==='video')return;setL(l=>({...l,s:Math.max(.5,Math.min(5,l.s*(e.deltaY<0?1.08:.93)))}))};
   return html`<div className="sv" role="dialog" aria-label="New story">
+    ${pickSnd&&html`<div className="ed-panel snd-sheet"><div className="ed-ph"><h3>Sound</h3><button className="ed-ok" aria-label="Done" onClick=${()=>setPickSnd(false)}><${Icon} n="check" s=${18} w=${2.6}/></button></div><${SoundPicker} value=${sound} onChange=${setSound} hasVideo=${draft.type==='video'}/></div>`}
     <div className="sv-in">
-      <div className="sv-media" ref=${box} style=${{touchAction:'none'}} onPointerDown=${pd} onPointerMove=${pm} onPointerUp=${pu} onPointerCancel=${pu} onWheel=${wheel}>${draft.type==='video'?html`<video src=${draft.url} autoPlay muted loop playsInline></video>`:html`<${StoryPhoto} url=${draft.url} layout=${L}/>`}</div>
+      <div className="sv-media" ref=${box} style=${{touchAction:'none'}} onPointerDown=${pd} onPointerMove=${pm} onPointerUp=${pu} onPointerCancel=${pu} onWheel=${wheel}>${draft.type==='video'?html`<video ref=${dv} src=${draft.url} autoPlay muted=${!sound} loop playsInline></video>`:html`<${StoryPhoto} url=${draft.url} layout=${L}/>`}</div>
       ${draft.type!=='video'&&html`<button className="sp-toggle" onClick=${()=>setL({s:1,x:0,y:0,fill:!L.fill})}>${L.fill?'Fit':'Fill'}</button>`}
       <div className="sv-head"><span>New story <small style=${{opacity:.7,fontWeight:600}}>${draft.type!=='video'?' pinch or scroll to zoom · drag to move':''}</small></span><div className="sv-btns"><button className="sv-close" onClick=${onClose} aria-label="Cancel"><${Icon} n="x"/></button></div></div>
       <div className="sv-foot">
+        ${sound&&html`<button className="sv-sndtag" onClick=${()=>setPickSnd(true)}><${Icon} n="music" s=${14}/>${sound.n}</button>`}
         ${cap.trim()&&html`<p className="sv-cap">${cap}</p>`}
         <div className="sv-bar">
           <div className="sv-input"><label htmlFor="story-cap" className="vh">Caption</label>
-            <input id="story-cap" placeholder="Add a caption…" maxLength=${150} value=${cap} onChange=${e=>setCap(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&onPost(cap.trim(),draft.type==='video'?null:L)}/></div>
-          <button className="btn orange" onClick=${()=>onPost(cap.trim(),draft.type==='video'?null:L)}>Share</button>
+            <input id="story-cap" placeholder="Add a caption…" maxLength=${150} value=${cap} onChange=${e=>setCap(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&onPost(cap.trim(),draft.type==='video'?(sound?{sound}:null):{...L,...(sound?{sound}:{})})}/></div>
+          <button className=${'sv-snd'+(sound?' on':'')} onClick=${()=>setPickSnd(true)} aria-label="Add sound"><${Icon} n="music" s=${20}/></button>
+          <button className="btn orange" onClick=${()=>onPost(cap.trim(),draft.type==='video'?(sound?{sound}:null):{...L,...(sound?{sound}:{})})}>Share</button>
         </div>
       </div>
     </div>
@@ -2115,10 +2129,48 @@ function StoriesRow({s,open,addStory}){
 // so if a video has to start muted it unmutes on your next tap. The speaker button remembers your choice.
 const SND={on:store.get('temp-sound')!=='off',blocked:false};
 const sndVideos=()=>document.querySelectorAll('.reel video,.sv-media video');
-function playSound(v){if(!v)return;v.muted=!SND.on;const p=v.play();if(p&&p.catch)p.catch(()=>{v.muted=true;SND.blocked=true;v.play().catch(()=>{})})}
-addEventListener('pointerdown',()=>{if(!SND.blocked)return;SND.blocked=false;if(SND.on)sndVideos().forEach(v=>{if(!v.paused||v.autoplay)v.muted=false})},{capture:true});
+function playSound(v){if(!v)return;v.muted=!SND.on||v.dataset.ovol==='0';const p=v.play();if(p&&p.catch)p.catch(()=>{v.muted=true;SND.blocked=true;v.play().catch(()=>{})})}
+addEventListener('pointerdown',()=>{if(!SND.blocked)return;SND.blocked=false;if(SND.on){sndVideos().forEach(v=>{if((!v.paused||v.autoplay)&&v.dataset.ovol!=='0')v.muted=false});(SND.tracks||[]).forEach(a=>{a.muted=false;a.play().catch(()=>{})})}},{capture:true});
 function useSound(){const [on,setOn]=useState(SND.on);useEffect(()=>{const f=()=>setOn(SND.on);addEventListener('temp-sound',f);return()=>removeEventListener('temp-sound',f)},[]);
-  return [on,()=>{SND.on=!SND.on;store.set('temp-sound',SND.on?'on':'off');sndVideos().forEach(v=>v.muted=!SND.on);dispatchEvent(new Event('temp-sound'))}]}
+  return [on,()=>{SND.on=!SND.on;store.set('temp-sound',SND.on?'on':'off');sndVideos().forEach(v=>v.muted=!SND.on||v.dataset.ovol==='0');(SND.tracks||[]).forEach(a=>{a.muted=!SND.on;if(SND.on&&a.paused)a.play().catch(()=>{})});dispatchEvent(new Event('temp-sound'))}]}
+/* ---------- sounds for replays and stories ---------- */
+// Temp Sounds: original loops made for Temp (free to use on any replay or story)
+const SOUNDS=[['ember-trap','Ember Trap','Dark trap · 140'],['late-night-lofi','Late Night Lofi','Chill · 80'],['heat-check-drill','Heat Check Drill','Drill · 142'],['sunset-house','Sunset House','House · 124'],
+  ['phonk-drift','Phonk Drift','Phonk · 130'],['afro-glow','Afro Glow','Afrobeats · 108'],['main-character','Main Character','Cinematic · 90'],['plot-twist','Plot Twist','Funny · 112']].map(([id,name,mood])=>({id,name,mood,u:'/sounds/lib/'+id+'.mp3'}));
+SND.tracks=new Set();
+// plays a sound alongside a video (kept in sync, loops) or on its own for photo stories; follows the sound on/off switch
+function useTrack(getVideo,snd,active){
+  useEffect(()=>{if(!snd||!snd.u||!active)return;
+    const a=new Audio(snd.u);a.loop=true;a.preload='auto';a.setAttribute('playsinline','');a.volume=Math.max(0,Math.min(1,snd.v==null?1:snd.v));SND.tracks.add(a);
+    const v0=getVideo&&getVideo();if(v0){v0.dataset.ovol=String(snd.o==null?1:snd.o);if(snd.o===0)v0.muted=true;else try{v0.volume=Math.max(0,Math.min(1,snd.o==null?1:snd.o))}catch(e){}}
+    const st=+snd.st||0;let started=false;
+    const tick=()=>{a.muted=!SND.on;const v=getVideo&&getVideo();
+      if(v){if(v.paused){if(!a.paused)a.pause();return}const want=st+(v.currentTime-(+snd.t0||0));const d=a.duration||0;const w=d?((want%d)+d)%d:want;
+        if(!started||Math.abs(a.currentTime-w)>0.35)try{a.currentTime=w}catch(e){}started=true;if(a.paused)a.play().catch(()=>{SND.blocked=true})}
+      else if(a.paused){if(!started){try{a.currentTime=st}catch(e){}started=true}a.play().catch(()=>{SND.blocked=true})}};
+    tick();const iv=setInterval(tick,250);
+    return()=>{clearInterval(iv);a.pause();SND.tracks.delete(a);try{a.removeAttribute('src');a.load()}catch(e){}const v=getVideo&&getVideo();if(v){delete v.dataset.ovol;try{v.volume=1}catch(e){}}}},[snd&&snd.u,snd&&snd.st,snd&&snd.v,snd&&snd.o,snd&&snd.k,active]);
+}
+// pick a sound: Temp Sounds, your own audio file, or just the original; volumes and where the sound starts
+function SoundPicker({value,onChange,hasVideo}){
+  const [prev,setPrev]=useState(null);const au=useRef(null);const fr=useRef();
+  useEffect(()=>()=>{if(au.current)au.current.pause()},[]);
+  const play=x=>{if(au.current){au.current.pause();au.current=null}if(prev===x.u){setPrev(null);return}const a=new Audio(x.u);a.currentTime=0;a.play().catch(()=>{});au.current=a;setPrev(x.u)};
+  const v=value||null;const set=patch=>onChange({...(v||{}),...patch});
+  return html`<div className="snd-pick">
+    <button className=${'snd-row'+(!v?' on':'')} onClick=${()=>{onChange(null);if(au.current)au.current.pause();setPrev(null)}}><span className="snd-art none"><${Icon} n="mute" s=${18}/></span><span className="grow"><b>${hasVideo?'Original sound only':'No sound'}</b></span>${!v&&html`<${Icon} n="check" s=${18} w=${2.6}/>`}</button>
+    ${SOUNDS.map((x,i)=>html`<div key=${x.id} className=${'snd-row'+(v&&v.u===x.u?' on':'')}>
+      <button className="snd-art" style=${{'--h':8+(i*5)%30,'--l':[52,44,58,40,48,36,55,46][i%8]+'%'}} onClick=${()=>play(x)} aria-label=${(prev===x.u?'Stop ':'Play ')+x.name}><${Icon} n=${prev===x.u?'pause':'play'} s=${16} fill="#fff"/></button>
+      <button className="grow snd-name" onClick=${()=>set({u:x.u,n:x.name,st:0,v:v&&v.v!=null?v.v:1,o:v&&v.o!=null?v.o:(hasVideo?0.4:1)})}><b>${x.name}</b><span className="sub">${x.mood} · Temp Sounds</span></button>
+      ${v&&v.u===x.u&&html`<${Icon} n="check" s=${18} w=${2.6}/>`}</div>`)}
+    <button className="snd-row" onClick=${()=>fr.current.click()}><span className="snd-art up"><${Icon} n="music" s=${18}/></span><span className="grow"><b>${v&&v.mine?v.n:'Use your own sound'}</b><span className="sub">Only sounds you made or have the rights to</span></span></button>
+    <input ref=${fr} type="file" accept="audio/*" className="vh" onChange=${e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(f.size>15e6){alert('Pick a sound under 15 MB.');return}set({u:blobUrl(f),n:(f.name||'My sound').replace(/\.[a-z0-9]+$/i,'').slice(0,40),st:0,v:1,o:hasVideo?0.4:1,mine:1})}}/>
+    ${v&&html`<div className="snd-mix">
+      <label><span>Sound</span><input type="range" min="0" max="1" step="0.05" value=${v.v==null?1:v.v} onInput=${e=>set({v:+e.target.value})}/></label>
+      ${hasVideo&&html`<label><span>Original</span><input type="range" min="0" max="1" step="0.05" value=${v.o==null?1:v.o} onInput=${e=>set({o:+e.target.value})}/></label>`}
+      <label><span>Start at ${Math.round(v.st||0)}s</span><input type="range" min="0" max="25" step="1" value=${v.st||0} onInput=${e=>set({st:+e.target.value})}/></label></div>`}
+  </div>`;
+}
 const STORY_REACTS=['🔥','😂','😮','🧊'];
 const MORE_EMOJI=['❤️','😍','🥵','🥶','💀','😭','🤣','🙌','👏','👀','🫡','🤯','😤','🥹','😈','🤡','💅','🗿','🫠','😬','🤝','💯','✨','⚡','🌶️','🍿','👑','💎','🏆','🎯','🚨','🧨','☄️','🌋','🫶','🙏','😮‍💨','🤌','🐐','🔥'];
 // one emoji only (any emoji, typed or picked)
@@ -2135,6 +2187,7 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   const st=s.stories.find(x=>x.userId===order[ui]);
   const item=st&&st.items[ii];
   const paused=hold>0||text.length>0||picker||more||panel||!!burning;
+  const isnd=item&&item.layout&&item.layout.sound||null;useTrack(item&&item.type==='video'?()=>vid.current:null,isnd&&{...isnd,k:item.id},!!isnd&&!paused);
   useEffect(()=>{if(item)dispatch({type:'seen',id:item.id});setPicker(false);setPanel(false);setText('');setHold(0)},[item&&item.id]);
   useEffect(()=>{if(!hold)return;const t=setTimeout(()=>setHold(hold-1),1000);return()=>clearTimeout(t)},[hold]);
   useEffect(()=>{const v=vid.current;if(!v)return;try{paused?v.pause():playSound(v)}catch(e){}},[paused]);
@@ -2164,6 +2217,7 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
     <div className="sv-in" style=${dragY?{transform:'translateY('+dragY+'px)',transition:'none'}:{transition:'transform .2s ease'}}>
       <div className="sv-media">${item.type==='video'?html`<video ref=${vid} key=${item.id} src=${item.url} playsInline onLoadedData=${e=>{if(!paused)playSound(e.target)}}></video>`:item.layout?html`<${StoryPhoto} key=${item.id} url=${item.url} layout=${item.layout}/>`:html`<img src=${item.url} alt="" />`}
         ${burning===item.id&&html`<${AshBurn} onDone=${()=>{const id=burning;setBurning(null);onClose();dispatch({type:'burnStory',id})}}/>`}</div>
+      ${isnd&&html`<span className="sv-sndtag view"><${Icon} n="music" s=${13}/>${isnd.n}</span>`}
       <div className="sv-bars">${st.items.map((it,i)=>html`<div key=${it.id}><span style=${{width:(i<ii?1:i===ii?prog:0)*100+'%'}}></span></div>`)}</div>
       <div className="sv-head"><${Avatar} u=${u} size=${32}/><span>${u.handle} <span className="t">${item.uploading?'Posting…':ago(s.now-item.at)}</span></span>
         <div className="sv-btns">
@@ -2305,7 +2359,8 @@ function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
   const [filter,setFilter]=useState('none');const [speed,setSpeed]=useState(1);const [texts,setTexts]=useState([]);const [typing,setTyping]=useState(null);
   const [dragging,setDragging]=useState(false);const [overTrash,setOverTrash]=useState(false);const [guide,setGuide]=useState(false);
   const [ts,setTs]=useState(0);const [te,setTe]=useState(clip.dur||0);const [tool,setTool]=useState(null);const [caption,setCaption]=useState('');const [err,setErr]=useState('');
-  const scrub=useRef(false);const thumbs=useThumbs(clip.url,clip.dur);
+  const scrub=useRef(false);const thumbs=useThumbs(clip.url,clip.dur);const [sound,setSound]=useState(null);
+  useTrack(()=>ed.current,sound&&{...sound,t0:ts},!!sound&&!typing);
   useEffect(()=>{if(clip.dur&&!te)setTe(+clip.dur.toFixed(1))},[clip.dur]);
   useEffect(()=>{const v=ed.current;if(!v)return;v.playbackRate=speed},[speed]);
   useEffect(()=>{const v=ed.current;if(!v)return;const tu=()=>{if(scrub.current)return;if(v.currentTime<ts-0.2||(te&&v.currentTime>=te)){v.currentTime=ts}};v.addEventListener('timeupdate',tu);return()=>v.removeEventListener('timeupdate',tu)},[ts,te]);
@@ -2318,7 +2373,7 @@ function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
   const post=()=>{
     const why=MOD.rules(MOD.classify(caption+' '+texts.map(x=>x.t).join(' ')),s.users.me.plus,isAdult(s));if(why){setErr(why.msg);return}
     if(clip.file&&clip.file.size>MAX_BYTES){setErr('That video is too big (50 MB max). Trim it shorter or pick a shorter one.');return}
-    const overlay={v:2,filter,texts:texts.map(x=>({...x,x:+x.x.toFixed(4),y:+x.y.toFixed(4),s:+(x.s||1).toFixed(3),r:+(x.r||0).toFixed(1)})),speed,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+(clip.dur||te).toFixed(1)};
+    const overlay={v:2,...(sound?{sound:{u:sound.u,n:sound.n,st:sound.st||0,v:sound.v==null?1:sound.v,o:sound.o==null?1:sound.o,t0:+ts.toFixed(1)}}:{}),filter,texts:texts.map(x=>({...x,x:+x.x.toFixed(4),y:+x.y.toFixed(4),s:+(x.s||1).toFixed(3),r:+(x.r||0).toFixed(1)})),speed,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+(clip.dur||te).toFixed(1)};
     dispatch({type:'post',text:caption.trim(),media:{type:'video',url:clip.url,file:clip.file},reel:true,overlay});onClose();open.replay();
   };
   const togglePlay=()=>{if(tool){setTool(null);resume();return}const v=ed.current;if(v)v.paused?v.play().catch(()=>{}):v.pause()};
@@ -2342,6 +2397,7 @@ function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
       <button onClick=${()=>setTool('filters')}><span><${Icon} n="filters" s=${22}/></span>Filters</button>
       <button onClick=${()=>setTool('trim')}><span><${Icon} n="cut" s=${21}/></span>Trim</button>
       <button onClick=${()=>setTool('speed')} aria-pressed=${speed!==1}><span><${Icon} n="gauge" s=${22}/></span>${speed===1?'Speed':speed+'x'}</button>
+      <button onClick=${()=>setTool('sound')} aria-pressed=${!!sound}><span><${Icon} n="music" s=${21}/></span>${sound?sound.n.slice(0,10):'Sound'}</button>
     </div>`}
     ${dragging&&html`<div className=${'ed-trash'+(overTrash?' on':'')}><${Icon} n="trash" s=${overTrash?28:24}/></div>`}
     ${chrome&&tool==='filters'&&panel('Filters',html`<div className="ed-filters">${Object.entries(FILTERS).map(([k,f])=>html`<button key=${k} aria-pressed=${filter===k} onClick=${()=>setFilter(k)}>
@@ -2349,6 +2405,7 @@ function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
     ${chrome&&tool==='trim'&&panel('Trim',html`<${Timeline} dur=${clip.dur||te} start=${ts} end=${te} thumbs=${thumbs} onChange=${(a,b)=>{setTs(a);setTe(b)}}
       onScrub=${t=>{scrub.current=true;const v=ed.current;if(v){v.pause();v.currentTime=t}}} onScrubEnd=${()=>{scrub.current=false;setTimeout(resume,30)}}
       getTime=${()=>ed.current?ed.current.currentTime:null}/>`)}
+    ${chrome&&tool==='sound'&&panel('Sound',html`<${SoundPicker} value=${sound} onChange=${setSound} hasVideo=${true}/>`)}
     ${chrome&&tool==='speed'&&panel('Speed',html`<div className="ed-speed">${SPEEDS.map(v=>html`<button key=${v} aria-pressed=${speed===v} onClick=${()=>setSpeed(v)}>${v}x</button>`)}</div>`)}
     ${chrome&&!tool&&html`<div className="sv-foot rec-edit">
       ${err&&html`<p className="mod-err" style=${{color:'#fff'}}>${err}</p>`}
@@ -2476,7 +2533,9 @@ function Recorder({s,dispatch,onClose,open,startMode,onStory}){
 }
 
 function ReelClip({p,active,paused,runKey,onEnd}){
-  const cv=useRef(),vd=useRef();const [prog,setProg]=useState(0);
+  const cv=useRef(),vd=useRef();const [prog,setProg]=useState(0);const [pz,setPzR]=useState(false);
+  useEffect(()=>{if(!active)return;const t=setInterval(()=>setPzR(!!paused.current),200);return()=>clearInterval(t)},[active]);
+  const rs=p.overlay&&p.overlay.sound;useTrack(p.clip&&p.clip.kind==='video'?()=>vd.current:null,rs&&{...rs,k:runKey},!!rs&&active&&!pz);
   useEffect(()=>{
     if(p.clip.kind!=='art')return;
     const c=cv.current;if(!c)return;const g=c.getContext('2d');

@@ -162,14 +162,13 @@ export function ReplayGrid({ posts }) {
             </LinearGradient>)}
           <View pointerEvents="none" style={{ position: 'absolute', left: 6, bottom: 6, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
             <Ionicons name="play" size={12} color="#fff" /><T h style={{ color: '#fff', fontSize: 11, textShadowColor: 'rgba(0,0,0,.6)', textShadowRadius: 4 }}>{kfmt(p.views)}</T></View>
-          {p.status === 'frozen' ? <View pointerEvents="none" style={{ position: 'absolute', top: 6, right: 6 }}><Ionicons name="snow" size={14} color="#fff" /></View> : null}
         </Pressable>))}
     </View>
   );
 }
 
 function Reel({ p, h, active }) {
-  const { s, C, nav, run } = useApp(); const u = s.users[p.userId] || {}; const frozen = p.status === 'frozen'; const mine = p.userId === s.me;
+  const { s, C, nav, run } = useApp(); const u = s.users[p.userId] || {}; const frozen = false; const mine = p.userId === s.me;
   const playerRef = useRef(null); const [ended, setEnded] = useState(false); const [paused, setPaused] = useState(false);
   const icon = useRef(new Animated.Value(0)).current; const burst = useRef(new Animated.Value(0)).current; const lastTap = useRef(0); const tapTimer = useRef(null);
   useEffect(() => {
@@ -217,7 +216,6 @@ function Reel({ p, h, active }) {
       </View>
       <View style={{ position: 'absolute', right: 12, bottom: 22, gap: 18, alignItems: 'center' }}>
         <Rail icon={p.myHeat ? 'flame' : 'flame-outline'} n={p.heat} on={p.myHeat} label="Heat" onPress={heat} />
-        <Rail icon="snow" n={p.freeze} on={p.myFreeze} onColor="#9fdcff" label="Freeze" onPress={() => !p.myFreeze && run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } })} />
         <Rail icon="chatbubble-ellipses-outline" n={p.comments.length} label={frozen ? 'Comments are off while frozen' : 'Comments'} disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} />
         <Rail icon="repeat" n={p.reposts} on={p.myRepost} onColor="#4ade80" label={p.myRepost ? 'Undo repost' : 'Repost'} disabled={mine}
           onPress={() => run(() => act.repost(p.id, p.myRepost, s.me), { toast: p.myRepost ? 'Repost removed' : 'Reposted to your profile', optimistic: { post: p.id, patch: { myRepost: !p.myRepost, reposts: p.reposts + (p.myRepost ? -1 : 1) } } })} />
@@ -298,9 +296,15 @@ export function UserRow({ u, right }) {
 /* ---------------- activity ---------------- */
 const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact', 'repost'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
 export function ActivityScreen() {
-  const { s, C, nav } = useApp(); const [tab, setTab] = useState('social');
-  useEffect(() => { const t = setTimeout(() => act.readNotifs(s.me, GROUPS[tab]), 1200); return () => clearTimeout(t); }, [tab]);
-  const list = s.notifs.filter((n) => !s.blocked[n.userId] && GROUPS[tab].includes(n.type));
+  const { s, C, nav, run } = useApp(); const [tab, setTab] = useState('social'); const [seenNow, setSeenNow] = useState({});
+  // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
+  const markSeen = (n) => { if (n.read || seenNow[n.id]) return; setSeenNow((x) => ({ ...x, [n.id]: 1 })); run(() => act.readNotif(s.me, n.id)); };
+  const go = (n) => { markSeen(n); const p = n.postId && s.posts.find((x) => x.id === n.postId);
+    if (n.type === 'storyComment' || n.type === 'storyReact') return nav.sheet('story', { userId: s.me });
+    if (p && p.reel) return nav.tab('replay', { startId: p.id });
+    if (p) { nav.push('post', { id: p.id }); if (GROUPS.comments.includes(n.type)) setTimeout(() => nav.sheet('comments', { id: p.id }), 250); return; }
+    if (n.userId) nav.push('profile', { id: n.userId }); };
+  const list = s.notifs.filter((n) => !s.blocked[n.userId] && GROUPS[tab].includes(n.type)).slice(0, 60).map((n) => (seenNow[n.id] ? { ...n, read: true } : n));
   const unread = (k) => s.notifs.filter((n) => !n.read && GROUPS[k].includes(n.type)).length;
   const text = (n) => ({ follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
     heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take went viral. ' + n.text,
@@ -314,16 +318,30 @@ export function ActivityScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header title="Activity" back />
-      <View style={{ paddingHorizontal: 16 }}><FlowBox r={15} style={{ flexDirection: 'row', backgroundColor: C.card, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></FlowBox></View>
+      <View style={{ paddingHorizontal: 16 }}><FlowBox r={15} style={{ flexDirection: 'row', backgroundColor: C.card, padding: 4 }}><Seg k="social" label="Heat & follows" /><Seg k="comments" label="Comments" /></FlowBox>
+        {list.some((n) => !n.read) ? <Pressable onPress={() => { const ids = {}; list.forEach((n) => { ids[n.id] = 1; }); setSeenNow((x) => ({ ...x, ...ids })); run(() => act.readNotifs(s.me, GROUPS[tab])); }} style={{ alignSelf: 'flex-end', paddingVertical: 8, paddingHorizontal: 4 }}><T b muted style={{ fontSize: 13 }}>Mark all as seen</T></Pressable> : null}</View>
       <FlatList showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never" data={list} keyExtractor={(n) => String(n.id)} contentContainerStyle={{ padding: 16, paddingBottom: 110 }} ListEmptyComponent={<Empty text="Nothing yet" />}
         renderItem={({ item: n }) => { const u = s.users[n.userId] || {}; return (
-          <FlowBox r={20} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, marginBottom: 6 }}>
-            <Pressable onPress={() => nav.push('profile', { id: u.id })}><Avatar u={u} size={44} />
+          <Pressable onPress={() => go(n)}><FlowBox r={20} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: C.card, marginBottom: 6 }}>
+            <Pressable onPress={() => { markSeen(n); nav.push('profile', { id: u.id }); }}><Avatar u={u} size={44} />
               <View style={{ position: 'absolute', right: -4, bottom: -4, width: 20, height: 20, borderRadius: 7, backgroundColor: C.orange, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name={icon[n.type] || 'notifications'} size={10} color={C.onOrange} /></View></Pressable>
             <T style={{ flex: 1, fontSize: 14.5 }}>{n.type === 'viral' ? null : <T h style={{ fontSize: 14.5 }} onPress={() => u.id && nav.push('profile', { id: u.id })} accessibilityRole="link">{u.handle} </T>}{text(n)} <T muted style={{ fontSize: 13 }}>{ago(Date.now() - n.at)}</T></T>
             {!n.read ? <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: C.orange }} /> : null}
-          </FlowBox>); }} />
+          </FlowBox></Pressable>); }} />
+    </View>
+  );
+}
+
+// one take on its own page (opened from a notification)
+export function PostScreen({ id }) {
+  const { s, C } = useApp(); const p = s.posts.find((x) => x.id === id);
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Header title="Take" back />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 110 }}>
+        {p && p.status !== 'gone' ? <PostCard p={p} active /> : <Empty text="This take has burned away." />}
+      </ScrollView>
     </View>
   );
 }

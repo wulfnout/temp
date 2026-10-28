@@ -78,7 +78,7 @@ export async function loadAll(myId) {
     if (m.recipient === myId && !m.read_at) unread[other] = true;
     if (m.sender === myId && m.read_at) seenBy[other] = Math.max(seenBy[other] || 0, +new Date(m.read_at));
   });
-  const N = notifs.filter((n) => users[n.actor_id || n.user_id]).map((n) => ({ id: n.id, type: n.type, userId: n.actor_id || n.user_id, text: n.text || '', at: +new Date(n.created_at), read: n.read, postId: n.post_id }));
+  const N = notifs.filter((n) => users[n.actor_id || n.user_id]).map((n) => ({ id: n.id, type: n.type, userId: n.actor_id || n.user_id, text: n.text || '', at: +new Date(n.created_at), read: n.read, postId: n.post_id, storyId: n.story_id }));
   const weekMap = {}; week.forEach((w) => (weekMap[w.user_id] = w));
   const priv = privRows[0] || EMPTY.priv;
   return { me: myId, storyBurns: typeof storyBurns === 'number' ? storyBurns : 3, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
@@ -118,6 +118,7 @@ export const act = {
   sendPoints: async (to, amount, note) => { const { data, error } = await sb.rpc('send_points', { to_uid: to, amount, note: note || '' }); if (error) throw new Error(error.message); return data; },
   reactMsg: (m) => ok(sb.from('messages').update({ react: m.react ? null : '❤️' }).eq('id', m.id)),
   read: (other, me) => sb.from('messages').update({ read_at: new Date().toISOString() }).eq('sender', other).eq('recipient', me).is('read_at', null),
+  readNotif: (me, id) => sb.from('notifications').update({ read: true }).eq('user_id', me).eq('id', id),
   readNotifs: (me, types) => { let x = sb.from('notifications').update({ read: true }).eq('user_id', me).eq('read', false); if (types) x = x.in('type', types); return x; },
   block: (uid) => ok(sb.from('blocks').insert({ blocked: uid })),
   unblock: (uid, me) => ok(sb.from('blocks').delete().eq('blocker', me).eq('blocked', uid)),

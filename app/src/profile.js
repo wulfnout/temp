@@ -308,7 +308,7 @@ export function StoryViewer({ userId, onClose }) {
     try { if (player.current) { player.current.currentTime = 0; player.current.play(); } } catch (e) {} };
   // hold to pause, up to 15 seconds with a countdown in the middle
   useEffect(() => { if (!hold) return; const t = setTimeout(() => setHold(hold - 1), 1000); return () => clearTimeout(t); }, [hold]);
-  const g = useRef({}); g.current = { next, restart, onClose, setHold, hold };
+  const g = useRef({}); g.current = { next, back: () => { if (ii > 0 || ui > 0) prev(); else restart(); }, onClose, setHold, hold };
   const pan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (e, d) => d.dy > 8 && Math.abs(d.dy) > Math.abs(d.dx),
@@ -324,7 +324,7 @@ export function StoryViewer({ userId, onClose }) {
         return;
       }
       if (g.current.held) { g.current.setHold(0); return; }
-      if (x < Dimensions.get('window').width * 0.35) g.current.restart(); else g.current.next();
+      if (x < Dimensions.get('window').width * 0.35) g.current.back(); else g.current.next();
     },
     onPanResponderTerminate: () => { clearTimeout(g.current.timer); Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); g.current.setHold(0); },
   })).current;
@@ -373,7 +373,7 @@ export function StoryViewer({ userId, onClose }) {
             <Ionicons name="flame" size={15} color="#ff5500" /><T h style={{ color: '#fff', fontSize: 12 }}>{s.storyBurns == null ? 3 : s.storyBurns}</T></Pressable> : null}
           <Pressable onPress={onClose} accessibilityLabel="Close" hitSlop={12}><Ionicons name="close" size={26} color="#fff" /></Pressable>
         </View>
-        <View {...pan.panHandlers} style={{ position: 'absolute', left: 0, right: 0, top: 100, bottom: 160 }} accessible accessibilityLabel="Story. Tap left to replay, tap right for next, hold to pause, swipe down to close" />
+        <View {...pan.panHandlers} style={{ position: 'absolute', left: 0, right: 0, top: 100, bottom: 160 }} accessible accessibilityLabel="Story. Tap left for the previous story, tap right for next, hold to pause, swipe down to close" />
         {hold ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
           <T style={{ fontFamily: F.display, fontSize: 96, color: '#000', textShadowColor: 'rgba(255,255,255,.85)', textShadowRadius: 18 }}>{hold}</T></View> : null}
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: ins.bottom + 12, gap: 8 }}>

@@ -738,6 +738,7 @@ img,video{max-width:100%;display:block}
 .gl-pin>div{flex:1;min-width:0;overflow-wrap:anywhere}.gl-pin button{color:#fff;opacity:.8}
 .gl-banners{position:absolute;left:10px;bottom:calc(250px + env(safe-area-inset-bottom,0px));z-index:4;display:grid;gap:8px;pointer-events:none}
 .gb{display:flex;align-items:center;gap:7px;padding:3px 62px 3px 3px;--r:8px;border-radius:var(--r);background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.25));position:relative;animation:gbin .32s cubic-bezier(.2,1.2,.4,1),squish 9s ease-in-out -1s infinite;max-width:78vw}
+.gb.out{opacity:0;transform:translateX(-24px);transition:opacity .5s,transform .5s}
 .gb.hot{background:linear-gradient(90deg,rgba(255,85,0,.75),rgba(255,138,43,.25))}
 .gb-t{display:grid;min-width:0}.gb-t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gb-t span{font-size:11.5px;opacity:.85;white-space:nowrap}
 .gb .gart{position:absolute;right:6px;top:50%;transform:translateY(-50%) scale(1.15);filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
@@ -1448,7 +1449,7 @@ async function loadAll(){
     (threads[other]=threads[other]||[]).push({id:m.id,from:L(m.sender),text:m.text||'',sticker:m.sticker,postId:m.post_id,snap,note:m.note,react:m.react,audio:m.audio_url,ms:m.audio_ms,points:m.points||0,at:+new Date(m.created_at),readAt:m.read_at?+new Date(m.read_at):0});
     if(m.recipient===myId&&!m.read_at)unread[other]=true;
     if(m.sender===myId&&m.read_at)seenBy[other]=Math.max(seenBy[other]||0,+new Date(m.read_at))});
-  const N=notifs.filter(n=>users[L(n.actor_id||n.user_id)]).map(n=>({id:n.id,type:n.type,userId:L(n.actor_id||n.user_id),text:n.text||'',at:+new Date(n.created_at),read:n.read,postId:n.post_id}));
+  const N=notifs.filter(n=>users[L(n.actor_id||n.user_id)]).map(n=>({id:n.id,type:n.type,userId:L(n.actor_id||n.user_id),text:n.text||'',at:+new Date(n.created_at),read:n.read,postId:n.post_id,storyId:n.story_id}));
   const ps=priv.settings||{};
   const settings={...DEFAULT_SETTINGS,...ps,notif:{...DEFAULT_SETTINGS.notif,...(ps.notif||{})},muted:ps.muted||[]};
   const temps={};let mine={heat:0,viral:0,earned:0};
@@ -1488,6 +1489,7 @@ async function remote(a,b){
       await ok(sb.from('messages').insert({recipient:R(a.to),text:a.text||'',sticker:await stick(a.sticker),post_id:p&&p.id>0?p.id:null,snap,note:a.note||null,audio_url:a.audio||null,audio_ms:a.ms||null}));return 'reload'}
     case 'reactMsg':{const m=(b.threads[a.to]||[]).find(x=>x.id===a.mid);if(!m||m.id<0)return;await ok(sb.from('messages').update({react:m.react?null:'❤️'}).eq('id',a.mid));return}
     case 'read': if(a.id==='temp')return;await ok(sb.from('messages').update({read_at:new Date().toISOString()}).eq('sender',R(a.id)).eq('recipient',myId).is('read_at',null));return;
+    case 'readNotif':{await ok(sb.from('notifications').update({read:true}).eq('user_id',myId).eq('id',a.id));return}
     case 'readNotifs':{let q=sb.from('notifications').update({read:true}).eq('user_id',myId).eq('read',false);if(a.types)q=q.in('type',a.types);await ok(q);return}
     case 'block': await ok(sb.from('blocks').insert({blocked:R(a.id)}));return 'reload';
     case 'unblock': await ok(sb.from('blocks').delete().eq('blocker',myId).eq('blocked',R(a.id)));return 'reload';
@@ -1623,6 +1625,7 @@ function reducer(s,a){
     case 'reactMsg': return {...s,threads:{...s.threads,[a.to]:s.threads[a.to].map(m=>m.id===a.mid?{...m,react:m.react?null:'❤️'}:m)}};
     case 'read': {const u={...s.unread};delete u[a.id];return {...s,unread:u}}
     case 'notif': return {...s,notifs:[{id:nid(),at:s.now,read:false,...a.n},...s.notifs].slice(0,80)};
+    case 'readNotif': return {...s,notifs:s.notifs.map(n=>n.id===a.id?{...n,read:true}:n)};
     case 'readNotifs': return {...s,notifs:s.notifs.map(n=>!a.types||a.types.includes(n.type)?{...n,read:true}:n)};
     case 'block': return {...s,blocked:{...s.blocked,[a.id]:true},users:{...s.users,[a.id]:{...s.users[a.id],following:false}},toast:T(`Blocked @${s.users[a.id].handle}`)};
     case 'unblock': {const b={...s.blocked};delete b[a.id];return {...s,blocked:b,toast:T(`Unblocked @${s.users[a.id].handle}`)}}
@@ -2006,13 +2009,13 @@ function StoryViewer({s,startUser,dispatch,onClose,onAdd}){
   useEffect(()=>{const v=vid.current;if(!v)return;try{paused?v.pause():playSound(v)}catch(e){}},[paused]);
   const [soundOn,toggleSound]=useSound();
   function replay(){setProg(0);const v=vid.current;if(v){v.currentTime=0;if(!paused)playSound(v)}}
-  // tap left = replay, tap right = next, hold = pause (15s countdown), swipe down = close
+  // tap left = previous story (replays the very first one), tap right = next, hold = pause (15s countdown), swipe down = close
   function down(e){g.current={x:e.clientX,y:e.clientY,moved:false,held:false,id:e.pointerId,t:setTimeout(()=>{g.current.held=true;setHold(15)},220)};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(x){}}
   function move(e){const d=g.current;if(d.x==null)return;const dy=e.clientY-d.y,dx=e.clientX-d.x;if(dy>8&&dy>Math.abs(dx)){d.moved=true;clearTimeout(d.t);setDragY(dy)}}
   function up(e){const d=g.current;if(d.x==null)return;clearTimeout(d.t);g.current={};
     if(d.moved){const dy=e.clientY-d.y;if(dy>120){onClose();return}setDragY(0);setHold(0);return}
     if(d.held){setHold(0);return}
-    const r=e.currentTarget.getBoundingClientRect();if(e.clientX-r.left<r.width*.35)replay();else next()}
+    const r=e.currentTarget.getBoundingClientRect();if(e.clientX-r.left<r.width*.35){if(ii>0||ui>0)prev();else replay()}else next()}
   function cancel(){clearTimeout(g.current.t);g.current={};setDragY(0);setHold(0)}
   function next(){if(!st)return onClose();if(ii<st.items.length-1){setIi(ii+1)}else if(ui<order.length-1){setUi(ui+1);setIi(0)}else onClose();setProg(0)}
   function prev(){if(ii>0)setIi(ii-1);else if(ui>0){setUi(ui-1);setIi(0)}setProg(0)}
@@ -2385,7 +2388,7 @@ function Reel({p,s,active,dispatch,open}){
   useEffect(()=>{if(active&&p.clip&&p.clip.kind==='video')dispatch({type:'view',id:p.id})},[active]);
   const counts=!s.settings.hideCounts||p.userId==='me';
   const running=active&&(s.settings.autoplay&&!s.settings.dataSaver||manual);
-  return html`<section className=${'reel'+(p.status==='frozen'?' is-frozen':'')} data-reel=${p.id} data-id=${p.id}>
+  return html`<section className=${'reel'} data-reel=${p.id} data-id=${p.id}>
     <div className="reel-in">
       <div style=${{position:'absolute',inset:0}}>
         <${ReelClip} p=${p} active=${running} paused=${paused} runKey=${runKey} onEnd=${()=>setEnded(true)}/>
@@ -2402,7 +2405,6 @@ function Reel({p,s,active,dispatch,open}){
       </div>
       <div className="reel-rail">
         <button className=${'rail-btn'+(p.myHeat?' on':'')} onClick=${()=>dispatch({type:'heat',id:p.id})} aria-label="Heat"><span className="rb"><${Icon} n="flame" s=${24} w=${2.2} fill=${p.myHeat?'currentColor':null}/></span>${counts?p.heat:''}</button>
-        <button className=${'rail-btn ice'+(p.myFreeze?' on':'')} onClick=${()=>dispatch({type:'freeze',id:p.id})} aria-label="Freeze"><span className="rb"><${Icon} n="snow" s=${24} w=${2.2}/></span>${counts?p.freeze:''}</button>
         <button className="rail-btn" disabled=${p.status==='frozen'} onClick=${()=>open.comments(p.id)} aria-label="Comments"><span className="rb"><${Icon} n="comment" s=${23}/></span>${p.comments.length}</button>
         <button className=${'rail-btn rp'+(p.myRepost?' on':'')} disabled=${p.userId==='me'} onClick=${()=>dispatch({type:'repost',id:p.id})} aria-label=${p.myRepost?'Undo repost':'Repost'}><span className="rb"><${Icon} n="repost" s=${23} w=${2.2}/></span>${kfmt(p.reposts||0)}</button>
         <button className="rail-btn" onClick=${()=>open.share(p.id)} aria-label="Send"><span className="rb"><${Icon} n="share" s=${22}/></span></button>
@@ -2955,19 +2957,25 @@ function Search({s,dispatch,open,query,setQuery}){
 const GROUPS={social:['follow','heat','freeze','viral','storyReact','repost'],comments:['mention','likeComment','reply','storyComment']};
 function Activity({s,dispatch,open}){
   const [tab,setTab]=useState('social');
-  useEffect(()=>{const t=setTimeout(()=>dispatch({type:'readNotifs',types:GROUPS[tab]}),1200);return()=>clearTimeout(t)},[tab]);
+  // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
+  const go=n=>{if(!n.read)dispatch({type:'readNotif',id:n.id});const p=n.postId&&s.posts.find(x=>x.id===n.postId);
+    if(n.type==='storyComment'||n.type==='storyReact')return open.story('me');
+    if(p&&p.reel)return open.replay(p.id);
+    if(p){open.post(p.id);if(GROUPS.comments.includes(n.type))setTimeout(()=>open.comments(p.id),80);return}
+    open.profile(n.userId)};
   const unread=k=>s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]&&GROUPS[k].includes(n.type)).length;
-  const list=s.notifs.filter(n=>!s.blocked[n.userId]&&GROUPS[tab].includes(n.type));
+  const list=s.notifs.filter(n=>!s.blocked[n.userId]&&GROUPS[tab].includes(n.type)).slice(0,60);
   const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take went viral: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reposted your post: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
   const icon={viral:'flame',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
   return html`<div>
     <div className="seg" role="group" aria-label="Activity type">
       <button aria-pressed=${tab==='social'} onClick=${()=>setTab('social')}>Heat & follows${unread('social')>0&&html`<span className="cnt">${unread('social')}</span>`}</button>
       <button aria-pressed=${tab==='comments'} onClick=${()=>setTab('comments')}>Comments${unread('comments')>0&&html`<span className="cnt">${unread('comments')}</span>`}</button></div>
-    ${list.length?html`<div className="list-card">${list.map(n=>{const u=s.users[n.userId];return html`<div className=${'thread-row notif'+(n.read?'':' unread')} key=${n.id}>
-      <button style=${{position:'relative'}} onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${46}/><span className="n-ico"><${Icon} n=${icon[n.type]} s=${11} w=${2.6}/></span></button>
-      <div className="grow" style=${{fontWeight:500,fontSize:14.5}}><button className="n-name" onClick=${()=>open.profile(u.id)}>${u.handle}</button> ${text(n)} <span className="sub">${ago(s.now-n.at)}</span></div>
-      ${n.type==='follow'&&html`<button className=${'btn sm'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id:u.id})}>${u.following?'Following':'Follow back'}</button>`}
+    ${unread(tab)>0&&html`<div style=${{display:'flex',justifyContent:'flex-end',margin:'-4px 4px 8px'}}><button className="btn sm ghost" onClick=${()=>dispatch({type:'readNotifs',types:GROUPS[tab]})}>Mark all as seen</button></div>`}
+    ${list.length?html`<div className="list-card">${list.map(n=>{const u=s.users[n.userId];return html`<div className=${'thread-row notif'+(n.read?'':' unread')} key=${n.id} role="button" tabIndex="0" style=${{cursor:'pointer'}} onClick=${()=>go(n)} onKeyDown=${e=>e.key==='Enter'&&go(n)}>
+      <button style=${{position:'relative'}} onClick=${e=>{e.stopPropagation();if(!n.read)dispatch({type:'readNotif',id:n.id});open.profile(u.id)}}><${Avatar} u=${u} size=${46}/><span className="n-ico"><${Icon} n=${icon[n.type]} s=${11} w=${2.6}/></span></button>
+      <div className="grow" style=${{fontWeight:500,fontSize:14.5}}><button className="n-name" onClick=${e=>{e.stopPropagation();if(!n.read)dispatch({type:'readNotif',id:n.id});open.profile(u.id)}}>${u.handle}</button> ${text(n)} <span className="sub">${ago(s.now-n.at)}</span></div>
+      ${n.type==='follow'&&html`<button className=${'btn sm'+(u.following?' ghost':' orange')} onClick=${e=>{e.stopPropagation();dispatch({type:'follow',id:u.id})}}>${u.following?'Following':'Follow back'}</button>`}
       ${!n.read&&html`<span className="dot-badge" style=${{position:'static',boxShadow:'none'}}></span>`}
     </div>`})}</div>`:html`<div className="empty">Nothing yet</div>`}
   </div>`;
@@ -3715,7 +3723,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   // gifts come from the database too, so the goal bar, top gifters and banners stay right even if the live connection drops
   const loadGifts=async()=>{const {data}=await sb.from('live_gift_events').select('id,from_id,to_id,gift_id,qty,sparks,created_at').eq('stream_id',id).gt('id',lastGiftId.current).order('id').limit(500);
     if(!data||!data.length)return;const first=lastGiftId.current===0;lastGiftId.current=data[data.length-1].id;giftRows.current=[...giftRows.current,...data];setEvents(giftRows.current);
-    if(first)return;data.forEach(r=>{if(r.from_id===me)return;const k=r.from_id+'|'+r.gift_id;if(heard.current[k]&&Date.now()-heard.current[k]<12000)return;
+    if(first)return;data.forEach(r=>{if(r.from_id===me)return;const k=r.from_id+'|'+r.gift_id+'|'+(r.to_id||'');const h=heard.current[k]||0;if(h>0){heard.current[k]=Math.max(0,h-(r.qty||1));return}
       showGift({from:r.from_id,gift:r.gift_id,qty:r.qty,to:r.to_id});setChat(c=>[...c.slice(-40),{from:r.from_id,gift:r.gift_id,qty:r.qty,k:Math.random()}])})};
   const ping=async(leaving)=>{await sb.rpc('live_ping',{sid:id,leaving:!!leaving});if(leaving)return;
     const since=new Date(Date.now()-45e3).toISOString();const {data}=await sb.from('live_viewers').select('user_id').eq('stream_id',id).gte('last_seen',since);if(data)setDbViewers(data.map(x=>x.user_id))};
@@ -3729,13 +3737,14 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   // a gift arrived (from anyone, including me): banner lane with combo count, and a full-screen show for big ones
   function showGift(p){
     const g=giftById(p.gift);const key=p.from+'|'+p.gift+'|'+(p.to||'');who(p.from);who(p.to||'');needLv([p.from]);
-    setBanners(bs=>{const ex=bs.find(b=>b.key===key);const until=Date.now()+3200;
+    setBanners(bs=>{const ex=bs.find(b=>b.key===key);const until=Date.now()+2800;
       if(ex)return bs.map(b=>b===ex?{...b,count:(p.combo||b.count+(p.qty||1)),until,bump:Math.random()}:b);
       return [...bs.filter(b=>b.until>Date.now()).slice(-3),{key,from:p.from,to:p.to,gift:p.gift,count:p.combo||p.qty||1,until,bump:0}]});
-    if(g.tier!=='small'&&(!p.combo||p.combo===(p.qty||1)))setShows(v=>[...v,{k:Math.random(),id:g.id,tier:g.tier,gname:g.name,from:p.from,qty:p.qty||1}]);
+    if(g.tier!=='small'&&(!p.combo||p.combo===(p.qty||1)))setShows(v=>v.some(x=>x.id===g.id&&x.from===p.from)||v.length>=2?v:[...v,{k:Math.random(),id:g.id,tier:g.tier,gname:g.name,from:p.from,qty:p.qty||1}]);
     if(g.tier==='small')pop('',true);
-    const cf=eng.current&&eng.current.camfx;if(cf&&cf.gift&&(!p.to||p.to===me))cf.gift(p.gift,p.combo||p.qty||1);
+    const cf=eng.current&&eng.current.camfx;if(cf&&cf.gift&&(!p.to||p.to===me)&&(!p.combo||p.combo===(p.qty||1)))cf.gift(p.gift,p.qty||1);
   }
+  useEffect(()=>{if(!err)return;const t=setTimeout(()=>setErr(''),4000);return()=>clearTimeout(t)},[err]);
   useEffect(()=>{const t=setInterval(()=>{setNow(Date.now());setBanners(bs=>bs.some(b=>b.until<Date.now())?bs.filter(b=>b.until>=Date.now()):bs)},500);return()=>clearInterval(t)},[]);
   useEffect(()=>{loadRow();loadGifts();loadWallet();sb.from('live_stats').select('likes').eq('stream_id',id).maybeSingle().then(({data})=>data&&setLikes(+data.likes||0));
     const e=new StreamEngine(id,me,ev=>{
@@ -3744,7 +3753,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
       if(ev.chat){setChat(c=>[...c.slice(-40),{...ev.chat,k:Math.random()}]);needLv([ev.chat.from])}
       if(ev.heart)pop('flame');
       if(ev.like){setLikes(l=>l+(ev.like.n||1));for(let i=0;i<Math.min(4,ev.like.n||1);i++)setTimeout(()=>pop('flame'),i*120)}
-      if(ev.gift){heard.current[ev.gift.from+'|'+ev.gift.gift]=Date.now();showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
+      if(ev.gift){const hk=ev.gift.from+'|'+ev.gift.gift+'|'+(ev.gift.to||'');heard.current[hk]=(heard.current[hk]||0)+(ev.gift.qty||1);showGift(ev.gift);setChat(c=>[...c.slice(-40),{from:ev.gift.from,gift:ev.gift.gift,qty:ev.gift.qty||1,k:Math.random()}]);setEvents(x=>[...x,{from_id:ev.gift.from,to_id:ev.gift.to,sparks:giftById(ev.gift.gift).cost*(ev.gift.qty||1),created_at:new Date().toISOString()}])}
       if(ev.req)setReqs(r=>({...r,[ev.req.from]:Date.now()}));
       if(ev.guest)loadRow()});
     e.status=setConn;e.fx=fx0||'none';eng.current=e;e.join().catch(()=>setErr('Couldn’t connect to this live.'));
@@ -3821,7 +3830,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
     ${(matchOn||matchDone)&&html`<div className="gl-match"><div className="gl-mbar"><i style=${{flex:Math.max(1,score.h)}}><b>${fmtK(score.h)}</b></i><i style=${{flex:Math.max(1,score.g)}}><b>${fmtK(score.g)}</b></i></div><span className="gl-mt">${matchOn?Math.floor(left/60)+':'+String(left%60).padStart(2,'0'):'Final'}</span></div>`}
     ${row&&row.pinned&&html`<div className="gl-pin"><${Icon} n="pin" s=${13}/><div><b>${name(row.pinned.from)}</b> ${row.pinned.text}</div>${isHost&&html`<button onClick=${e=>{e.stopPropagation();hostUpd({pinned:null})}} aria-label="Unpin"><${Icon} n="x" s=${13}/></button>`}</div>`}
     ${isHost&&reqList.length>0&&html`<div className="gl-reqs">${reqList.map(u=>{const p=people[u];if(!p){who(u);return null}return html`<div key=${u} className="gl-req"><${Avatar} u=${p} size=${28} noRing=${true}/><b>${p.name}</b><span className="sub">wants to join</span><button className="btn orange sm" onClick=${()=>invite(u)}>Add</button><button className="btn ghost sm" onClick=${()=>setReqs(r=>{const n={...r};delete n[u];return n})}>No</button></div>`})}</div>`}
-    <div className="gl-banners">${banners.map(b=>{const g=giftById(b.gift);return html`<div key=${b.key} className=${'gb'+(g.tier!=='small'?' hot':'')}>
+    <div className="gl-banners">${banners.map(b=>{const g=giftById(b.gift);return html`<div key=${b.key} className=${'gb'+(g.tier!=='small'?' hot':'')+(b.until-now<600?' out':'')}>
       <${Avatar} u=${people[b.from]||liveUser(null)} size=${34} noRing=${true}/><div className="gb-t"><b>${name(b.from)}</b><span>sent ${g.name}${b.to&&row&&b.to===row.guest_id?' to '+name(b.to):''}</span></div>
       <${GiftArt} id=${g.id} size=${46}/>${b.count>1&&html`<em key=${b.count} className="gb-n">×${b.count}</em>`}</div>`})}</div>
     <div className="gl-chat">${chat.slice(-8).map(c=>{const u=people[c.from]||{name:'…'};return html`<p key=${c.k} className=${c.gift?'gift':c.join?'join':''} onClick=${e=>{if(isHost&&c.text){e.stopPropagation();setMenu(c)}}}>
@@ -3965,6 +3974,7 @@ function App(){
     settings:()=>{setSetSub(null);setView({tab:'settings'})},
     search:q=>{setQuery(q);setView({tab:'search'})},
     replay:id=>setView({tab:'replay',reelId:id}),
+    post:id=>setView({tab:'post',postId:id}),
     compose:reel=>setSheet({kind:'compose',reel}),
     record:m=>setSheet({kind:'record',mode:m||'replay'}),
     shop:()=>setView({tab:'shop'}),
@@ -4025,6 +4035,10 @@ function App(){
   } else if(view.tab==='live'){
     body=html`<${LiveView} me=${myId}/>`;
     top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'home'}))}<span className="top-title">Live Takes</span></div></div>`;
+  } else if(view.tab==='post'){
+    const p=s.posts.find(x=>x.id===view.postId);
+    body=p&&visible(s,p)?html`<div className="feed"><${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/></div>`:html`<div className="empty">This take has burned away.</div>`;
+    top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'activity'}))}<span className="top-title">Take</span></div></div>`;
   } else if(view.tab==='replay'){
     body=html`<${Replay} s=${s} dispatch=${dispatch} open=${open} startId=${view.reelId}/>`;
   } else {

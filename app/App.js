@@ -9,7 +9,7 @@ import { sb, useColors, friendly, isNetErr, F } from './src/lib';
 import { loadAll, EMPTY, act } from './src/data';
 import { Ctx, Avatar, tapAway } from './src/ui';
 import { AuthScreen } from './src/auth';
-import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen } from './src/screens';
+import { HomeScreen, ReplayScreen, SearchScreen, ActivityScreen, DMListScreen, ThreadScreen, PostScreen } from './src/screens';
 import { ProfileScreen, SettingsScreen, ShopScreen, Composer, StoryViewer, StoryDraft } from './src/profile';
 import { CommentsSheet, ShareSheet, PostMenu } from './src/posts';
 import { Recorder } from './src/recorder';
@@ -196,6 +196,7 @@ function Root() {
       case 'me': return <ProfileScreen isTab />;
       case 'profile': return <ProfileScreen id={r.params.id} />;
       case 'activity': return <ActivityScreen />;
+      case 'post': return <PostScreen id={r.params.id} />;
       case 'dms': return <DMListScreen />;
       case 'thread': return <ThreadScreen id={r.params.id} />;
       case 'settings': return <SettingsScreen />;

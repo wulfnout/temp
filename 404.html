@@ -853,6 +853,19 @@ img,video{max-width:100%;display:block}
 .quote img{width:100%;max-height:220px;object-fit:cover;border-radius:12px}.quote .q-vid{display:inline-flex;align-items:center;gap:4px;font-weight:700;color:var(--muted);font-size:13px}
 .gone-q{color:var(--muted);font-size:14px}
 .rf-sheet{display:grid;gap:4px}.rf-opt{display:flex;gap:14px;align-items:center;text-align:left;padding:12px 4px}.rf-opt b{display:block;font-size:17px}.rf-ico{width:46px;height:46px;border-radius:15px;background:var(--card);display:grid;place-items:center;flex:none}
+.earn-hero{background:var(--card);border-radius:26px;padding:20px;display:grid;margin-top:4px}.earn-hero>b{font-family:var(--display);font-size:42px;letter-spacing:-.04em;line-height:1.1;margin-top:4px}
+.earn-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.earn-stats span{display:grid;font-size:12.5px;color:var(--muted)}.earn-stats b{font-size:16px;color:var(--ink)}
+.earn-methods{display:flex;gap:6px;flex-wrap:wrap}.earn-methods button{padding:8px 14px;border-radius:13px;background:var(--bg);font-weight:700}.earn-methods button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.earn-in{border:0;background:var(--bg);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;color:var(--ink)}
+.earn-plus{color:var(--orange)}.earn-st{font-size:12.5px;font-weight:800;padding:4px 9px;border-radius:9px;background:var(--bg)}.earn-st.paid{background:var(--orange);color:var(--on-orange)}
+.nav.nav-off{display:none}
+.pp{padding-bottom:90px}.pp-media{margin:0 -16px 12px;background:#000}.pp-head{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
+.pp-text{font-size:21px;line-height:1.38;margin:4px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere}.pp-img{margin-bottom:10px}
+.pp-time{color:var(--muted);font-size:15px;margin:12px 0;padding-bottom:12px;border-bottom:1px solid var(--line)}.pp-time b{color:var(--ink)}
+.pp-acts{display:flex;justify-content:space-between;padding:4px 2px 12px;border-bottom:1px solid var(--line)}.pp-acts button{display:flex;align-items:center;gap:6px;color:var(--muted);font-weight:700;font-size:15px;padding:6px 4px}.pp-acts button.on{color:var(--orange)}.pp-acts button.on.ice{color:#6fb6e0}
+.post-replies{margin-top:6px}.pr-head{display:flex;align-items:baseline;justify-content:space-between;padding:8px 0}.pr-head b{font-size:16px}
+.reply-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;border-radius:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));gap:8px}
+.reply-bar input{background:var(--card);border-radius:999px;padding:11px 16px}
 .set-search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:10px 16px;margin:4px 0 10px;color:var(--muted)}.set-search input{flex:1;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-width:0;outline:none}
 .set-list{display:grid}.set-row{display:flex;align-items:center;gap:16px;padding:16px 6px;text-align:left;width:100%;border-bottom:1px solid var(--line)}.set-row:last-child{border-bottom:0}
 .sr-ico{flex:none;width:28px;display:grid;place-items:center;color:var(--ink)}.sr-t{flex:1;min-width:0;display:grid;gap:3px}.sr-t b{font-size:16.5px;font-weight:800}.sr-t span{font-size:14px;color:var(--muted);line-height:1.35}
@@ -1920,6 +1933,30 @@ function FeedVideo({url,auto,p,s,dispatch}){
       <button onClick=${e=>{stop(e);setMuted(!muted)}} aria-label=${muted?'Turn sound on':'Mute'}><${Icon} n=${muted?'mute':'sound'} s=${15}/></button></div>
     ${paused&&html`<span className="fv-big" aria-hidden="true"><${Icon} n="play" s=${26} fill="#fff"/></span>`}</div>`;
 }
+// one take on its own page, like X: big text and media, time and views, actions, replies, and a reply bar pinned at the bottom
+function PostPage({p,s,dispatch,open}){
+  const u=s.users[p.userId]||{};const d=new Date(p.createdAt);const counts=!s.settings.hideCounts||p.userId==='me';
+  useEffect(()=>{if(!s.viewed[p.id])dispatch({type:'view',id:p.id})},[]);
+  const cs=p.comments.filter(c=>cvis(s,c)==='show');
+  return html`<div className="pp">
+    ${p.media&&p.media.type==='video'&&html`<div className="pp-media"><${FeedVideo} url=${p.media.url} auto=${true} p=${p} s=${s} dispatch=${dispatch} big=${true}/></div>`}
+    <div className="pp-head"><button onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${48}/></button>
+      <button className="p-id" onClick=${()=>open.profile(u.id)}><span className="p-name">${u.name}<${Check} u=${u}/></span><span className="p-sub">@${u.handle}</span></button>
+      <span style=${{flex:1}}></span><${Timer} p=${p} now=${s.now}/><button className="p-more" aria-label="Post options" onClick=${()=>open.menu(p.id)}><${Icon} n="more" s=${20}/></button></div>
+    ${p.text&&html`<p className="pp-text"><${Rich} text=${p.text} onTag=${open.search}/></p>`}
+    ${p.quoteOf&&html`<${QuoteCard} id=${p.quoteOf} s=${s} open=${open}/>`}
+    ${p.media&&p.media.type!=='video'&&html`<div className="media pp-img" onDoubleClick=${()=>!p.myHeat&&dispatch({type:'heat',id:p.id})}><img src=${p.media.url} alt=""/></div>`}
+    <p className="pp-time">${d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})} · ${d.toLocaleDateString([],{month:'numeric',day:'numeric',year:'2-digit'})} · <b>${kfmt(p.views||0)}</b> Views</p>
+    <div className="pp-acts">
+      <button aria-label="Replies" onClick=${()=>{const el=document.getElementById('comment-in');el&&el.focus()}}><${Icon} n="comment" s=${22}/>${cs.length||''}</button>
+      <button className=${p.myRepost?'on':''} aria-label="Reflame" onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${22}/>${p.reposts||''}</button>
+      <button className=${p.myHeat?'on':''} aria-label="Heat" onClick=${()=>dispatch({type:'heat',id:p.id})}><${Icon} n="flame" s=${22} fill=${p.myHeat?'currentColor':null}/>${counts?kfmt(p.heat):''}</button>
+      ${!p.reel&&html`<button className=${p.myFreeze?'on ice':''} aria-label="Freeze" onClick=${()=>dispatch({type:'freeze',id:p.id})}><${Icon} n="snow" s=${22}/>${counts?kfmt(p.freeze):''}</button>`}
+      <button className=${p.saved?'on':''} aria-label="Save" onClick=${()=>dispatch({type:'save',id:p.id})}><${Icon} n="save" s=${22} fill=${p.saved?'currentColor':null}/></button>
+      <button aria-label="Share" onClick=${()=>open.share(p.id)}><${Icon} n="share" s=${21}/></button></div>
+    <${Comments} p=${p} s=${s} dispatch=${dispatch} onClose=${()=>{}} open=${open} page=${true}/>
+  </div>`;
+}
 // a quoted take, shown inside the quote (tap to open it)
 function QuoteCard({id,s,open}){
   const q=s.posts.find(x=>x.id===id);
@@ -1967,7 +2004,7 @@ function Post({p,s,dispatch,open}){
     </div>
     <div className="cover-wrap">
       <div className=${covered?'covered':''}>
-        ${p.text&&html`<p className=${'p-text'+(!p.media&&!p.quoteOf&&p.text.length<90?' big':'')}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
+        ${p.text&&html`<p className=${'p-text'+(!p.media&&!p.quoteOf&&p.text.length<90?' big':'')} onClick=${()=>open.post&&open.post(p.id)} style=${{cursor:'pointer'}}><${Rich} text=${p.text} onTag=${open.search}/></p>`}
         ${p.quoteOf&&html`<${QuoteCard} id=${p.quoteOf} s=${s} open=${open}/>`}
         ${p.media&&html`<div className="media" onDoubleClick=${dbl}>
             ${p.media.type==='video'?html`<${FeedVideo} url=${p.media.url} auto=${s.settings.autoplay&&!s.settings.dataSaver} p=${p} s=${s} dispatch=${dispatch}/>`:html`<img src=${p.media.url} alt="" draggable="false" />`}
@@ -2550,14 +2587,16 @@ function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
   <//>`;
 }
 
-function Comments({p,s,dispatch,onClose,open}){
+const RepliesWrap=({children})=>html`<div className="post-replies">${children}</div>`;
+function Comments({p,s,dispatch,onClose,open,page}){
   const [t,setT]=useState('');const [err,setErr]=useState(null);const [pick,setPick]=useState(false);const [gif,setGif]=useState(false);const [shown,setShown]=useState({});const inp=useRef();const [pending,setPending]=useState(null);
   const list=[...p.comments.filter(c=>cvis(s,c)!=='hide')].sort((a,b)=>b.likes-a.likes||a.at-b.at);
   const send=()=>{if(!t.trim()&&!pending)return;if(t.trim()){const why=MOD.rules(MOD.classify(t),s.users.me.plus,isAdult(s));if(why)return setErr(why)}
     dispatch({type:'comment',id:p.id,text:t.trim(),sticker:pending?'G|'+pending:undefined});setT('');setPending(null)};
   const counts=!s.settings.hideCounts;
-  return html`<${Sheet} onClose=${onClose} label="Comments">
-    <h3>Comments</h3>
+  const Wrap=page?RepliesWrap:Sheet;
+  return html`<${Wrap} onClose=${onClose} label="Comments">
+    ${page?html`<div className="pr-head"><b>Replies</b><span className="sub">Most relevant first</span></div>`:html`<h3>Comments</h3>`}
     ${list.length?list.map(c=>{const u=s.users[c.userId];const cov=cvis(s,c)==='cover'&&!shown[c.id];return html`<div className="comment" key=${c.id}>
       <button onClick=${()=>{onClose();open.profile(u.id)}}><${Avatar} u=${u} size=${34}/></button>
       <div style=${{minWidth:0}}><b>${u.handle}</b><${Check} u=${u}/> <span className="sub">${ago(s.now-c.at)}</span>
@@ -2567,13 +2606,13 @@ function Comments({p,s,dispatch,onClose,open}){
         <div className="c-meta">${c.likes>0&&counts&&html`<span>${kfmt(c.likes)} ${c.likes===1?'like':'likes'}</span>`}<button onClick=${()=>{setT(`@${u.handle} `);inp.current&&inp.current.focus()}}>Reply</button></div></div>
       <button className=${'c-like'+(c.myLike?' on':'')} aria-pressed=${c.myLike} aria-label="Like comment" onClick=${()=>dispatch({type:'likeComment',id:p.id,cid:c.id})}>
         <${Icon} n="heart" s=${17} w=${2} fill=${c.myLike?'currentColor':null}/></button></div>`})
-      :html`<div className="empty" style=${{padding:'28px 0'}}>No comments yet</div>`}
+      :html`<div className="empty" style=${{padding:'28px 0'}}>${page?'No replies yet. Be the first.':'No comments yet'}</div>`}
     ${pick&&html`<${StickerPicker} s=${s} onPick=${e=>{dispatch({type:'comment',id:p.id,sticker:e});setPick(false)}}/>`}
     ${gif&&html`<${GifPicker} onClose=${()=>setGif(false)} onPick=${g=>{setPending(g.url);setGif(false);setTimeout(()=>inp.current&&inp.current.focus(),50)}}/>`}
     ${pending&&html`<div className="c-pending"><img src=${pending} alt="GIF to send"/><button onClick=${()=>setPending(null)} aria-label="Remove GIF"><${Icon} n="x" s=${15}/></button></div>`}
     <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
-    ${p.status==='frozen'?html`<div className="empty" style=${{padding:'16px 0'}}>Comments are off while this post is frozen</div>`:html`<div className="inputbar"><label htmlFor="comment-in" className="vh">Comment</label>
-      <input ref=${inp} id="comment-in" placeholder=${pending?'Say something with your GIF…':'Add a comment…'} value=${t} onChange=${e=>{setT(e.target.value);setErr(null)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
+    ${p.status==='frozen'?html`<div className="empty" style=${{padding:'16px 0'}}>Comments are off while this post is frozen</div>`:html`<div className=${'inputbar'+(page?' reply-bar':'')}>${page&&html`<${Avatar} u=${s.users.me} size=${34} noRing=${true}/>`}<label htmlFor="comment-in" className="vh">Comment</label>
+      <input ref=${inp} id="comment-in" placeholder=${pending?'Say something with your GIF…':page?'Post your reply':'Add a comment…'} value=${t} onChange=${e=>{setT(e.target.value);setErr(null)}} onKeyDown=${e=>e.key==='Enter'&&send()}/>
       <button className="stk-btn gif-btn" aria-label="GIFs" aria-pressed=${gif} onClick=${()=>{setGif(!gif);setPick(false)}}>GIF</button>
       <button className="stk-btn" aria-label="Stickers" aria-pressed=${pick} onClick=${()=>setPick(!pick)}><${Icon} n="smile" s=${22}/></button>
       <button className="send" disabled=${!t.trim()&&!pending} onClick=${send} aria-label="Send comment"><${Icon} n="share" s=${18}/></button></div>`}
@@ -2679,6 +2718,46 @@ function Drawer({s,open,onClose,setView,toast}){
   </div>`;
 }
 
+/* ---------- Creator Studio: Sparks you earned from gifts, and cash out ---------- */
+const money=c=>'$'+(Math.max(0,+c||0)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const PAYOUT=[['paypal','PayPal','PayPal email'],['cashapp','Cash App','$Cashtag'],['venmo','Venmo','@username'],['bank','Bank','Name, bank, routing and account']];
+function Earnings({s,toast}){
+  const [d,setD]=useState(null);const [err,setErr]=useState('');const [form,setForm]=useState(false);
+  const [m,setM]=useState('paypal');const [h,setH]=useState('');const [amt,setAmt]=useState('');const [busy,setBusy]=useState(false);const [msg,setMsg]=useState('');
+  const load=async()=>{const {data,error}=await sb.rpc('my_earnings');if(error){setErr(/function|schema cache|does not exist/i.test(error.message)?'Creator Studio is being set up. Check back soon.':friendly(error));return}setD(data)};
+  useEffect(()=>{load()},[]);
+  const submit=async()=>{setMsg('');const cents=Math.round(parseFloat(String(amt).replace(/[^0-9.]/g,''))*100);
+    if(!(cents>=1000))return setMsg('The smallest cash out is $10.');if(d&&cents>d.balance)return setMsg('That’s more than your balance.');
+    setBusy(true);const {data,error}=await sb.rpc('request_cashout',{method:m,handle:h,amount_cents:cents});setBusy(false);
+    if(error)return setMsg(friendly(error));setD(data);setForm(false);setAmt('');toast('Cash out requested. You’ll be paid within 30 days.')};
+  if(err)return html`<div className="empty">${err}</div>`;
+  if(!d)return html`<div className="empty">Loading…</div>`;
+  const bal=Math.round(+d.balance),gname=id=>(GIFTS_LOCAL.find(g=>g.id===id)||{}).name||'Gift';
+  return html`<div className="earn">
+    <div className="earn-hero"><span className="sub">Your balance</span><b>${money(bal)}</b>
+      <div className="earn-stats"><span><b>${(+d.sparks||0).toLocaleString()}</b>Sparks received</span><span><b>${money(d.lifetime)}</b>Earned all time</span><span><b>${money(d.paid)}</b>Paid out</span></div>
+      ${d.pending>0&&html`<p className="sub" style=${{margin:'10px 0 0'}}>${money(d.pending)} on its way to you.</p>`}
+      <button className="btn orange wide" style=${{marginTop:14}} disabled=${bal<1000} onClick=${()=>{setForm(true);setAmt((bal/100).toFixed(2))}}>${bal<1000?'Cash out at '+money(1000):'Cash out'}</button></div>
+    ${form&&html`<div className="set-group" style=${{padding:16,display:'grid',gap:10}}>
+      ${!d.adult&&html`<p className="a-err">You need to be 18 or older to cash out. Check your birthday in Settings → Your account.</p>`}
+      <b>Send it to</b>
+      <div className="earn-methods">${PAYOUT.map(([k,l])=>html`<button key=${k} aria-pressed=${m===k} onClick=${()=>setM(k)}>${l}</button>`)}</div>
+      <input className="earn-in" placeholder=${PAYOUT.find(x=>x[0]===m)[2]} value=${h} onChange=${e=>setH(e.target.value)} maxLength=${120}/>
+      <input className="earn-in" inputMode="decimal" placeholder="Amount" value=${amt} onChange=${e=>setAmt(e.target.value)}/>
+      ${msg&&html`<p className="a-err">${msg}</p>`}
+      <div style=${{display:'flex',gap:8}}><button className="btn ghost" style=${{flex:1}} onClick=${()=>setForm(false)}>Cancel</button><button className="btn orange" style=${{flex:1}} disabled=${busy||!d.adult} onClick=${submit}>${busy?'One sec…':'Request cash out'}</button></div></div>`}
+    <div className="set-label">How it works</div>
+    <div className="set-group" style=${{padding:'14px 16px'}}><p style=${{margin:0,lineHeight:1.45}}>When someone sends you a gift on Live with Sparks they bought, you keep <b>${Math.round((d.rate||.6)*100)}%</b> of what those Sparks are worth and Temp keeps the rest to run the app. Gifts made with free daily Sparks show up here but don’t earn money. Cash outs start at $10 and are paid within 30 days. <a href="/terms.html" target="_blank" style=${{color:'var(--orange)',fontWeight:700}}>Full terms</a></p></div>
+    <div className="set-label">History</div>
+    <div className="set-group">${(d.history||[]).length?d.history.map(r=>html`<div className="set-item" key=${r.id}>
+      <span className="si"><${Icon} n=${r.kind==='gift'?'spark':'wallet'} s=${18}/></span>
+      <span className="grow">${r.kind==='gift'?html`<b>${gname(r.gift_id)}</b> from @${r.from_handle||'someone'}<span className="sub" style=${{display:'block'}}>${(r.sparks||0).toLocaleString()} Sparks${r.note?' · '+r.note:''} · ${ago(Date.now()-new Date(r.created_at))}</span>`
+        :html`<b>${r.kind==='cashout'?'Cash out':r.kind==='refund'?'Cash out returned':'Adjustment'}</b><span className="sub" style=${{display:'block'}}>${r.note||''} · ${ago(Date.now()-new Date(r.created_at))}</span>`}</span>
+      <b className=${+r.cents<0?'':'earn-plus'}>${+r.cents<0?'−'+money(-r.cents):'+'+money(r.cents)}</b></div>`):html`<div className="set-item"><span className="grow sub">Gifts you receive on Live show up here.</span></div>`}</div>
+    ${(d.cashouts||[]).length>0&&html`<div className="set-label">Cash outs</div><div className="set-group">${d.cashouts.map(c=>html`<div className="set-item" key=${c.id}><span className="grow"><b>${money(c.cents)}</b> to ${(PAYOUT.find(x=>x[0]===c.method)||[0,c.method])[1]}<span className="sub" style=${{display:'block'}}>${ago(Date.now()-new Date(c.created_at))}</span></span><span className=${'earn-st '+c.status}>${c.status==='pending'?'On its way':c.status==='paid'?'Paid':'Returned'}</span></div>`)}</div>`}
+  </div>`;
+}
+
 function SItem({icon,label,val,onClick,right,warn}){
   return html`<${onClick?'button':'div'} className=${'set-item'+(warn?' warn':'')} onClick=${onClick}>
     ${icon&&html`<span className="si"><${Icon} n=${icon} s=${18}/></span>`}<span className="grow">${label}</span>
@@ -2761,6 +2840,7 @@ function SettingsView({s,dispatch,sub,setSub,open,replay,logout}){
       <${SItem} icon="logout" label="Log out" onClick=${()=>setConfirm('logout')}/>
       <${SItem} icon="trash" label="Delete account" warn=${true} onClick=${()=>setConfirm('delete')}/>
     </div>${confirmSheet}</div>`;
+  if(sub==='earnings')return html`<${Earnings} s=${s} toast=${m=>dispatch({type:'toast',msg:m})}/>`;
   if(sub==='help')return html`<div><div className="set-group">
       <${SItem} icon="replay" label="Tutorial" onClick=${replay}/>
       <${SItem} icon="info" label="User agreement" onClick=${()=>open.terms&&open.terms()}/>
@@ -4078,7 +4158,7 @@ function App(){
     await sb.auth.signOut({scope:'local'});if(rest[0])accSwitch(rest[0]).catch(()=>{});
   }
 
-  const [drawer,setDrawer]=useState(false);
+  const [drawer,setDrawer]=useState(false);const postBack=useRef(null);
   const lastTab=useRef({tab:'home'});
   useEffect(()=>{if(view.tab!=='replay')lastTab.current=view},[view]);
   const open={
@@ -4094,7 +4174,7 @@ function App(){
     settings:()=>{setSetSub(null);setView({tab:'settings'})},
     search:q=>{setQuery(q);setView({tab:'search'})},
     replay:id=>setView({tab:'replay',reelId:id}),
-    post:id=>setView({tab:'post',postId:id}),
+    post:id=>{postBack.current=viewRef.current.tab==='post'?postBack.current:viewRef.current;setView({tab:'post',postId:id})},
     compose:reel=>setSheet({kind:'compose',reel}),
     reflame:id=>setSheet({kind:'reflame',id}),
     quote:id=>setSheet({kind:'compose',quoteOf:id}),
@@ -4121,7 +4201,7 @@ function App(){
   // inside the Temp phone app: Android back button, status bar colour, and refreshing when the app comes back
   const backRef=useRef();backRef.current=()=>{
     if(drawer){setDrawer(false);return true}if(storyUser){setStoryUser(null);return true}if(sheet){setSheet(null);return true}if(side){setSide(false);return true}
-    if(view.tab==='settings'&&setSub){setSetSub(null);return true}if(view.tab==='thread'){setView({tab:'dms'});return true}if(view.tab==='post'){setView({tab:'activity'});return true}
+    if(view.tab==='settings'&&setSub){setSetSub(null);return true}if(view.tab==='thread'){setView({tab:'dms'});return true}if(view.tab==='post'){setView(postBack.current||{tab:'home'});return true}
     if(view.tab!=='home'){setView({tab:'home'});return true}return false};
   useEffect(()=>{window.__tempBack=()=>backRef.current();const r=()=>{if(myId)reload()};const f=e=>{if(e.detail==='active')r()};addEventListener('temp-app-state',f);return()=>removeEventListener('temp-app-state',f)},[]);
   useEffect(()=>{if(!window.tempNative)return;const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;window.tempNative({type:'theme',dark})},[s.settings.theme,ready]);
@@ -4172,8 +4252,8 @@ function App(){
     top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'home'}))}<span className="top-title">Live Takes</span></div></div>`;
   } else if(view.tab==='post'){
     const p=s.posts.find(x=>x.id===view.postId);
-    body=p&&visible(s,p)?html`<div className="feed"><${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/></div>`:html`<div className="empty">This take has burned away.</div>`;
-    top=html`<div className="top"><div className="top-row">${backBtn(()=>setView({tab:'activity'}))}<span className="top-title">Take</span></div></div>`;
+    body=p&&visible(s,p)?html`<${PostPage} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`:html`<div className="empty">This take has burned away.</div>`;
+    top=html`<div className="top"><div className="top-row">${backBtn(()=>setView(postBack.current||{tab:'home'}))}<span className="top-title">Take</span></div></div>`;
   } else if(view.tab==='replay'){
     body=html`<${Replay} s=${s} dispatch=${dispatch} open=${open} startId=${view.reelId}/>`;
   } else {
@@ -4190,7 +4270,7 @@ function App(){
 
     ${view.tab==='home'&&html`<button className=${'gl-peek'+(peek?' show':'')} onClick=${()=>{setPeek(false);setSide(true)}} aria-label="Open Go Live"><b>GO LIVE</b></button>`}
     <div className=${'gl-side'+(side?' open':'')} aria-hidden=${!side} onTouchStart=${e=>{const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${side&&html`<${GoLivePage} key=${sideWatch||'lobby'} me=${myId} startWatch=${sideWatch} onClose=${()=>{setSide(false);setSideWatch(null)}}/>`}</div>
-    <nav className=${'nav'+(isReplay?' dark':'')} aria-label="Main"><div className="nav-in">
+    <nav className=${'nav'+(isReplay?' dark':'')+(view.tab==='post'?' nav-off':'')} aria-label="Main"><div className="nav-in">
       <button aria-label="Home" aria-current=${view.tab==='home'?'page':null} onClick=${guard(()=>setView({tab:'home'}))}><${Icon} n="home" s=${25}/></button>
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>
       <button className="create" aria-label="New post" data-tour="nav-create" onClick=${guard(()=>setSheet({kind:'compose',reel:isReplay}))}><${Icon} n="plus" s=${26} w=${2.6}/></button>

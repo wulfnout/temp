@@ -944,6 +944,10 @@ html.blackout .lifebar span.orb>b{color:var(--on-orange)}
 /* hidden left page on home */
 .gl-side{position:fixed;inset:0;z-index:150;background:var(--bg);transform:translateX(-100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);overflow-y:auto}
 .gl-side.open{transform:none}
+.gl-side.mini{inset:auto;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));width:100vw;height:100dvh;transform:scale(.3);transform-origin:bottom right;border-radius:60px;overflow:hidden;box-shadow:0 12px 50px rgba(0,0,0,.5);cursor:pointer;z-index:170}
+.gl-side.mini *{pointer-events:none}.gl-side.mini .gl-mini-x{pointer-events:auto}
+.gl-side.mini .gl-head,.gl-side.mini .gl-sub,.gl-side.mini .gl-chat,.gl-side.mini .gl-bar,.gl-side.mini .live-bar,.gl-side.mini .gl-banners,.gl-side.mini .gl-goal,.gl-side.mini .gl-pin,.gl-side.mini .gp{display:none!important}
+.gl-mini-x{position:absolute;top:40px;right:40px;z-index:200;width:110px;height:110px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}.gl-mini-x svg{width:56px;height:56px}
 .gl-peek{position:fixed;left:0;top:30%;z-index:40;width:44px;height:180px;border-radius:0 26px 26px 0;background:linear-gradient(#ff2d2d,#ff5500);color:#fff;display:grid;place-items:center;transform:translateX(-100%);transition:transform .45s cubic-bezier(.2,.9,.3,1);box-shadow:4px 0 18px rgba(255,85,0,.45)}
 .gl-peek.show{transform:none}.gl-peek b{writing-mode:vertical-rl;transform:rotate(180deg);font-weight:900;letter-spacing:.14em;font-size:12px}
 .gl-embed{min-height:100dvh}
@@ -4047,6 +4051,7 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
     <div className="gl-head">${host&&html`<${Avatar} u=${host} size=${34} noRing=${true}/><div className="gl-who"><b>${host.name}</b><span><${Icon} n="heart" s=${11} fill="currentColor"/> ${fmtK(likes)} likes</span></div>`}
       <button className="gl-top3" onClick=${e=>{e.stopPropagation();setPanel('board')}} aria-label="Top gifters">${board.slice(0,3).map(([u],i)=>html`<span key=${u} className=${'r'+i}><${Avatar} u=${people[u]||liveUser(null)} size=${26} noRing=${true}/></span>`)}</button>
       <button className="gl-count" onClick=${e=>{e.stopPropagation();setPanel('viewers')}}><${Icon} n="eye" s=${14}/>${watching}</button>
+      ${window.__miniLive&&html`<button className="gl-x" onClick=${e=>{e.stopPropagation();window.__miniLive()}} aria-label="Minimize live"><${Icon} n="pip" s=${18}/></button>`}
       <button className="gl-x" onClick=${end} aria-label=${isHost?'End live':'Leave'}><${Icon} n="x" s=${20}/></button></div>
     <div className="gl-sub">
       <span className="live-dot">LIVE</span>${row&&row.title&&html`<span className="gl-title">${row.title}</span>`}
@@ -4223,12 +4228,14 @@ function App(){
   const unreadN=s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]).length;
 
   // hidden Go Live page: swipe in from the left edge on home (or tap the tab that peeks out now and then)
-  const [side,setSide]=useState(false);const [peek,setPeek]=useState(false);const [sideWatch,setSideWatch]=useState(null);
+  const [side,setSide]=useState(false);const [peek,setPeek]=useState(false);const [sideWatch,setSideWatch]=useState(null);const [mini,setMini]=useState(false);
+  useEffect(()=>{window.__miniLive=()=>setMini(true);return()=>{window.__miniLive=null}},[]);
+  useEffect(()=>{if(!side)setMini(false)},[side]);
   useEffect(()=>{window.__openLive=id=>{setSideWatch(id);setSide(true)};return()=>{window.__openLive=null}},[]);
   useEffect(()=>{window.__openGoLive=view.tab==='home'?()=>setSide(true):null;return()=>{window.__openGoLive=null}},[view.tab]);
   // inside the Temp phone app: Android back button, status bar colour, and refreshing when the app comes back
   const backRef=useRef();backRef.current=()=>{
-    if(drawer){setDrawer(false);return true}if(storyUser){setStoryUser(null);return true}if(sheet){setSheet(null);return true}if(side){setSide(false);return true}
+    if(drawer){setDrawer(false);return true}if(storyUser){setStoryUser(null);return true}if(sheet){setSheet(null);return true}if(side&&!mini&&sideWatch){setMini(true);return true}if(side&&!mini){setSide(false);return true}
     if(view.tab==='settings'&&setSub){setSetSub(null);return true}if(view.tab==='thread'){setView({tab:'dms'});return true}if(view.tab==='post'){setView(postBack.current||{tab:'home'});return true}
     if(view.tab!=='home'){setView({tab:'home'});return true}return false};
   useEffect(()=>{window.__tempBack=()=>backRef.current();const r=()=>{if(myId)reload()};const f=e=>{if(e.detail==='active')r()};addEventListener('temp-app-state',f);return()=>removeEventListener('temp-app-state',f)},[]);
@@ -4297,7 +4304,7 @@ function App(){
     ${drawer&&html`<${Drawer} s=${s} open=${open} setView=${setView} onClose=${()=>setDrawer(false)} toast=${m=>raw({type:'toast',msg:m})}/>`}
 
     ${view.tab==='home'&&html`<button className=${'gl-peek'+(peek?' show':'')} onClick=${()=>{setPeek(false);setSide(true)}} aria-label="Open Go Live"><b>GO LIVE</b></button>`}
-    <div className=${'gl-side'+(side?' open':'')} aria-hidden=${!side} onTouchStart=${e=>{const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${side&&html`<${GoLivePage} key=${sideWatch||'lobby'} me=${myId} startWatch=${sideWatch} onClose=${()=>{setSide(false);setSideWatch(null)}}/>`}</div>
+    <div className=${'gl-side'+(side?' open':'')+(mini?' mini':'')} aria-hidden=${!side} onClickCapture=${e=>{if(mini){e.stopPropagation();e.preventDefault();setMini(false)}}} onTouchStart=${e=>{if(mini)return;const t=e.touches[0];window.__gls={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=window.__gls;if(!a)return;const t=e.changedTouches[0];if(t.clientX-a.x<-80&&Math.abs(t.clientX-a.x)>Math.abs(t.clientY-a.y)*1.5)setSide(false)}}>${mini&&html`<button className="gl-mini-x" aria-label="Close live" onClickCapture=${e=>{e.stopPropagation();setMini(false);setSide(false);setSideWatch(null)}}><${Icon} n="x" s=${16}/></button>`}${side&&html`<${GoLivePage} key=${sideWatch||'lobby'} me=${myId} startWatch=${sideWatch} onClose=${()=>{setSide(false);setSideWatch(null)}}/>`}</div>
     <nav className=${'nav'+(isReplay?' dark':'')+(view.tab==='post'?' nav-off':'')} aria-label="Main"><div className="nav-in">
       <button aria-label="Home" aria-current=${view.tab==='home'?'page':null} onClick=${guard(()=>setView({tab:'home'}))}><${Icon} n="home" s=${25}/></button>
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>

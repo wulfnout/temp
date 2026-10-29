@@ -184,6 +184,10 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 .thought .t1{left:-13px!important;top:22px!important}
 .thought .t2{left:-23px!important;top:13px!important}
 .thought .t3{left:-29px!important;top:6px!important}
+
+/* lingering thought v6: taller, reaching down to just above the stats */
+.thought{min-height:140px!important;justify-content:flex-start!important;padding-top:16px!important}
+.prof-id.has-thought{min-height:104px}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1516,7 +1520,7 @@ const P={
   back:'<path d="M15 5l-7 7 7 7"/>',
   chev:'<path d="M9 5l7 7-7 7"/>',
   x:'<path d="M6 6l12 12M18 6L6 18"/>',
-  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2M12 19.3v2.2M4.7 4.7l1.6 1.6M17.7 17.7l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.7 19.3l1.6-1.6M17.7 6.3l1.6-1.6"/>',
+  gear:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.8-2.4 2.2-2.4 3.7M12 17.2v.1"/>',
   block:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
   pin:'<path d="M12 16.5V22M8 3h8l-1.2 6 3.2 4.5H6L9.2 9z"/>',
@@ -3743,9 +3747,9 @@ function Profile({s,id,dispatch,open,back,startTab}){
           :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
             <button className=${'btn'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id})}>${u.following?'Following':u.followsMe?'Follow back':'Follow'}</button>`}
         </div></div>
-      <h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
+      <div className=${'prof-id'+(u.thought&&!blocked?' has-thought':'')}><h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
       <div className="sub" style=${{fontSize:15}}>@${u.handle}${!isMe&&u.followsMe?' · Follows you':''}</div>
-      ${u.bio&&html`<p className="prof-bio">${u.bio}</p>`}
+      ${u.bio&&html`<p className="prof-bio">${u.bio}</p>`}</div>
       <div className="stats">
         <div className="stat"><b>${all.length+reels.length}</b><span>Posts</span></div>
         <div className="stat"><b>${kfmt(isMe?Object.values(s.users).filter(x=>x.followsMe).length:u.followers)}</b><span>Followers</span></div>

@@ -62,9 +62,11 @@ export function ProfileScreen({ id, isTab }) {
             {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
             {!blocked && u.thought ? <View style={{ position: 'absolute', left: 128, right: 0, top: 54 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
           </View>
+          <View style={{ minHeight: u.thought && !blocked ? 104 : 0 }}>
           <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
           <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
           {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
+          </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
             {[[all.length, 'Posts'], [u.followers, 'Followers'], [u.followingCount, 'Following']].map(([n, l]) => (
               <View key={l} style={{ backgroundColor: C.soft, borderRadius: 16, paddingVertical: 10, paddingHorizontal: 14, minWidth: 76 }}>
@@ -322,9 +324,9 @@ function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
   return (
     <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Lingering thought'} style={{ marginTop: top }}>
       <Animated.View style={[{ borderRadius: 22, shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }, y(0)]}>
-        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, minHeight: 84, justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 14 }}>{body}</LinearGradient>
+        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, minHeight: 140, justifyContent: 'flex-start', paddingHorizontal: 18, paddingVertical: 16 }}>{body}</LinearGradient>
           : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 1.6 }}>
-            <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 18, paddingVertical: 14, minHeight: 81, justifyContent: 'center', overflow: 'hidden' }}>
+            <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 18, paddingVertical: 16, minHeight: 137, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
               <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
               {body}</View></LinearGradient>}

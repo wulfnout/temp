@@ -94,9 +94,6 @@ function FeedSwitch({ value, onChange, dark, children }) {
     <View style={{ zIndex: 50 }}>
       <Pressable onPress={() => setOpen(!open)} accessibilityLabel={'Showing ' + (value === 'following' ? 'Following' : 'For you') + '. Switch feed'} style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
         {children}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20, marginBottom: 5, backgroundColor: dark ? 'rgba(255,255,255,.16)' : C.dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.06)' }}>
-          <T h style={{ fontSize: 13, color: dark ? 'rgba(255,255,255,.85)' : C.muted }}>{value === 'following' ? 'Following' : 'For you'}</T>
-          <Ionicons name="chevron-down" size={13} color={dark ? 'rgba(255,255,255,.85)' : C.muted} /></View>
       </Pressable>
       {open ? <View style={{ position: 'absolute', top: '100%', left: 0, marginTop: 8, width: 250, backgroundColor: C.card, borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 14 }}>
         {[['foryou', 'For you', 'Hottest and newest from everyone'], ['following', 'Following', 'Only people you follow']].map(([k, l, d]) => (

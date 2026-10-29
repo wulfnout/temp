@@ -358,7 +358,7 @@ export function SegTabs({ items, value, onChange, size = 14, style }) {
       {seg ? <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 4, bottom: 4, left: 4, width: seg, borderRadius: 15, backgroundColor: C.ink, transform: [{ translateX: x }] }} /> : null}
       {items.map(([k, l], i) => (
         <View key={k} accessible accessibilityRole="tab" accessibilityLabel={l} accessibilityState={{ selected: i === idx }} style={{ flex: 1, paddingVertical: 9, alignItems: 'center' }}>
-          <T h style={{ color: i === on ? C.bg : C.muted, fontSize: size }}>{l}</T></View>))}
+          <T h numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: i === on ? C.bg : C.muted, fontSize: size, paddingHorizontal: 2 }}>{l}</T></View>))}
     </View>
   );
 }

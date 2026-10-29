@@ -3584,7 +3584,7 @@ function ShopView({s,dispatch,open}){
     <div className="deal-head" id="packs"><h3>Points</h3></div>
     <div className="packs">${PACKS.map(p=>html`<button className="pack" key=${p.n} disabled style=${{opacity:.6,cursor:'default'}}>${p.tag&&html`<span className="tag">${p.tag}</span>`}
       <b><span style=${{color:'var(--orange)',display:'inline-flex'}}><${Icon} n="flame" s=${18} w=${2.4} fill="currentColor"/></span>${p.n.toLocaleString()}</b><span className="usd">${p.usd} · Coming soon</span></button>`)}</div>
-    <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers'],['bubbles','Bubbles'],['styles','Icons']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
+    <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers'],['styles','Icons']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
     <div className="shop-grid">${SHOP[tab].filter(it=>!it.until||new Date(it.until)>Date.now()).map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/>${it.until&&html`<span className="ltd">${it.drop?'✨ New · ':'🎃 '}${Math.max(0,Math.ceil((new Date(it.until)-Date.now())/864e5))}d left</span>`}<div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
     ${studio&&html`<${StickerStudio} s=${s} dispatch=${dispatch} onClose=${()=>setStudio(false)}/>`}
     ${pack&&html`<${Sheet} onClose=${()=>setPack(null)} label="Buy points"><h3>${pack.n.toLocaleString()} points</h3>
@@ -3643,7 +3643,7 @@ function FeedSwitch({k,label,dark}){
   useEffect(()=>{if(!open)return;const c=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};document.addEventListener('pointerdown',c);return()=>document.removeEventListener('pointerdown',c)},[open]);
   return html`<div className=${'fsw'+(dark?' dark':'')} ref=${ref}>
     <button className="fsw-btn" aria-haspopup="true" aria-expanded=${open} aria-label=${'Showing '+(feed==='following'?'Following':'For you')+'. Switch feed'} onClick=${()=>setOpen(!open)}>
-      ${label}<span className="fsw-now">${feed==='following'?'Following':'For you'}<${Icon} n="chev" s=${13} w=${2.8}/></span></button>
+      ${label}</button>
     ${open&&html`<div className="fsw-menu" role="menu">${[['foryou','For you','Hottest and newest from everyone'],['following','Following','Only people you follow']].map(([v,l,d])=>html`<button key=${v} role="menuitemradio" aria-checked=${feed===v} onClick=${()=>{setFeed(v);setOpen(false);scrollTo({top:0,behavior:'smooth'})}}>
       <span><b>${l}</b><small>${d}</small></span>${feed===v&&html`<${Icon} n="check" s=${18} w=${2.8}/>`}</button>`)}</div>`}
   </div>`;

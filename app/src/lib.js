@@ -73,6 +73,8 @@ export function friendly(e) {
   if (/duplicate key|already exists/i.test(m)) return 'Already done.';
   if (/row-level security/i.test(m)) return 'You can’t do that here.';
   if (isNetErr(e)) return 'No connection. Try again.';
+  if (/story_reactions/i.test(m)) return 'Couldn’t send that reaction. Try another one.';
+  if (/violates (check|foreign key|not-null) constraint|null value in column|invalid input syntax/i.test(m)) return 'That didn’t go through. Try again.';
   return m.replace(/^.*?ERROR:\s*/, '');
 }
 export async function ok(p) { const { data, error } = await p; if (error) throw new Error(friendly(error)); return data; }

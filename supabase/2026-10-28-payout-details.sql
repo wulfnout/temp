@@ -87,3 +87,7 @@ as $function$
   from public.live_streams s left join public.live_gift_events e on e.stream_id = s.id and s.match_started is not null and e.created_at >= s.match_started and e.created_at <= coalesce(s.match_until, now())
   where s.id = sid group by s.id;
 $function$;
+
+-- story reactions: allow any emoji (the old rule only allowed 🔥 😂 😮 🧊); the length limit stays
+alter table public.story_reactions drop constraint if exists story_reactions_emoji_check;
+alter table public.story_reactions validate constraint story_reaction_emoji_len;

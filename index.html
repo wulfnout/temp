@@ -1496,6 +1496,8 @@ function friendly(e){const m=(e&&e.message)||String(e||'');
   if(/row-level security/i.test(m)&&/messages/i.test(m))return 'You can’t message this person.';
   if(/row-level security/i.test(m))return 'You can’t do that.';
   if(/Failed to fetch|NetworkError/i.test(m))return 'You’re offline. Check your connection.';
+  if(/story_reactions/i.test(m))return 'Couldn’t send that reaction. Try another one.';
+  if(/violates (check|foreign key|not-null) constraint|null value in column|invalid input syntax/i.test(m))return 'That didn’t go through. Try again.';
   return m||'Something went wrong. Try again.'}
 const ok=async q=>{const {error}=await q;if(error)throw new Error(friendly(error))};
 async function upload(file){

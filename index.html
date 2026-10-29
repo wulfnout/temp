@@ -190,6 +190,16 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 .prof-id.has-thought{min-height:104px}
 
 .thought .thought-in{font-family:var(--display)!important;font-weight:800!important;letter-spacing:-.035em!important;line-height:1.12!important}
+
+/* lingering thought: a still box beside your name (no tail, no floating), the bio runs full width below */
+.prof-idrow{display:flex;align-items:flex-start;gap:14px}.prof-idname{flex:1;min-width:0}
+.prof-idrow .thought{position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;flex:0 0 56%;max-width:56%!important;margin:2px 0 0!important;min-height:92px!important;padding:12px 14px!important;border-radius:20px!important;animation:none!important;box-sizing:border-box}
+.prof-id.has-thought{min-height:0}
+/* story ring: an orb-like blob that slowly shifts shape */
+@keyframes orbring{0%,100%{border-radius:58% 42% 55% 45%/46% 56% 44% 54%}33%{border-radius:45% 55% 44% 56%/56% 45% 55% 44%}66%{border-radius:54% 46% 58% 42%/44% 54% 47% 53%}}
+.orb:not(.store):not(.uploading){animation:orbring 9s ease-in-out infinite,spin 7s linear infinite}
+.orb.seen:not(.store):not(.uploading){animation:orbring 13s ease-in-out infinite,spin 14s linear infinite}
+.story:nth-child(2n) .orb:not(.store){animation-delay:-3s,-1s}.story:nth-child(3n) .orb:not(.store){animation-delay:-6s,-2s}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3081,11 +3091,10 @@ function PollBox({p,dispatch}){
 // Lingering thoughts: a short daily message floating on your profile, like a thought bubble with a little tail
 const THOUGHT_REACTS=['🔥','😂','😮','🧊','💯','👀'];
 // big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
-const thoughtSize=t=>{const n=(t||'').length;return n<=18?28:n<=30?24:n<=45?21:n<=60?18.5:16.5};
+const thoughtSize=t=>{const n=(t||'').length;return n<=14?24:n<=26?21:n<=40?18:n<=60?15.5:14};
 function ThoughtBubble({u,isMe,onOpen}){
   const t=u.thought;const rs=t?Object.entries(t.reacts).sort((a,b)=>b[1]-a[1]).slice(0,3):[];
   return html`<button className=${'thought ts-'+(u.thoughtStyle||'orange')+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
-    <i className="tt t1"></i><i className="tt t2"></i><i className="tt t3"></i>
     <span className="thought-in" style=${t?{fontSize:thoughtSize(t.text)}:null}>${t?t.text:html`<${Icon} n="plus" s=${14} w=${2.6}/>Lingering thought…`}</span>
     ${rs.length>0&&html`<span className="thought-rx">${rs.map(([e,n])=>html`<span key=${e}>${e}${n>1?n:''}</span>`)}</span>`}</button>`;
 }
@@ -3745,14 +3754,14 @@ function Profile({s,id,dispatch,open,back,startTab}){
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
         <div className="prof-btns">
-          ${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}
           ${isMe?null
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
           :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
             <button className=${'btn'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id})}>${u.following?'Following':u.followsMe?'Follow back':'Follow'}</button>`}
         </div></div>
-      <div className=${'prof-id'+(u.thought&&!blocked?' has-thought':'')}><h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
-      <div className="sub" style=${{fontSize:15}}>@${u.handle}${!isMe&&u.followsMe?' · Follows you':''}</div>
+      <div className=${'prof-id'+(u.thought&&!blocked?' has-thought':'')}><div className="prof-idrow"><div className="prof-idname"><h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
+      <div className="sub" style=${{fontSize:15}}>@${u.handle}${!isMe&&u.followsMe?' · Follows you':''}</div></div>
+      ${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}</div>
       ${u.bio&&html`<p className="prof-bio">${u.bio}</p>`}</div>
       <div className="stats">
         <div className="stat"><b>${all.length+reels.length}</b><span>Posts</span></div>

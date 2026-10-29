@@ -60,13 +60,16 @@ export function ProfileScreen({ id, isTab }) {
             </View>
             </View>
             {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
-            {!blocked && u.thought ? <View style={{ position: 'absolute', left: 128, right: 0, top: 54 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
           </View>
-          <View style={{ minHeight: u.thought && !blocked ? 104 : 0 }}>
-          <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
-          <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
+          {/* name on the left, the lingering thought box beside it on the right; the bio runs full width underneath */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <T d style={{ fontSize: 25, letterSpacing: -1.2 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
+              <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
+            </View>
+            {!blocked && u.thought ? <View style={{ width: '56%' }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
+          </View>
           {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
-          </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
             {[[all.length, 'Posts'], [u.followers, 'Followers'], [u.followingCount, 'Following']].map(([n, l]) => (
               <View key={l} style={{ backgroundColor: C.soft, borderRadius: 16, paddingVertical: 10, paddingHorizontal: 14, minWidth: 76 }}>
@@ -283,10 +286,10 @@ export function EarningsScreen() {
 }
 
 /* ---------------- lingering thoughts ---------------- */
-// a short daily thought floating on your profile like a see-through bubble, with a three-bubble tail toward your picture
+// a short daily thought in a box beside your name (no tail, no floating)
 // bubble styles: Orange (default) and Blackout are free; Bubble is the only one with the soap-film shine
 // big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
-const thoughtSize = (t) => { const n = (t || '').length; return n <= 18 ? 28 : n <= 30 ? 24 : n <= 45 ? 21 : n <= 60 ? 18.5 : 16.5; };
+const thoughtSize = (t) => { const n = (t || '').length; return n <= 14 ? 24 : n <= 26 ? 21 : n <= 40 ? 18 : n <= 60 ? 15.5 : 14; };
 export const BUBBLES = [['orange', 'Orange', 0], ['blackout', 'Blackout', 0], ['bubble', 'Bubble', 300], ['gold', 'Gold', 400], ['ice', 'Ice', 200], ['neon', 'Neon', 250], ['midnight', 'Midnight', 250]];
 function bubbleLook(id, C) {
   switch (id) {
@@ -309,33 +312,25 @@ export function BubbleChip({ id, label, small, on, onPress }) {
     </LinearGradient></Pressable>;
 }
 function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
-  const { C } = useApp(); const t = u.thought; const bob = useRef(new Animated.Value(0)).current;
-  useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(bob, { toValue: 1, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }), Animated.timing(bob, { toValue: 0, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
-  const y = (d) => ({ transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -4 + d] }) }] });
+  const { C } = useApp(); const t = u.thought;
   const L = bubbleLook(u.thoughtStyle, C);
   const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
   const film = C.dark ? 'rgba(30,30,40,.62)' : 'rgba(255,255,255,.66)';
   const ink = L ? L.ink : C.ink;
-  const Bub = ({ size, style }) => <Animated.View style={[{ position: 'absolute', width: size, height: size, borderRadius: size }, style]}>
-    {L ? <View style={{ flex: 1, borderRadius: size, backgroundColor: L.dot }} />
-      : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, borderRadius: size, padding: 1.4 }}><View style={{ flex: 1, borderRadius: size, backgroundColor: film }} /></LinearGradient>}</Animated.View>;
   const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
   const body = <>
     {t ? <T style={{ fontFamily: F.display, fontSize: thoughtSize(t.text), lineHeight: thoughtSize(t.text) * 1.12, letterSpacing: -thoughtSize(t.text) * 0.035, color: ink }}>{t.text}</T> : null}
     {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5, color: ink }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}</>;
   return (
     <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Lingering thought'} style={{ marginTop: top }}>
-      <Animated.View style={[{ borderRadius: 22, shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }, y(0)]}>
-        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, minHeight: 140, justifyContent: 'flex-start', paddingHorizontal: 18, paddingVertical: 16 }}>{body}</LinearGradient>
-          : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 1.6 }}>
-            <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 18, paddingVertical: 16, minHeight: 137, justifyContent: 'flex-start', overflow: 'hidden' }}>
+      <Animated.View style={[{ borderRadius: 20, shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }]}>
+        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, minHeight: 92, justifyContent: 'flex-start', paddingHorizontal: 14, paddingVertical: 12 }}>{body}</LinearGradient>
+          : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, padding: 1.6 }}>
+            <View style={{ borderRadius: 19, backgroundColor: film, paddingHorizontal: 14, paddingVertical: 12, minHeight: 89, justifyContent: 'flex-start', overflow: 'hidden' }}>
               <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
               <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
               {body}</View></LinearGradient>}
       </Animated.View>
-      <Bub size={14} style={[{ left: -13, top: 22 }, y(0.6)]} />
-      <Bub size={9} style={[{ left: -23, top: 13 }, y(1.2)]} />
-      <Bub size={6} style={[{ left: -29, top: 6 }, y(1.8)]} />
     </Pressable>
   );
 }

@@ -174,17 +174,21 @@ function Pill({ bg, fg, icon, text }) {
 // the story ring: the theme colour flowing round and round a round ring (same as the website's .orb)
 export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const { C } = useApp();
-  const spin = useRef(new Animated.Value(0)).current, wob = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current, wob = useRef(new Animated.Value(0)).current, tv = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     // slow and subtle, like the first versions: the colour drifts round and the ring gently breathes
     const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: seen ? 14000 : 7000, easing: Easing.linear, useNativeDriver: true }));
     const b = Animated.loop(Animated.sequence([
-      Animated.timing(wob, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      Animated.timing(wob, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true })]));
-    a.start(); b.start(); return () => { a.stop(); b.stop(); };
+      Animated.timing(wob, { toValue: 1, duration: 2600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(wob, { toValue: 0, duration: 2600, easing: Easing.inOut(Easing.ease), useNativeDriver: true })]));
+    const c = Animated.loop(Animated.timing(tv, { toValue: 1, duration: 22000, easing: Easing.linear, useNativeDriver: true }));
+    a.start(); b.start(); c.start(); return () => { a.stop(); b.stop(); c.stop(); };
   }, [seen]);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const breathe = [{ scaleX: wob.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) }, { scaleY: wob.interpolate({ inputRange: [0, 1], outputRange: [1.01, 0.99] }) }];
+  // the ring is an orb-like blob (like the logo's orbs): uneven corners that slowly turn and stretch, so its outline gently shifts
+  const turn = tv.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-360deg'] });
+  const breathe = [{ rotate: turn }, { scaleX: wob.interpolate({ inputRange: [0, 1], outputRange: [1.02, 0.985] }) }, { scaleY: wob.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.02] }) }];
+  const blob = { borderTopLeftRadius: size * 0.58, borderTopRightRadius: size * 0.4, borderBottomRightRadius: size * 0.55, borderBottomLeftRadius: size * 0.42 };
   // orange everywhere, except Blackout: black or white to match the display
   const cols = seen ? [C.line, C.dark ? '#3a3a3a' : '#c9c5c0', C.line] : C.mono ? [C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]
     : ['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500'];
@@ -193,7 +197,7 @@ export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center',
       ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
       {/* only the ring moves; the picture stays still */}
-      <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: cols[0], transform: breathe }}>
+      <Animated.View style={{ position: 'absolute', width: size, height: size, ...blob, overflow: 'hidden', backgroundColor: cols[0], transform: breathe }}>
         <Animated.View style={{ position: 'absolute', left: -size * 0.21, top: -size * 0.21, width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
           <LinearGradient colors={cols} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ width: '100%', height: '100%' }} />
         </Animated.View>

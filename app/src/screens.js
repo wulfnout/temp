@@ -49,13 +49,16 @@ export function Drawer({ onClose, at, onEdit, onThought }) {
   const following = Object.values(s.users).filter((u) => u.following).length; const others = accts.filter((a) => a.id !== s.me);
   const sw = async (a) => { close(); try { await accSwitch(a); } catch (e) { nav.toast(e.message); } };
   const hasStory = s.stories.some((x) => x.userId === s.me);
+  // keep the whole menu on screen: open where tapped, but never so low it runs off the bottom (it scrolls if the screen is short)
+  const popTop = Math.max(ins.top + 10, Math.min((at && at.top) || ins.top + 80, Dimensions.get('window').height - ins.bottom - 640, Dimensions.get('window').height * 0.3));
   const items = [...(hasStory ? [['eye-outline', 'Your story', () => nav.sheet('story', { userId: s.me })]] : []), ['person-outline', 'Profile', () => nav.tab('me')], ...(onEdit ? [['create-outline', 'Edit profile', onEdit]] : []), ...(onThought ? [['happy-outline', 'Lingering thought', onThought]] : []), ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['bag-handle-outline', 'Fire Sale · ' + kfmt(s.priv.points || 0) + ' pts', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
   return (
     <Modal transparent visible animationType="none" onRequestClose={() => close()}>
       <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,.18)', opacity: k }}><Pressable style={{ flex: 1 }} onPress={() => close()} /></Animated.View>
-      <Animated.View style={{ position: 'absolute', left: (at && at.left) || 16, top: Math.max(ins.top + 10, Math.min((at && at.top) || ins.top + 80, Dimensions.get('window').height - 560)), width: Math.min(290, Dimensions.get('window').width - 32), backgroundColor: C.card, borderRadius: 26, paddingTop: 18, paddingHorizontal: 20, paddingBottom: 10,
+      <Animated.View style={{ position: 'absolute', left: (at && at.left) || 16, top: popTop, maxHeight: Dimensions.get('window').height - popTop - ins.bottom - 12, width: Math.min(290, Dimensions.get('window').width - 32), backgroundColor: C.card, borderRadius: 26, overflow: 'hidden',
         shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 25, shadowOffset: { width: 0, height: 14 }, elevation: 12,
         opacity: k, transform: [{ scale: k.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }, { translateY: k.interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) }] }}>
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 18, paddingHorizontal: 20, paddingBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Pressable onPress={() => close(() => nav.tab('me'))}><Avatar u={me} size={40} /></Pressable><View style={{ flex: 1 }} />
           {others.slice(0, 1).map((a) => <Pressable key={a.id} onPress={() => sw(a)} accessibilityLabel={'Switch to @' + a.handle}><Avatar u={{ name: a.name, avatar: a.avatar, color: a.color || C.orange }} size={30} /></Pressable>)}
@@ -67,6 +70,7 @@ export function Drawer({ onClose, at, onEdit, onThought }) {
         <View style={{ height: 1, backgroundColor: C.line, marginVertical: 10 }} />
         <Pressable onPress={() => close(() => nav.push('settings'))} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 9 }}><Ionicons name="settings-outline" size={20} color={C.ink} /><T h style={{ fontSize: 15 }}>Settings and privacy</T></Pressable>
         <Pressable onPress={() => close(() => nav.push('terms'))} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 9 }}><Ionicons name="help-circle-outline" size={20} color={C.ink} /><T h style={{ fontSize: 15 }}>Help Center</T></Pressable>
+        </ScrollView>
       </Animated.View>
       {accOpen ? <Sheet visible onClose={() => setAccOpen(false)} title="Accounts">
         {[{ id: s.me, handle: me.handle, name: me.name, avatar: me.avatar, color: me.color }, ...others].map((a) => (

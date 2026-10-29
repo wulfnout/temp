@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, Image, TextInput, Switch, Alert, Modal, An
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, GradRing, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
+import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, GradRing, DieIcon, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video, QuoteCard } from './posts';
 import { Header, pickMedia, ReplayGrid, Drawer } from './screens';
 import { CropEditor } from './crop';
@@ -34,7 +34,7 @@ export function ProfileScreen({ id, isTab }) {
             {u.header && !fx ? <Image source={{ uri: u.header }} style={{ width: '100%', height: '100%' }} /> :
               <HeaderFx id={fx ? u.headerFx : null} fallback={[C.orange, C.orange2, '#0a0a0a']} />}
             {!isTab ? <IconBtn name="chevron-back" label="Back" onPress={nav.back} color="#fff" style={{ position: 'absolute', top: ins.top + 8, left: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
-            {isMe ? <IconBtn name="settings-outline" label="Settings" onPress={() => nav.push('settings')} color="#fff" style={{ position: 'absolute', top: ins.top + 8, right: 12, backgroundColor: 'rgba(0,0,0,.45)' }} /> : null}
+            {isMe ? <IconBtn die="rgba(0,0,0,.6)" name="settings-outline" label="Settings" onPress={() => nav.push('settings')} color="#fff" style={{ position: 'absolute', top: ins.top + 8, right: 12 }} /> : null}
             {!isMe && !blocked ? <Pressable onPress={() => setMore(true)} accessibilityLabel="More options" hitSlop={8}
               style={{ position: 'absolute', top: ins.top + 8, right: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,.45)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               {[0, 1, 2].map((i) => <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' }} />)}</Pressable> : null}
@@ -50,8 +50,8 @@ export function ProfileScreen({ id, isTab }) {
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
               {isMe ? <>
-                <Pressable onPress={() => nav.push('shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.ink, borderRadius: 15, paddingHorizontal: 14, paddingVertical: 10 }}>
-                  <Ionicons name="flame" size={15} color={C.mono ? C.bg : C.orange} /><T h style={{ color: C.bg, fontSize: 14 }}>{kfmt(s.priv.points)}</T></Pressable>
+                <Pressable onPress={() => nav.push('shop')} accessibilityLabel={s.priv.points + ' points, open Fire Sale'} style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 6 }}>
+                  <DieIcon name="flame" size={20} color={C.mono ? C.bg : '#fff'} hot={!C.mono} die={C.orange} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(s.priv.points)}</T></Pressable>
                 <Btn kind="ghost" title="Edit profile" onPress={() => setEdit(true)} /></>
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
                 : <>
@@ -285,11 +285,12 @@ export function ShopScreen() {
   const live = (i) => !i.available_until || new Date(i.available_until) > Date.now(); // limited items leave the shop when their time is up
   const items = s.shop.filter((i) => i.kind === tab && !i.plus_only && live(i));
   const isOwned = (k, id) => !!(owned[k] && owned[k][id]);
-  const using = (k, id) => (k === 'themes' ? (s.priv.theme || 'ember') === id : k === 'rings' ? me.ring === id : k === 'headers' ? me.headerFx === id : false);
+  const using = (k, id) => (k === 'themes' ? (s.priv.theme || 'ember') === id : k === 'rings' ? me.ring === id : k === 'headers' ? me.headerFx === id : k === 'styles' ? (s.priv.settings || {}).btn === id : false);
   const Action = ({ k, it, price }) => {
     if (!isOwned(k, it.id) && it.price > 0) return <Btn small kind="orange" title={price + ' pts'} disabled={s.priv.points < price} onPress={() => run(() => act.buy(k, it.id), { toast: 'Unlocked' })} />;
     if (k === 'stickers' || it.id === 'gif' || it.id === 'studio') return <Btn small kind="ghost" title="Owned" disabled />;
     const on = using(k, it.id);
+    if (k === 'styles') return <Btn small kind={on ? 'ghost' : 'ink'} title={on ? 'Remove' : 'Use'} onPress={() => run(() => act.settings(s.me, { ...(s.priv.settings || {}), btn: on ? null : it.id }))} />;
     return <Btn small kind={on ? 'ghost' : 'ink'} title={on ? (k === 'themes' ? 'Using' : 'Remove') : 'Use'} onPress={() => run(() => act.equip(s.me, k, on ? (k === 'themes' ? 'ember' : null) : it.id))} />;
   };
   const Preview = ({ k, it }) => {
@@ -302,6 +303,7 @@ export function ShopScreen() {
     if (k === 'themes') { const c = THEMES[it.id] || THEMES.ember; const g = GLOW[it.id];
       return <View style={g ? { borderRadius: 18, shadowColor: c[0], shadowOpacity: 1, shadowRadius: 16, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null}><LinearGradient colors={c} style={{ width: 54, height: 54, borderRadius: 18, borderWidth: g ? 2 : 0, borderColor: c[1] }} /></View>; }
     if (k === 'rings') return <Avatar u={{ ...me, ring: it.id }} size={60} />;
+    if (k === 'styles') return <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ionicons name="flame" size={24} color="#ff5500" /><Ionicons name="snow" size={24} color={C.ink} /><Ionicons name="heart-outline" size={24} color={C.ink} /></View>;
     return <HeaderFx id={it.id} fallback={[C.orange, '#0a0a0a']} />;
   };
   const Card = ({ k, it, price, off }) => (
@@ -326,7 +328,7 @@ export function ShopScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
             {deals.slice(0, 4).map((d) => { const it = s.shop.find((x) => x.kind === d.kind && x.id === d.id); if (!it) return null; return <Card key={d.kind + d.id} k={d.kind} it={it} price={d.price} off={d.off} />; })}
           </View></> : null}
-        <SegTabs items={[['stickers', 'Stickers'], ['themes', 'Themes'], ['rings', 'Rings'], ['headers', 'Headers']]} value={tab} onChange={setTab} size={13} style={{ marginTop: 20, marginBottom: 10 }} />
+        <SegTabs items={[['stickers', 'Stickers'], ['themes', 'Themes'], ['rings', 'Rings'], ['headers', 'Headers'], ['styles', 'Icons']]} value={tab} onChange={setTab} size={13} style={{ marginTop: 20, marginBottom: 10 }} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
           {items.map((it) => <Card key={it.id} k={tab} it={it} price={it.price} />)}
         </View>

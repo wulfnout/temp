@@ -18,6 +18,20 @@
 .sfx-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .sfx{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:14px;padding:6px 10px 6px 6px;border:1.5px solid transparent}.sfx.on{border-color:var(--orange);background:rgba(255,85,0,.16)}
 .sfx-play{width:32px;height:32px;border-radius:10px;background:var(--orange);color:#fff;display:grid;place-items:center;flex:none}.sfx-name{flex:1;text-align:left;font-weight:800;font-size:14px;color:#fff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* icon buttons on the feed and profile: no boxes. Default: each icon sits on a backdrop cut to its own shape.
+   "Clean Icons" (Fire Sale) drops the backdrop for bare outlined icons. */
+.dico{overflow:visible;display:block}
+.react{background:none!important;padding:0 2px;gap:2px;color:var(--ink);--die:color-mix(in srgb,var(--ink) 16%,transparent)}
+.react .fg{stroke-width:2.5px}
+.react.heat.on{color:var(--ink)!important;--die:url(#dieHot)}html.blackout .react.heat.on{--die:var(--orange)}.react.heat.on .fg{stroke:var(--on-orange);fill:var(--on-orange)}
+.react.freeze.on{color:var(--ink)!important;--die:var(--ink)}.react.freeze.on .fg{stroke:var(--bg)}
+.circle{background:none!important;--die:color-mix(in srgb,var(--ink) 16%,transparent);color:var(--ink)}.circle .fg{stroke-width:2.3px}
+.header-btn{background:none!important;--die:rgba(0,0,0,.55);color:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+.header-btn .die{opacity:.7}.header-btn .die{stroke:#000;fill:#000}.header-btn .fg{stroke-width:2.3px}
+.pts{background:none!important;color:var(--ink)!important;padding:4px 6px!important;--die:url(#dieHot)}html.blackout .pts{--die:var(--orange)}.pts .fg{stroke:var(--on-orange)}
+html.btn-clean .die{display:none}.pv-icons{display:flex;gap:10px;align-items:center;justify-content:center}.pv-icons .react.heat.on{color:var(--orange)!important}.pv-icons .react,.pv-icons .circle{width:auto;height:auto}
+html.btn-clean .react.heat.on{color:var(--orange)}html.btn-clean .react.freeze.on{color:var(--ink)}html.btn-clean .pts .fg{stroke:var(--orange)}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1314,6 +1328,7 @@ html:has(.gl-prev-c){padding-top:0}body:has(.gl-prev-c)::before{display:none}
 </style>
 
 <div id="root"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="dieHot" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ff4500"/><stop offset=".55" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffc061"/></linearGradient></defs></svg>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -1399,7 +1414,9 @@ const P={
   list:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/>',
   thermo:'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/>',
 };
-function Icon({n,s=22,w=1.9,fill}){
+function Icon({n,s=22,w=1.9,fill,die}){
+  // die: the icon sits on a backdrop cut to its own shape (a thick outline in --die), instead of a box
+  if(die){const S=Math.round(s*1.5);return html`<svg className="dico" width=${S} height=${S} viewBox="-6 -6 36 36" fill="none" stroke="currentColor" stroke-width=${w} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" dangerouslySetInnerHTML=${{__html:'<g class="die" stroke="var(--die)" fill="var(--die)" stroke-width="'+(w+10)+'">'+P[n]+'</g><g class="fg" fill="'+(fill||'none')+'">'+P[n]+'</g>'}}></svg>`}
   return html`<svg width=${s} height=${s} viewBox="0 0 24 24" fill=${fill||'none'} stroke="currentColor" stroke-width=${w} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P[n]}}></svg>`;
 }
 
@@ -1654,6 +1671,7 @@ async function remote(a,b){
       if(a.kind==='themes')await ok(sb.from('profile_private').update({theme:a.id||'ember'}).eq('id',myId));
       if(a.kind==='rings')await ok(sb.from('profiles').update({ring:a.id}).eq('id',myId));
       if(a.kind==='headers')await ok(sb.from('profiles').update({header_fx:a.id}).eq('id',myId));
+      if(a.kind==='styles'){const n=reducer(b,a);await ok(sb.from('profile_private').update({settings:n.settings}).eq('id',myId))}
       return;
     case 'profileSticker':{const n=reducer(b,a);await ok(sb.from('profiles').update({stickers:await Promise.all((n.users.me.stickers||[]).map(stick))}).eq('id',myId));return}
     case 'makeSticker':{const v=await stick(a.v);await ok(sb.from('profile_private').update({custom:[v,...(b.custom||[])].slice(0,24)}).eq('id',myId));return 'reload'}
@@ -1807,13 +1825,14 @@ function reducer(s,a){
     case 'sendPoints': return {...s,points:Math.max(0,s.points-a.n),toast:'Sent '+kfmt(a.n)+' points'};
     case 'buy':{
       if(s.points<a.price)return {...s,toast:T('Not enough points')};
-      const n={...s,points:s.points-a.price,owned:{...s.owned,[a.kind]:{...s.owned[a.kind],[a.id]:1}},toast:T('Unlocked')};
+      const n={...s,points:s.points-a.price,owned:{...s.owned,[a.kind]:{...(s.owned[a.kind]||{}),[a.id]:1}},toast:T('Unlocked')};
       return a.kind==='stickers'||a.id==='gif'?n:reducer(n,{type:'equip',kind:a.kind,id:a.id,silent:true});
     }
     case 'equip':{const t=a.silent?s.toast:T(a.id?'Equipped':'Removed');
       if(a.kind==='themes')return {...s,theme:a.id||'ember',toast:t};
       if(a.kind==='rings')return {...s,users:{...s.users,me:{...me,ring:a.id}},toast:t};
       if(a.kind==='headers')return {...s,users:{...s.users,me:{...me,headerFx:a.id}},toast:t};
+      if(a.kind==='styles')return {...s,settings:{...s.settings,btn:a.id||null},toast:t};
       return s}
     default: return s;
   }
@@ -1875,6 +1894,8 @@ const SHOP={
     {id:'radioactive',name:'Radioactive',price:550,c:['#39ff14','#d4ff3a'],glow:true},{id:'glowice',name:'Ice Glow',price:500,c:['#00e5ff','#a5f3ff'],glow:true},
     {id:'plasma',name:'Plasma',price:600,c:['#8b5cff','#00d9ff'],glow:true},{id:'molten',name:'Molten',price:600,c:['#ff2d00','#ffd27a'],glow:true}],
   rings:[{id:'fire',name:'Fire',price:200},{id:'ice',name:'Ice',price:200},{id:'morph',name:'Morph',price:300},{id:'gold',name:'Gold',price:400},{id:'glitch',name:'Glitch',price:500},{id:'plus',name:'Temp+',plusOnly:true}],
+  // button looks: the default die-cut icons, or Clean Icons (bare outlines)
+  styles:[{id:'clean',name:'Clean Icons',price:250}],
   headers:[{id:'templogo',name:'Temp Logo',price:0},{id:'lava',name:'Lava',price:250},{id:'aurora',name:'Aurora',price:250},{id:'static',name:'Static',price:350},{id:'embers',name:'Embers',price:350},
     {id:'hazard',name:'Hazard',price:300},{id:'sunburst',name:'Sunburst',price:350},{id:'snow',name:'Snowstorm',price:350},{id:'thermal',name:'Thermal Cam',price:450},
     {id:'disco',name:'Disco Inferno',price:450},{id:'checker',name:'Checkered Flag',price:300},{id:'synth',name:'Synthwave',price:550},{id:'rain',name:'Rain',price:450},
@@ -2128,8 +2149,8 @@ function Post({p,s,dispatch,open}){
       ${covered&&html`<button className="cover-btn" onClick=${()=>setReveal(true)}><span>Strong language · Tap to view</span></button>`}
     </div>
     <div className="p-actions">
-      <button className=${'react heat'+(p.myHeat?' on':'')} aria-pressed=${p.myHeat} aria-label="Heat" data-tour=${t?'heat-'+t:null} onClick=${heat}><${Icon} n="flame" s=${19} w=${2.2} fill=${p.myHeat?'currentColor':null}/>${counts?kfmt(p.heat):''}</button>
-      <button className=${'react freeze'+(p.myFreeze?' on':'')} aria-pressed=${p.myFreeze} aria-label="Freeze" data-tour=${t?'freeze-'+t:null} onClick=${()=>dispatch({type:'freeze',id:p.id})}><${Icon} n="snow" s=${19} w=${2.2}/>${counts?kfmt(p.freeze):''}</button>
+      <button className=${'react heat'+(p.myHeat?' on':'')} aria-pressed=${p.myHeat} aria-label="Heat" data-tour=${t?'heat-'+t:null} onClick=${heat}><${Icon} n="flame" s=${22} w=${2.3} fill=${p.myHeat?'currentColor':null} die=${true}/>${counts?kfmt(p.heat):''}</button>
+      <button className=${'react freeze'+(p.myFreeze?' on':'')} aria-pressed=${p.myFreeze} aria-label="Freeze" data-tour=${t?'freeze-'+t:null} onClick=${()=>dispatch({type:'freeze',id:p.id})}><${Icon} n="snow" s=${22} w=${2.3} die=${true}/>${counts?kfmt(p.freeze):''}</button>
       <div className="social" data-tour=${t?'social-'+t:null}>
         <button className="ic" aria-label=${frozen?'Comments are off while frozen':'Comments'} disabled=${frozen} onClick=${()=>open.comments(p.id)}><${Icon} n="comment" s=${21}/><span className="n">${cs.length||''}</span></button>
         <button className=${'ic rf'+(p.myRepost?' on':'')} aria-label=${p.myRepost?'Undo reflame':'Reflame'} onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${21} w=${2}/><span className="n">${p.reposts||''}</span></button>
@@ -3234,6 +3255,7 @@ function ShopPreview({kind,it,s}){
   if(kind==='stickers')return it.studio?html`<div className="pv"><${Sticker} v="T|YOUR TEXT|y" size=${44}/></div>`:(it.items.some(e=>e.startsWith('T|'))?html`<div className="pv pv-stk">${it.items.filter(e=>e.startsWith('T|')).slice(0,2).map((e,i)=>html`<${Sticker} key=${i} v=${e} size=${26}/>`)}</div>`:html`<div className="pv" style=${{gap:6,gridAutoFlow:'column'}}>${it.items.slice(0,3).map((e,i)=>html`<${Sticker} key=${i} v=${e} size=${30}/>`)}</div>`);
   if(kind==='themes')return html`<div className="pv"><span className=${it.glow?'glow-sw':''} style=${{width:56,height:56,borderRadius:18,background:`linear-gradient(135deg,${it.c[0]},${it.c[1]})`,'--sw':it.c[0]}}></span></div>`;
   if(kind==='rings')return html`<div className="pv"><${Avatar} u=${{...s.users.me,ring:it.id}} size=${64}/></div>`;
+  if(kind==='styles')return html`<div className="pv pv-icons"><span className="react heat on"><${Icon} n="flame" s=${20} w=${2.3} fill="currentColor"/></span><span className="react freeze"><${Icon} n="snow" s=${20} w=${2.3}/></span><span className="circle"><${Icon} n="heart" s=${20}/></span></div>`;
   if(it.id==='gif')return html`<div className="pv fx-lava"><span style=${{fontFamily:'var(--display)',fontWeight:800,color:'#fff',fontSize:24}}>GIF</span></div>`;
   return html`<div className=${'pv fx-'+it.id}><${HeaderArt} id=${it.id}/></div>`;
 }
@@ -3244,8 +3266,8 @@ function dealsFor(s){
 
 function ShopView({s,dispatch,open}){
   const [tab,setTab]=useState('stickers');const [pack,setPack]=useState(null);const [studio,setStudio]=useState(false);const me=s.users.me;
-  const equipped=(k,id)=>k==='themes'?s.theme===id:k==='rings'?me.ring===id:k==='headers'?me.headerFx===id:false;
-  const owns=(k,it)=>it.price===0||s.owned[k][it.id]||(it.plusOnly&&me.plus);
+  const equipped=(k,id)=>k==='themes'?s.theme===id:k==='rings'?me.ring===id:k==='headers'?me.headerFx===id:k==='styles'?s.settings.btn===id:false;
+  const owns=(k,it)=>it.price===0||(s.owned[k]||{})[it.id]||(it.plusOnly&&me.plus);
   const action=(k,it,price)=>{
     const eq=equipped(k,it.id);
     if(it.plusOnly&&!me.plus)return html`<button className="btn ghost sm" onClick=${open.plus}>Temp+ only</button>`;
@@ -3268,7 +3290,7 @@ function ShopView({s,dispatch,open}){
     <div className="deal-head" id="packs"><h3>Points</h3></div>
     <div className="packs">${PACKS.map(p=>html`<button className="pack" key=${p.n} disabled style=${{opacity:.6,cursor:'default'}}>${p.tag&&html`<span className="tag">${p.tag}</span>`}
       <b><span style=${{color:'var(--orange)',display:'inline-flex'}}><${Icon} n="flame" s=${18} w=${2.4} fill="currentColor"/></span>${p.n.toLocaleString()}</b><span className="usd">${p.usd} · Coming soon</span></button>`)}</div>
-    <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
+    <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers'],['styles','Icons']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
     <div className="shop-grid">${SHOP[tab].filter(it=>!it.until||new Date(it.until)>Date.now()).map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/>${it.until&&html`<span className="ltd">${it.drop?'✨ New · ':'🎃 '}${Math.max(0,Math.ceil((new Date(it.until)-Date.now())/864e5))}d left</span>`}<div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
     ${studio&&html`<${StickerStudio} s=${s} dispatch=${dispatch} onClose=${()=>setStudio(false)}/>`}
     ${pack&&html`<${Sheet} onClose=${()=>setPack(null)} label="Buy points"><h3>${pack.n.toLocaleString()} points</h3>
@@ -3400,8 +3422,8 @@ function Profile({s,id,dispatch,open,back,startTab}){
   return html`<div>
     <div className="prof">
       <div className=${'header-img'+(u.headerFx?' fx-'+u.headerFx:'')}>${u.header&&!u.headerFx&&html`<img src=${u.header} alt="" />`}${u.headerFx&&html`<${HeaderArt} id=${u.headerFx}/>`}
-        ${back&&html`<button className="header-btn l" onClick=${back} aria-label="Back"><${Icon} n="back" s=${20}/></button>`}
-        ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${20}/></button>`}
+        ${back&&html`<button className="header-btn l" onClick=${back} aria-label="Back"><${Icon} n="back" s=${20} w=${2.2} die=${true}/></button>`}
+        ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${22} w=${2.2} die=${true}/></button>`}
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
         // the profile picture always has the flowing ring (solid theme colour); grey once you've watched their story
@@ -3411,7 +3433,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
         <div className="prof-btns">
-          ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${16} w=${2.2}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
+          ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${18} w=${2.2} die=${true}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
           :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
             <button className=${'btn'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id})}>${u.following?'Following':u.followsMe?'Follow back':'Follow'}</button>`}
@@ -4422,6 +4444,7 @@ function App(){
   useEffect(()=>{let last=performance.now();const i=setInterval(()=>{const t=performance.now();raw({type:'tick',dt:t-last,paused:tourRef.current!==null});last=t},250);return()=>clearInterval(i)},[]);
   useEffect(()=>{if(tour===null&&view.tab!=='replay')scrollTo(0,0)},[view.tab,view.profileId,view.threadId,setSub]);
   useEffect(()=>{const r=document.documentElement;if(s.settings.theme==='system')delete r.dataset.theme;else r.dataset.theme=s.settings.theme},[s.settings.theme]);
+  useEffect(()=>{document.documentElement.classList.toggle('btn-clean',s.settings.btn==='clean')},[s.settings.btn]);
   useEffect(()=>{const t=SHOP.themes.find(x=>x.id===s.theme);const r=document.documentElement.style;
     document.documentElement.classList.toggle('glowing',!!(t&&t.glow));document.documentElement.classList.toggle('blackout',!!(t&&t.mono));
     if(!t||t.id==='ember'||t.mono){r.removeProperty('--orange');r.removeProperty('--orange-2');r.removeProperty('--orange-3')}else{r.setProperty('--orange',t.c[0]);r.setProperty('--orange-2',t.c[1]);r.setProperty('--orange-3',paler(t.c[1]))}},[s.theme]);
@@ -4507,8 +4530,8 @@ function App(){
     top=html`<div className="top"><div className="top-row">
         <h1 className="logo"><button className="logo-btn" aria-label="Temp home — back to the top" onClick=${()=>{setView({tab:'home'});scrollTo({top:0,behavior:'smooth'})}}>temp<i></i></button></h1>
         <div className="top-actions">
-          <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${Icon} n="heart"/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
-          <button className="circle" aria-label="Messages" onClick=${guard(()=>setView({tab:'dms'}))}><${Icon} n="dm"/>${unread>0&&html`<span className="badge">${unread}</span>`}</button>
+          <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${Icon} n="heart" s=${24} w=${2.2} die=${true}/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
+          <button className="circle" aria-label="Messages" onClick=${guard(()=>setView({tab:'dms'}))}><${Icon} n="dm" s=${24} w=${2.2} die=${true}/>${unread>0&&html`<span className="badge">${unread}</span>`}</button>
         </div></div></div>`;
   } else if(view.tab==='search'){
     body=html`<${Search} s=${s} dispatch=${dispatch} open=${open} query=${query} setQuery=${setQuery}/>`;

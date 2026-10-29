@@ -107,8 +107,8 @@ export function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, flex: 1 }}>
           <T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6, ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } } : null) }} /></View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          <IconBtn name="heart-outline" label="Activity" badge={unreadN || null} onPress={() => nav.push('activity')} />
-          <IconBtn name="chatbubble-ellipses-outline" label="Messages" badge={unreadDM || null} onPress={() => nav.push('dms')} />
+          <IconBtn die name="heart-outline" label="Activity" badge={unreadN || null} onPress={() => nav.push('activity')} />
+          <IconBtn die name="chatbubble-ellipses-outline" label="Messages" badge={unreadDM || null} onPress={() => nav.push('dms')} />
         </View>
       </Animated.View>
       <FlatList showsVerticalScrollIndicator={false} data={posts} keyExtractor={(p) => String(p.id)} onScroll={onScroll} scrollEventThrottle={16}

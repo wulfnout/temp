@@ -60,11 +60,29 @@ export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon
   );
 }
 
-export function IconBtn({ name, onPress, size = 22, color, label, badge, style }) {
+// A die-cut icon: the icon sits on a thick backdrop cut to its own shape (like a sticker), instead of a box.
+// hot = Temp's orange gradient backdrop. People who bought "Clean Icons" see bare outlined icons instead.
+const lerpHex = (a, b, t) => { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+const DIE_DIRS = Array.from({ length: 16 }, (_, i) => [Math.cos((i / 16) * Math.PI * 2), Math.sin((i / 16) * Math.PI * 2)]);
+export function DieIcon({ name, solid, size = 22, color, die, hot, thick = 0.24 }) {
+  const { s } = useApp(); const clean = s && s.priv && s.priv.settings && s.priv.settings.btn === 'clean';
+  const r = Math.round(size * thick); const W = size + r * 2; const back = solid || name.replace(/-outline$/, '');
+  if (clean) return <View style={{ width: W, height: W, alignItems: 'center', justifyContent: 'center' }}><Ionicons name={name} size={size} color={hot ? '#ff5500' : color} /></View>;
+  return (
+    <View style={{ width: W, height: W }}>
+      {DIE_DIRS.map(([dx, dy], i) => <Ionicons key={i} name={back} size={size} color={hot ? lerpHex('#ff4500', '#ffc061', (dx - dy) / 2.83 + 0.5) : die}
+        style={{ position: 'absolute', left: r + dx * r, top: r + dy * r }} />)}
+      <Ionicons name={back} size={size} color={hot ? '#ff7a1a' : die} style={{ position: 'absolute', left: r, top: r }} />
+      <Ionicons name={name} size={size} color={color} style={{ position: 'absolute', left: r, top: r }} />
+    </View>
+  );
+}
+
+export function IconBtn({ name, onPress, size = 22, color, label, badge, style, die }) {
   const { C } = useApp();
   return (
-    <Pressable onPress={onPress} accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [{ width: 42, height: 42, borderRadius: 21, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 }, style]}>
-      <Ionicons name={name} size={size} color={color || C.ink} />
+    <Pressable onPress={onPress} accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [{ width: 42, height: 42, borderRadius: 21, backgroundColor: die ? 'transparent' : C.card, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 }, style]}>
+      {die ? <DieIcon name={name} size={size + 2} color={color || C.ink} die={die === true ? (C.dark ? '#2a2a2a' : '#dcd9d5') : die} /> : <Ionicons name={name} size={size} color={color || C.ink} />}
       {badge ? <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
         <Text style={{ color: C.onOrange, fontSize: 11, fontFamily: F.heavy }}>{badge}</Text></View> : null}
     </Pressable>

@@ -91,6 +91,64 @@ html.blackout .rp-o.heat .rp-orb{background:var(--orange);color:var(--on-orange)
 .rf-orb{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;background:radial-gradient(circle at 30% 25%,#ffc061,#ff7a1a 55%,#ff4500);color:#fff;box-shadow:0 2px 8px rgba(255,85,0,.35)}
 html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow:none}
 .p-actions .ic.cm,.p-actions>.ic.rf{padding:0 2px}
+
+/* feed switch in the logo */
+.fsw{position:relative;display:inline-block}.fsw-btn{display:inline-flex;align-items:flex-end;gap:10px;font:inherit;color:inherit;letter-spacing:inherit}
+.fsw-now{display:inline-flex;align-items:center;gap:3px;font-family:var(--body,Figtree),system-ui;font-size:13px;font-weight:800;letter-spacing:0;color:var(--muted);margin-bottom:.32em;padding:3px 8px 3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.fsw.dark .fsw-now{color:rgba(255,255,255,.85);background:rgba(255,255,255,.16)}
+.fsw-menu{position:absolute;left:0;top:calc(100% + 8px);z-index:60;min-width:250px;background:var(--card);border-radius:20px;padding:6px;box-shadow:0 18px 40px rgba(0,0,0,.2),0 0 0 1px color-mix(in srgb,var(--ink) 8%,transparent);animation:rpin .2s cubic-bezier(.2,1.5,.4,1);font-family:var(--body,Figtree),system-ui;letter-spacing:0}
+.fsw-menu button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;border-radius:14px;text-align:left;color:var(--ink)}
+.fsw-menu button:active{background:var(--soft)}.fsw-menu b{display:block;font-size:16px}.fsw-menu small{display:block;color:var(--muted);font-size:13px;font-weight:600;margin-top:2px}
+.fsw-menu button svg{color:var(--orange)}
+.logo-txt{display:inline-flex;align-items:flex-end;gap:3px}.fsw-now svg{transform:rotate(90deg)}.fsw-btn{cursor:pointer}
+/* reflamed takes: a thin outline in the theme colour */
+.post.reflamed{box-shadow:inset 0 0 0 1.6px var(--orange)}
+
+/* lingering thought v2: sits in the open space under the header, a soap-bubble box with a bubble trail from the profile picture */
+.prof-btns:has(.thought){align-self:stretch;flex:1;justify-content:flex-start;margin-left:6px}
+.thought{--film:rgba(255,255,255,.55);margin:58px 0 6px 26px!important;max-width:min(300px,62vw)!important;border-radius:22px!important;padding:12px 16px!important;
+  border:1.6px solid transparent!important;
+  background:radial-gradient(130% 150% at 22% 12%,rgba(255,255,255,.75),var(--film) 38%,rgba(255,255,255,.28) 70%) padding-box,
+    conic-gradient(from 200deg,#ff79c6,#9b7bff,#58c7ff,#6dffd0,#ffe27a,#ff9a6b,#ff79c6) border-box!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.5);backdrop-filter:blur(10px) saturate(1.5);
+  box-shadow:0 10px 26px rgba(90,60,160,.16),inset 0 -6px 14px rgba(150,120,255,.14),inset 0 4px 10px rgba(255,255,255,.5)!important}
+:root[data-theme="dark"] .thought,html:not([data-theme="light"]) .thought{}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .thought{--film:rgba(30,30,40,.6)}}
+:root[data-theme="dark"] .thought{--film:rgba(30,30,40,.6)}
+.thought::after{content:"";position:absolute;left:14px;top:6px;width:34px;height:9px;border-radius:50%;background:rgba(255,255,255,.75);filter:blur(1.5px);transform:rotate(-8deg);pointer-events:none}
+.thought .tt{border:1.4px solid transparent!important;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.85),var(--film) 55%) padding-box,conic-gradient(from 200deg,#ff79c6,#9b7bff,#58c7ff,#6dffd0,#ffe27a,#ff79c6) border-box!important}
+.thought .t1{width:15px!important;height:15px!important;left:-20px!important;bottom:6px!important}
+.thought .t2{width:10px!important;height:10px!important;left:-36px!important;bottom:-4px!important}
+.thought .t3{width:6px!important;height:6px!important;left:-48px!important;bottom:-12px!important}
+
+/* get the app */
+.getapp{text-align:center;display:grid;gap:10px;justify-items:center;padding:6px 4px 4px}.getapp h3{margin:4px 0 0;font-size:21px}.getapp .sub{margin:0;max-width:340px}
+.getapp-mark{font-family:var(--display);font-weight:800;font-size:40px;letter-spacing:-.04em;display:flex;align-items:flex-end;gap:4px}.getapp-mark i{width:12px;height:12px;border-radius:3px;background:var(--orange);margin-bottom:5px}
+.getapp-btn{display:flex;align-items:center;gap:8px;background:var(--ink);color:var(--bg);font-weight:800;border-radius:16px;padding:13px 18px;margin-top:4px;opacity:.9}
+.getapp .btn.wide{width:100%}
+
+/* ===== desktop: three columns like X — rail, feed, sidebar ===== */
+.dsk-left,.dsk-right{display:none}
+@media (min-width:1100px){
+  .app{max-width:600px;min-height:100vh;border-left:1px solid var(--line);border-right:1px solid var(--line);padding-bottom:40px}
+  .nav,.gl-peek{display:none!important}
+  .dsk-left{display:flex;flex-direction:column;gap:6px;position:fixed;top:0;bottom:0;left:max(12px,calc(50% - 300px - 290px));width:270px;padding:18px 14px;z-index:30}
+  .dsk-logo{font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:-.04em;display:flex;align-items:flex-end;gap:4px;padding:6px 12px 14px;color:var(--ink)}.dsk-logo i{width:11px;height:11px;border-radius:3px;background:var(--orange);margin-bottom:5px}
+  .dsk-left nav{display:grid;gap:2px}.dsk-left nav button{display:flex;align-items:center;gap:16px;padding:12px 14px;border-radius:999px;font-size:19px;font-weight:600;color:var(--ink);text-align:left}
+  .dsk-left nav button:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}.dsk-left nav button[aria-current="page"]{font-weight:800}.dsk-left nav button[aria-current="page"] svg{color:var(--orange)}
+  .dsk-post{margin:14px 6px 0;padding:15px;font-size:17px;border-radius:999px}
+  .dsk-me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:999px;text-align:left;color:var(--ink)}.dsk-me:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}.dsk-me span{display:grid}.dsk-me small{color:var(--muted)}
+  .dsk-right{display:grid;align-content:start;gap:14px;position:fixed;top:0;bottom:0;left:calc(50% + 300px + 26px);width:340px;padding:14px 0;overflow-y:auto;scrollbar-width:none;z-index:30}
+  .dsk-search{margin:0}.dsk-card{background:var(--card);border-radius:22px;padding:16px}.dsk-card h3{margin:0 0 8px;font-size:19px}
+  .dsk-app{display:grid;gap:6px;justify-items:start}.dsk-app .sub{margin:0}.dsk-app .getapp-btn{font-size:14px;padding:10px 14px}
+  .dsk-row{display:grid;width:100%;text-align:left;padding:8px 2px;color:var(--ink)}.dsk-row small,.dsk-who small{color:var(--muted)}
+  .dsk-who{display:flex;align-items:center;gap:10px;padding:6px 0}.dsk-who .grow{display:grid;text-align:left;color:var(--ink);min-width:0}
+  .dsk-foot{color:var(--muted);font-size:13px;margin:4px 6px}.dsk-foot a{color:inherit}
+  .reels{left:calc(50% - 300px);right:auto;width:600px;bottom:0}
+  .reel-top{left:calc(50% - 300px)!important;width:600px}
+  .sheet{max-width:600px;margin-inline:auto}
+}
+@media (min-width:1100px) and (max-width:1340px){.dsk-right{display:none}.dsk-left{left:max(12px,calc(50% - 300px - 290px))}}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1439,6 +1497,7 @@ const P={
   save:'<path d="M6 3.5h12V21l-6-4-6 4z"/>',
   lock:'<rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M10.5 18.5h3"/>',
   edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   bell:'<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
   eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
@@ -1463,7 +1522,7 @@ const P={
   bag:'<path d="M5 8h14l-1 12.5H6zM9 8V6.5a3 3 0 0 1 6 0V8"/>',
   crown:'<path d="M4 17.5L3 7l5 4 4-6 4 6 5-4-1 10.5z M4 20.5h16"/>',
   smile:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5v.5M15 9.5v.5"/>',
-  reflame:'<path d="M12 21c-3.3 0-6-2.4-6-5.6 0-2.6 1.6-4.3 3-5.6.3 1.5 1.2 2.6 2.4 3 .1-3 1.4-5.4 3.6-7.3.1 2.3.9 3.8 2 5.3.6.9 1 2 1 3.2C18 18.4 15.3 21 12 21z"/><path d="M20 4v3.5h-3.5M4 20v-3.5h3.5"/>',
+  reflame:'<path d="M9.5 20.4C7.2 19.5 5.6 17.4 5.6 14.9c0-2.4 1.3-3.9 2.5-5.3"/><path d="M5.7 10.4l2.4-.9.6 2.5"/><path d="M10.2 7.2c.9-1.4 1.3-2.8 1.3-4.4 2.9 2 6.9 5.7 6.9 11.4 0 3.4-2.4 6-5.8 6.4"/><path d="M15 18.8l-2.4 1.8 2.1 1.9"/>',
   spark:'<path d="M12 3c.6 4.6 2.3 6.4 7 7-4.7.6-6.4 2.4-7 7-.6-4.6-2.3-6.4-7-7 4.7-.6 6.4-2.4 7-7Z"/><path d="M19 16.5c.2 1.4.7 2 2 2.2-1.3.2-1.8.8-2 2.2-.2-1.4-.7-2-2-2.2 1.3-.2 1.8-.8 2-2.2Z"/>',
   wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/><path d="M6 6V5a2 2 0 0 1 2-2h9"/>',
   music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
@@ -1574,6 +1633,10 @@ const DEFAULT_SETTINGS={theme:'system',private:false,activity:true,receipts:true
 // ?embed=live is the Live Takes page the app shows in its Live tab; the app hands over its sign-in token
 const IN_APP=!!window.TEMP_APP||/[?&]app=/.test(location.search);if(IN_APP)document.documentElement.classList.add('in-app');
 const EMBED_KIND=new URLSearchParams(location.search).get('embed');const EMBED=EMBED_KIND==='live'||EMBED_KIND==='golive';
+// the website (phone browser and desktop) is Temp-lite: browse, react, comment, DM, post takes with photos/videos/GIFs, watch Replays and lives,
+// look around Fire Sale, check earnings and cash out. Going live, Replays, stories, polls, thoughts and using store items happen in the app.
+const WEB_LITE=!EMBED&&!IN_APP;if(WEB_LITE)document.documentElement.classList.add('web-lite');
+let __getApp=null;const getApp=why=>__getApp&&__getApp(why);
 let EMBED_TOKEN=EMBED?decodeURIComponent((location.hash.match(/t=([^&]+)/)||[])[1]||''):'';
 if(EMBED)history.replaceState(null,'',location.pathname+location.search);
 function jwtSub(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub}catch(e){return null}}
@@ -1802,13 +1865,13 @@ function reducer(s,a){
   const me=s.users.me;
   // freezes start the clock: once freezes outnumber heat a take has 24 hours to heat back up or it burns off the timeline.
   // heat catching up pauses the clock (the time left is banked); double the freezes in heat saves it for good.
+  // freezes start a 24 hour clock; every heat while it runs drains an hour; double the freezes in heat saves the take for good
   const settle=n=>{
     if(n.status==='gone'||n.status==='kept'||n.kept||n.reel)return n;
-    if((n.status==='burning'||n.burnLeft!=null)&&n.heat>=5&&n.heat>=n.freeze*2)return {...n,status:'normal',burnEnds:null,burnLeft:null,kept:true,survived:true};
-    if(n.freeze>n.heat&&n.status!=='burning')return {...n,status:'burning',burnEnds:s.now+(n.burnLeft!=null?Math.max(n.burnLeft,36e5):DAY),burnLeft:null};
-    if(n.heat>=n.freeze&&n.status==='burning')return {...n,status:'normal',burnLeft:Math.max(0,n.burnEnds-s.now),burnEnds:null};
+    if(n.status==='burning'&&n.heat>=5&&n.heat>=n.freeze*2)return {...n,status:'normal',burnEnds:null,kept:true};
+    if(n.status!=='burning'&&n.freeze>n.heat)return {...n,status:'burning',burnEnds:s.now+DAY};
     return n};
-  const ignite=p=>settle({...p,heat:p.heat+1});
+  const ignite=p=>{const n=settle({...p,heat:p.heat+1});return n.status==='burning'&&p.status==='burning'?{...n,burnEnds:Math.max(s.now+6e5,n.burnEnds-36e5)}:n};
   switch(a.type){
     case 'tick':{
       if(a.paused) return s;
@@ -1928,6 +1991,8 @@ const ageOf=b=>b?(Date.now()-new Date(b).getTime())/31557600000:0;
 const isAdult=s=>ageOf(s.users.me.birth)>=18;
 function vis(s,p){
   if(s.blocked[p.userId]||(s.muted&&s.muted[p.userId]))return 'hide';
+  if(p.status==='gone'&&!p.reel)return 'hide';
+  if(p.quoteOf&&!p.text&&!p.media&&!p.poll){const q=s.posts.find(x=>x.id===p.quoteOf);if(!q||q.status==='gone')return 'hide'}
   if(p.userId==='me')return 'show';
   const t=(p.text||'').toLowerCase();
   if(s.settings.muted.some(w=>t.includes(w)))return 'hide';
@@ -2015,7 +2080,7 @@ function Sheet({onClose,children,label}){
 
 function Timer({p,now}){
   const tag=p.tour?'state-'+p.tour:null;
-  if(p.kept&&p.status!=='frozen')return p.reposts>0||p.quoteOf?html`<span className="rf-orb" data-tour=${tag} title="Reflamed" aria-label="Reflamed"><${Icon} n="reflame" s=${15} w=${2.3}/></span>`:null;
+  if(p.kept&&p.status!=='frozen')return null; // reflamed takes get a thin outline around the whole post instead
   if(p.status==='normal')return null;
   if(p.status==='frozen')return html`<span className="timer frozen" data-tour=${tag}><${Icon} n="snow" s=${14} w=${2.4}/>Frozen</span>`;
   if(p.status==='kept')return html`<span className="timer burning" data-tour=${tag}><${Icon} n="pin" s=${14} w=${2.4}/>Kept</span>`;
@@ -2176,7 +2241,7 @@ function PostPage({p,s,dispatch,open}){
 // a quoted take, shown inside the quote (tap to open it)
 function QuoteCard({id,s,open}){
   const q=s.posts.find(x=>x.id===id);
-  if(!q||!visible(s,q))return html`<div className="quote gone-q">This take has burned away.</div>`;
+  if(!q||!visible(s,q))return null; // burned takes leave no trace
   const u=s.users[q.userId]||{};
   return html`<button className="quote" onClick=${e=>{e.stopPropagation();q.reel?open.replay(q.id):open.post(q.id)}}>
     <span className="q-head"><${Avatar} u=${u} size=${20} noRing=${true}/><b>${u.name}</b><span className="sub">@${u.handle} · ${ago(s.now-q.createdAt)}</span></span>
@@ -2209,7 +2274,7 @@ function Post({p,s,dispatch,open}){
   const top=cs.length?[...cs].sort((a,b)=>b.likes-a.likes)[0]:null;
   const counts=!s.settings.hideCounts||p.userId==='me';
   const covered=vis(s,p)==='cover'&&!reveal;
-  return html`<article ref=${ref} className=${'post'+(p.status==='gone'?' gone':'')+(frozen?' is-frozen':'')} data-tour=${t?'post-'+t:null}>
+  return html`<article ref=${ref} aria-label=${p.kept&&p.reposts>0?'Reflamed take':null} className=${'post'+(p.status==='gone'?' gone':'')+(frozen?' is-frozen':'')+(p.kept&&(p.reposts>0||p.quoteOf)?' reflamed':'')} data-tour=${t?'post-'+t:null}>
     ${s.ashing===p.id&&html`<${AshBurn} onDone=${()=>dispatch({type:'ashDone',id:p.id})}/>`}
     <div className="p-head">
       <button onClick=${()=>open.profile(u.id)} aria-label=${'Open @'+u.handle}><${Avatar} u=${u}/></button>
@@ -2234,9 +2299,9 @@ function Post({p,s,dispatch,open}){
     <div className="p-actions">
       <${ReactPick} p=${p} counts=${counts} tour=${t} onPick=${k=>k==='heat'?heat():dispatch({type:'freeze',id:p.id})}/>
       <button className="ic cm" aria-label=${frozen?'Comments are off while frozen':'Comments'} disabled=${frozen} onClick=${()=>open.comments(p.id)}><${Icon} n="comment" s=${22}/><span className="n">${cs.length||''}</span></button>
-      <button className=${'ic rf'+(p.myRepost?' on':'')} aria-label=${p.myRepost?'Undo reflame':'Reflame'} onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${22} w=${2}/><span className="n">${p.reposts||''}</span></button>
+      <button className="ic sd" aria-label="Send" onClick=${()=>open.share(p.id)}><${Icon} n="share" s=${21}/></button>
       <div className="social" data-tour=${t?'social-'+t:null}>
-        <button className="ic" aria-label="Send" onClick=${()=>open.share(p.id)}><${Icon} n="share" s=${20}/></button>
+        <button className=${'ic rf'+(p.myRepost?' on':'')} aria-label=${p.myRepost?'Undo reflame':'Reflame'} onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${22} w=${2}/><span className="n">${p.reposts||''}</span></button>
         <button className=${'ic'+(p.saved?' on':'')} aria-pressed=${p.saved} aria-label="Save" onClick=${()=>dispatch({type:'save',id:p.id})}><${Icon} n="save" s=${20} fill=${p.saved?'currentColor':null}/></button>
         <span className="views" aria-label=${kfmt(p.views||0)+' views'}><${Icon} n="views" s=${17} w=${2.2}/>${kfmt(p.views||0)}</span>
       </div>
@@ -2812,7 +2877,9 @@ function mixLives(reels,lives){if(!lives.length)return reels.map(p=>({p}));const
   reels.forEach((p,i)=>{out.push({p});if(li<lives.length&&(i===1||(i>1&&(i-1)%5===0)))out.push({live:lives[li++]})});
   if(!reels.length)lives.forEach(l=>out.push({live:l}));return out}
 function Replay({s,dispatch,open,startId}){
-  const reels=s.posts.filter(p=>p.reel&&p.status!=='gone'&&visible(s,p));
+  const [rfeed]=useFeedPref('temp-rfeed');
+  const reels0=s.posts.filter(p=>p.reel&&p.status!=='gone'&&visible(s,p));
+  const reels=rfeed==='following'?reels0.filter(p=>p.userId==='me'||(s.users[p.userId]||{}).following):reels0;
   const {list:lives,people:lp}=useStreams();const items=mixLives(reels,lives.filter(x=>!s.blocked[x.host_id]));
   const box=useRef();const [active,setActive]=useState(startId||(reels[0]&&reels[0].id));
   useEffect(()=>{
@@ -2823,10 +2890,10 @@ function Replay({s,dispatch,open,startId}){
   },[items.length]);
   const sw=useRef(null);
   return html`<div className="reels" ref=${box} onTouchStart=${e=>{const t=e.touches[0];sw.current={x:t.clientX,y:t.clientY}}} onTouchEnd=${e=>{const a=sw.current;sw.current=null;if(!a)return;const t=e.changedTouches[0];const dx=t.clientX-a.x,dy=t.clientY-a.y;if(dx>70&&Math.abs(dx)>Math.abs(dy)*2)open.leaveReplay()}}>
-    <div className="reel-top" style=${{position:'fixed',maxWidth:520,margin:'0 auto',color:'#fff'}}><h2>Replay</h2>
+    <div className="reel-top" style=${{position:'fixed',maxWidth:520,margin:'0 auto',color:'#fff'}}><h2><${FeedSwitch} k="temp-rfeed" dark=${true} label=${html`<span>Replay</span>`}/></h2>
       <button className="circle" style=${{background:'rgba(255,255,255,.14)',color:'#fff'}} aria-label="New Replay" onClick=${()=>open.compose(true)}><${Icon} n="camera"/></button></div>
     ${items.map(it=>it.live?html`<${LiveReel} key=${'live-'+it.live.id} x=${it.live} h=${lp[it.live.host_id]||liveUser(null)}/>`:html`<${Reel} key=${it.p.id} p=${it.p} s=${s} active=${active===it.p.id} dispatch=${dispatch} open=${open}/>`)}
-    ${!items.length&&html`<div className="empty" style=${{color:'#fff',paddingTop:'40vh'}}>Nothing to replay</div>`}
+    ${!items.length&&html`<div className="empty" style=${{color:'#fff',paddingTop:'40vh'}}>${rfeed==='following'?'No Replays from people you follow yet':'Nothing to replay'}</div>`}
   </div>`;
 }
 
@@ -2896,7 +2963,7 @@ function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
       <div className="c-tools">
         ${!reel&&html`<button onClick=${()=>pick('image/*')}><${Icon} n="image" s=${19}/>Photo</button>
         <button aria-pressed=${gifOpen} className=${gifOpen?'tool-on':''} onClick=${()=>setGifOpen(!gifOpen)}><${Icon} n="gif" s=${19}/>GIF</button>
-        <button aria-pressed=${!!poll} className=${poll?'tool-on':''} onClick=${()=>setPoll(poll?null:['',''])}><${Icon} n="list" s=${19}/>Poll</button>`}
+        ${!WEB_LITE&&html`<button aria-pressed=${!!poll} className=${poll?'tool-on':''} onClick=${()=>setPoll(poll?null:['',''])}><${Icon} n="list" s=${19}/>Poll</button>`}`}
         ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record('replay')}}><span className="rec-dot"></span>Record</button>`}
         <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>${reel?'Upload':'Video'}</button>
         ${adult&&s.users.me.plus&&html`<button className=${nsfw?'tool-on':''} aria-pressed=${nsfw} onClick=${()=>setNsfw(!nsfw)}>18+</button>`}
@@ -3008,11 +3075,39 @@ function ReactPick({p,counts,tour,onPick}){
       aria-label=${done==='heat'?'You heated this. Heat '+p.heat+', freeze '+p.freeze:done==='freeze'?'You froze this. Heat '+p.heat+', freeze '+p.freeze:'Hold to heat or freeze'} aria-haspopup="true" aria-expanded=${open}
       onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${()=>{clearTimeout(st.current.t);st.current.down=false}} onContextMenu=${e=>e.preventDefault()}>
       ${done==='freeze'?html`<${Icon} n="snow" s=${22} w=${2.3} die=${true}/>`:html`<${Icon} n="flame" s=${22} w=${2.3} fill=${done==='heat'?'currentColor':null} die=${true}/>`}
-      ${counts&&html`<span className="rp-n">${kfmt(p.heat)}${p.freeze>0&&html`<em>${kfmt(p.freeze)}</em>`}</span>`}</button>
+      ${counts&&html`<span className="rp-n">${kfmt(done==='freeze'?p.freeze:p.heat)}</span>`}</button>
     ${open&&html`<div className="rp-pop" role="menu">
-      <button role="menuitem" className=${'rp-o heat'+(hover==='heat'?' hov':'')+(done==='heat'?' mine':'')} onClick=${()=>choose('heat')} aria-label="Heat"><span className="rp-orb"><${Icon} n="flame" s=${26} w=${2.3} fill="currentColor"/></span><b>Heat${counts?' · '+kfmt(p.heat):''}</b></button>
-      <button role="menuitem" className=${'rp-o freeze'+(hover==='freeze'?' hov':'')+(done==='freeze'?' mine':'')} onClick=${()=>choose('freeze')} aria-label="Freeze"><span className="rp-orb"><${Icon} n="snow" s=${26} w=${2.3}/></span><b>Freeze${counts?' · '+kfmt(p.freeze):''}</b></button></div>`}
+      <button role="menuitem" className=${'rp-o heat'+(hover==='heat'?' hov':'')+(done==='heat'?' mine':'')} onClick=${()=>choose('heat')} aria-label="Heat"><span className="rp-orb"><${Icon} n="flame" s=${26} w=${2.3} fill="currentColor"/></span><b>Heat</b></button>
+      <button role="menuitem" className=${'rp-o freeze'+(hover==='freeze'?' hov':'')+(done==='freeze'?' mine':'')} onClick=${()=>choose('freeze')} aria-label="Freeze"><span className="rp-orb"><${Icon} n="snow" s=${26} w=${2.3}/></span><b>Freeze</b></button></div>`}
   </div>`;
+}
+// desktop: a left rail with the logo and navigation, and a right rail with search, people to follow and trending tags
+function DeskLeft({s,view,go,compose}){
+  const items=[['home','home','Home'],['search','search','Explore'],['replay','reels','Replay'],['activity','heart','Activity'],['dms','dm','Messages'],['me','user','Profile'],['shop','bag','Fire Sale'],['settings','gear','Settings']];
+  return html`<aside className="dsk-left" aria-label="Main"><button className="dsk-logo" onClick=${()=>go('home')} aria-label="Temp home">temp<i></i></button>
+    <nav>${items.map(([k,ic,l])=>html`<button key=${k} aria-current=${view.tab===k?'page':null} onClick=${()=>go(k)}><${Icon} n=${ic} s=${25} w=${view.tab===k?2.5:1.9}/><span>${l}</span></button>`)}</nav>
+    <button className="btn orange dsk-post" onClick=${compose}>Post a take</button>
+    <button className="dsk-me" onClick=${()=>go('me')}><${Avatar} u=${s.users.me} size=${40}/><span><b>${s.users.me.name||'You'}</b><small>@${s.users.me.handle}</small></span></button></aside>`;
+}
+function DeskRight({s,dispatch,open,go,setQuery}){
+  const [q,setQ]=useState('');
+  const who=Object.values(s.users).filter(u=>u.id!=='me'&&u.id!=='temp'&&!u.following&&!s.blocked[u.id]).sort((a,b)=>b.followers-a.followers).slice(0,4);
+  const tags={};s.posts.forEach(p=>((p.text||'').match(/#[\w]+/g)||[]).forEach(t=>tags[t.toLowerCase()]=(tags[t.toLowerCase()]||0)+1+p.heat));
+  const trend=Object.entries(tags).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  return html`<aside className="dsk-right">
+    <form className="search dsk-search" onSubmit=${e=>{e.preventDefault();setQuery(q);go('search')}}><${Icon} n="search" s=${19}/><input placeholder="Search Temp" value=${q} onInput=${e=>setQ(e.target.value)} aria-label="Search Temp"/></form>
+    <div className="dsk-card dsk-app"><div className="getapp-mark" style=${{fontSize:30}}>temp<i></i></div><b>Get the full Temp</b><p className="sub">Go live, post Replays and stories, face effects, sounds, polls and every Fire Sale look are in the app.</p><span className="getapp-btn"><${Icon} n="phone" s=${18}/>Coming soon to the App Store</span></div>
+    ${trend.length>0&&html`<div className="dsk-card"><h3>Trending</h3>${trend.map(([t,n])=>html`<button key=${t} className="dsk-row" onClick=${()=>{setQuery(t);go('search')}}><b>${t}</b><small>${n} heat</small></button>`)}</div>`}
+    ${who.length>0&&html`<div className="dsk-card"><h3>Who to follow</h3>${who.map(u=>html`<div key=${u.id} className="dsk-who"><button onClick=${()=>open.profile(u.id)}><${Avatar} u=${u} size=${40}/></button><button className="grow" onClick=${()=>open.profile(u.id)}><b>${u.name}</b><small>@${u.handle}</small></button><button className="btn sm orange" onClick=${()=>dispatch({type:'follow',id:u.id})}>Follow</button></div>`)}</div>`}
+    <p className="dsk-foot"><a href="/terms.html" target="_blank">User Agreement</a> · © ${new Date().getFullYear()} Temp</p></aside>`;
+}
+function GetAppSheet({why,onClose}){
+  return html`<${Sheet} onClose=${onClose} label="Get the Temp app"><div className="getapp">
+    <div className="getapp-mark">temp<i></i></div>
+    <h3>${why||'That one’s in the app'}</h3>
+    <p className="sub">The Temp app has everything: going live, Replays, stories, face effects, sounds, polls, lingering thoughts and all your Fire Sale looks.</p>
+    <div className="getapp-btn" aria-disabled="true"><${Icon} n="phone" s=${20}/>Coming soon to the App Store</div>
+    <button className="btn ghost wide" onClick=${onClose}>Keep browsing</button></div><//>`;
 }
 function PostMenu({p,s,dispatch,onClose,open}){
   const u=s.users[p.userId];const [confirm,setConfirm]=useState(false);
@@ -3416,6 +3511,7 @@ function ShopView({s,dispatch,open}){
   const equipped=(k,id)=>k==='themes'?s.theme===id:k==='rings'?me.ring===id:k==='headers'?me.headerFx===id:k==='styles'?s.settings.btn===id:false;
   const owns=(k,it)=>it.price===0||(s.owned[k]||{})[it.id]||(it.plusOnly&&me.plus);
   const action=(k,it,price)=>{
+    if(WEB_LITE)return html`<button className="btn ghost sm" onClick=${()=>getApp('Fire Sale looks are used in the app')}>${owns(k,it)?'In the app':price+' pts · App'}</button>`;
     const eq=equipped(k,it.id);
     if(it.plusOnly&&!me.plus)return html`<button className="btn ghost sm" onClick=${open.plus}>Temp+ only</button>`;
     if(!owns(k,it))return html`<button className="btn orange sm" disabled=${s.points<price} onClick=${()=>dispatch({type:'buy',kind:k,id:it.id,price})}>${price} pts</button>`;
@@ -3487,8 +3583,22 @@ function BarsOnScroll({on}){
     addEventListener('scroll',f,{passive:true});return()=>{removeEventListener('scroll',f);b.classList.remove('bars-off')}},[on]);
   return null;
 }
+// For you / Following lives in the logo: tap "temp." (or "Replay") to switch feeds
+function useFeedPref(key){const [v,setV]=useState(()=>store.get(key)||'foryou');
+  useEffect(()=>{const f=e=>{if(e.detail&&e.detail.key===key)setV(e.detail.v)};addEventListener('temp-feed',f);return()=>removeEventListener('temp-feed',f)},[key]);
+  return [v,n=>{store.set(key,n);setV(n);dispatchEvent(new CustomEvent('temp-feed',{detail:{key,v:n}}))}]}
+function FeedSwitch({k,label,dark}){
+  const [feed,setFeed]=useFeedPref(k);const [open,setOpen]=useState(false);const ref=useRef();
+  useEffect(()=>{if(!open)return;const c=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};document.addEventListener('pointerdown',c);return()=>document.removeEventListener('pointerdown',c)},[open]);
+  return html`<div className=${'fsw'+(dark?' dark':'')} ref=${ref}>
+    <button className="fsw-btn" aria-haspopup="true" aria-expanded=${open} aria-label=${'Showing '+(feed==='following'?'Following':'For you')+'. Switch feed'} onClick=${()=>setOpen(!open)}>
+      ${label}<span className="fsw-now">${feed==='following'?'Following':'For you'}<${Icon} n="chev" s=${13} w=${2.8}/></span></button>
+    ${open&&html`<div className="fsw-menu" role="menu">${[['foryou','For you','Hottest and newest from everyone'],['following','Following','Only people you follow']].map(([v,l,d])=>html`<button key=${v} role="menuitemradio" aria-checked=${feed===v} onClick=${()=>{setFeed(v);setOpen(false);scrollTo({top:0,behavior:'smooth'})}}>
+      <span><b>${l}</b><small>${d}</small></span>${feed===v&&html`<${Icon} n="check" s=${18} w=${2.8}/>`}</button>`)}</div>`}
+  </div>`;
+}
 function Home({s,dispatch,open,tourIds,addStory}){
-  const [feed,setFeed]=useState(()=>store.get('temp-feed')||'foryou');useEffect(()=>{store.set('temp-feed',feed)},[feed]);
+  const [feed]=useFeedPref('temp-feed');
   // For you: everything, hottest and newest first. Following: just the people you follow (and you), newest first
   const base=s.posts.filter(p=>!p.reel&&visible(s,p));
   const score=p=>p.heat*3-p.freeze*2+p.comments.length*2+(p.reposts||0)*4-(s.now-p.createdAt)/36e5;
@@ -3496,7 +3606,6 @@ function Home({s,dispatch,open,tourIds,addStory}){
   const tagged=posts.map(p=>p.id===tourIds.a?{...p,tour:'a'}:p.id===tourIds.b?{...p,tour:'b'}:p);
   return html`<div>
     <${StoriesRow} s=${s} open=${open} addStory=${addStory}/>
-    <div className="seg feed-seg" role="tablist">${[['foryou','For you'],['following','Following']].map(([k,l])=>html`<button key=${k} role="tab" aria-pressed=${feed===k} onClick=${()=>{setFeed(k);scrollTo({top:0,behavior:'smooth'})}}>${l}</button>`)}</div>
     <div className="feed">${tagged.map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
     ${!posts.length&&html`<div className="empty">${feed==='following'?'Follow people to see their takes here':'Nothing here'}</div>`}
   </div>`;
@@ -3585,7 +3694,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
         <div className="prof-btns">
-          ${!blocked&&(isMe||u.thought)&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>setThought(true)}/>`}
+          ${!blocked&&(u.thought||(isMe&&!WEB_LITE))&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}
           ${isMe?null
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
           :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
@@ -3795,7 +3904,7 @@ function makeSteps(s,ids){
     {target:'post-a',title:'Every take starts normal',body:'A new post has no clock. What happens next is up to everyone who sees it.'},
     {target:'heat-a',title:'Heat a take that lands',body:'Hold the flame, slide to Heat and let go. Takes with more heat than freezes stay on the timeline. You can also double-tap a photo to heat it.',try:'Hold the flame',done:()=>A&&A.myHeat},
     {target:'heat-b',title:'Freeze a take that flops',body:'Hold the flame, slide to Freeze and let go. When freezes outnumber heat, the clock starts.',try:'Hold, slide, let go',done:()=>B&&B.myFreeze},
-    {target:'state-b',title:'Race the temperature',body:'The flame timer shows how long it has to heat back up. Heat it past its freezes and the clock stops. Double its freezes and it’s safe for good. Run out of time and it burns off the timeline.'},
+    {target:'state-b',title:'Race the temperature',body:'The flame timer counts down from 24 hours. Every heat drains it faster. Only heat that doubles its freezes saves it for good. When time runs out, it burns off the timeline.'},
     {target:'social-a',title:'Comment, send, save',body:'Comments can be liked and replied to. Send a post to someone’s DMs and it stays there even after it disappears. Save it to find it later.'},
     {target:'more-a',title:'More options',body:'Follow, message, report or block the poster.'},
     {target:'stories',title:'Stories',body:'Tap a glowing orb to watch. React or reply from the story. Add your own with the +. Stories disappear after 24 hours.'},
@@ -4202,12 +4311,14 @@ function GoLivePage({me,onClose,startWatch}){
   useEffect(()=>{store.set('temp-livefx',fx)},[fx]);const [title,setTitle]=useState('');const [err,setErr]=useState('');const [busy,setBusy]=useState(false);
   async function start(){setBusy(true);setErr('');const {data,error}=await sb.from('live_streams').insert({title:title.trim()}).select().single();setBusy(false);if(error){setErr(friendly(error));return}setTitle('');setWatch(data.id)}
   if(watch)return html`<${StreamRoom} key=${watch} id=${watch} me=${me} people=${people} setPeople=${setPeople} fx0=${fx} onFx=${setFx} onExit=${()=>{setWatch(null);reload();if(startWatch&&onClose)onClose()}}/>`;
-  return html`<div className="gl-lobby">${canCamFx()&&html`<${CamPreview} fx=${fx}/>`}
+  return html`<div className="gl-lobby">${!WEB_LITE&&canCamFx()&&html`<${CamPreview} fx=${fx}/>`}
     <div className="gl-top">${onClose&&html`<button className="circle" onClick=${onClose} aria-label="Close"><${Icon} n="back"/></button>`}<h2>Go Live</h2></div>
+    ${WEB_LITE?html`<div className="gl-start"><span className="gl-cam"><${Icon} n="reels" s=${30}/></span><p style=${{margin:'4px 0 10px',fontWeight:700}}>Going live happens in the Temp app. You can watch anyone live right here.</p>
+      <button className="btn orange wide" onClick=${()=>getApp('Go live from the app')}>Get the app</button></div>`:html`
     <div className="gl-start"><span className="gl-cam"><${Icon} n="reels" s=${30}/></span>
       <input placeholder="Say what your live is about (optional)" maxLength=${80} value=${title} onInput=${e=>setTitle(e.target.value)} aria-label="Live title"/>
       ${canCamFx()&&html`<${FxChips} fx=${fx} setFx=${setFx}/>`}
-      <button className="btn orange wide" disabled=${busy} onClick=${start}>${busy?'Starting…':'Go live'}</button>${err&&html`<p className="mod-err">${err}</p>`}</div>
+      <button className="btn orange wide" disabled=${busy} onClick=${start}>${busy?'Starting…':'Go live'}</button>${err&&html`<p className="mod-err">${err}</p>`}</div>`}
     <h3 className="live-h">Live now</h3>
     ${list.length?html`<div className="gl-grid">${list.map(x=>{const h=people[x.host_id]||liveUser(null);return html`<button key=${x.id} className="gl-card" onClick=${()=>setWatch(x.id)}>
       <span className="live-dot">LIVE</span><${Avatar} u=${h} size=${54} noRing=${true}/><b>${h.name}</b><span className="sub">${x.title||'@'+h.handle}</span></button>`})}</div>`
@@ -4599,8 +4710,8 @@ function App(){
   useEffect(()=>{let last=performance.now();const i=setInterval(()=>{const t=performance.now();raw({type:'tick',dt:t-last,paused:tourRef.current!==null});last=t},250);return()=>clearInterval(i)},[]);
   useEffect(()=>{if(tour===null&&view.tab!=='replay')scrollTo(0,0)},[view.tab,view.profileId,view.threadId,setSub]);
   useEffect(()=>{const r=document.documentElement;if(s.settings.theme==='system')delete r.dataset.theme;else r.dataset.theme=s.settings.theme},[s.settings.theme]);
-  useEffect(()=>{document.documentElement.classList.toggle('btn-clean',s.settings.btn==='clean')},[s.settings.btn]);
-  useEffect(()=>{const t=SHOP.themes.find(x=>x.id===s.theme);const r=document.documentElement.style;
+  useEffect(()=>{document.documentElement.classList.toggle('btn-clean',!WEB_LITE&&s.settings.btn==='clean')},[s.settings.btn]);
+  useEffect(()=>{const t=WEB_LITE?null:SHOP.themes.find(x=>x.id===s.theme);const r=document.documentElement.style;
     document.documentElement.classList.toggle('glowing',!!(t&&t.glow));document.documentElement.classList.toggle('blackout',!!(t&&t.mono));
     if(!t||t.id==='ember'||t.mono){r.removeProperty('--orange');r.removeProperty('--orange-2');r.removeProperty('--orange-3')}else{r.setProperty('--orange',t.c[0]);r.setProperty('--orange-2',t.c[1]);r.setProperty('--orange-3',paler(t.c[1]))}},[s.theme]);
   useEffect(()=>{if(!s.settings.breakMins)return;const t=setTimeout(()=>setBreakOpen(true),s.settings.breakMins*60e3);return()=>clearTimeout(t)},[s.settings.breakMins,breakOpen]);
@@ -4637,7 +4748,7 @@ function App(){
     search:q=>{setQuery(q);setView({tab:'search'})},
     replay:id=>setView({tab:'replay',reelId:id}),
     post:id=>{postBack.current=viewRef.current.tab==='post'?postBack.current:viewRef.current;setView({tab:'post',postId:id})},
-    compose:reel=>setSheet({kind:'compose',reel}),
+    compose:reel=>WEB_LITE&&reel?setSheet({kind:'getapp',why:'Replays are made in the app'}):setSheet({kind:'compose',reel}),
     reflame:id=>setSheet({kind:'reflame',id}),
     quote:id=>setSheet({kind:'compose',quoteOf:id}),
     record:m=>setSheet({kind:'record',mode:m||'replay'}),
@@ -4650,7 +4761,8 @@ function App(){
   };
   const guard=fn=>(...a)=>{if(tour!==null)return;fn(...a)};
   const openSafe=Object.fromEntries(Object.entries(open).map(([k,f])=>[k,guard(f)]));
-  const addStory=guard(()=>setSheet({kind:'record',mode:'story'}));
+  const addStory=guard(()=>WEB_LITE?setSheet({kind:'getapp',why:'Stories are posted from the app'}):setSheet({kind:'record',mode:'story'}));
+  __getApp=why=>setSheet({kind:'getapp',why});
   const sheetPost=sheet&&sheet.id?s.posts.find(p=>p.id===sheet.id):null;
   const close=()=>setSheet(null);
   const unread=Object.keys(s.unread).filter(id=>!s.blocked[id]).length;
@@ -4683,7 +4795,7 @@ function App(){
   if(view.tab==='home'){
     body=html`<${Home} s=${s} dispatch=${dispatch} open=${openSafe} tourIds=${tourIds} addStory=${addStory}/>`;
     top=html`<div className="top"><div className="top-row">
-        <h1 className="logo"><button className="logo-btn" aria-label="Temp home — back to the top" onClick=${()=>{setView({tab:'home'});scrollTo({top:0,behavior:'smooth'})}}>temp<i></i></button></h1>
+        <h1 className="logo"><${FeedSwitch} k="temp-feed" label=${html`<span className="logo-txt">temp<i></i></span>`}/></h1>
         <div className="top-actions">
           <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${SolidIcon} n="heart"/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
           <button className="circle" aria-label="Messages" onClick=${guard(()=>setView({tab:'dms'}))}><${SolidIcon} n="dm"/>${unread>0&&html`<span className="badge">${unread}</span>`}</button>
@@ -4727,6 +4839,8 @@ function App(){
   const isReplay=view.tab==='replay';
 
   return html`<div className="app">
+    <${DeskLeft} s=${s} view=${view} go=${t=>guard(()=>setView({tab:t}))()} compose=${guard(()=>setSheet({kind:'compose',reel:false}))}/>
+    <${DeskRight} s=${s} dispatch=${dispatch} open=${open} go=${t=>setView({tab:t})} setQuery=${setQuery}/>
     <${BarsOnScroll} on=${view.tab==='home'}/>
     ${top}
     ${body}
@@ -4737,7 +4851,7 @@ function App(){
     <nav className=${'nav'+(isReplay?' dark':'')+(view.tab==='post'?' nav-off':'')} aria-label="Main"><div className="nav-in">
       <button aria-label="Home" aria-current=${view.tab==='home'?'page':null} onClick=${guard(()=>setView({tab:'home'}))}><${Icon} n="home" s=${25}/></button>
       <button aria-label="Search" data-tour="nav-search" aria-current=${view.tab==='search'?'page':null} onClick=${guard(()=>setView({tab:'search'}))}><${Icon} n="search" s=${25}/></button>
-      <button className="create" aria-label="New post" data-tour="nav-create" onClick=${guard(()=>setSheet({kind:'compose',reel:isReplay}))}><${Icon} n="plus" s=${26} w=${2.6}/></button>
+      <button className="create" aria-label="New post" data-tour="nav-create" onClick=${guard(()=>WEB_LITE&&isReplay?setSheet({kind:'getapp',why:'Replays are made in the app'}):setSheet({kind:'compose',reel:isReplay&&!WEB_LITE}))}><${Icon} n="plus" s=${26} w=${2.6}/></button>
       <button aria-label="Replay" data-tour="nav-replay" aria-current=${isReplay?'page':null} onClick=${guard(()=>setView({tab:'replay'}))}><${Icon} n="reels" s=${25}/></button>
       <button aria-label="Profile" data-tour="nav-me" aria-current=${['me','settings','shop','plus'].includes(view.tab)?'page':null} onClick=${guard(()=>setView({tab:'me'}))}><${Avatar} u=${s.users.me} size=${28}/></button>
     </div></nav>
@@ -4751,6 +4865,7 @@ function App(){
     ${sheet&&sheet.kind==='comments'&&sheetPost&&html`<${Comments} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='share'&&sheetPost&&html`<${Share} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${sheet&&sheet.kind==='menu'&&sheetPost&&html`<${PostMenu} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
+    ${sheet&&sheet.kind==='getapp'&&html`<${GetAppSheet} why=${sheet.why} onClose=${close}/>`}
     ${sheet&&sheet.kind==='edit'&&html`<${EditProfile} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${storyUser&&html`<${StoryViewer} s=${s} startUser=${storyUser} dispatch=${dispatch} onClose=${()=>setStoryUser(null)} onAdd=${()=>{setStoryUser(null);setSheet({kind:'record',mode:'story'})}}/>`}
     ${breakOpen&&html`<div className="modal" role="dialog" aria-label="Take a break"><div className="modal-card">

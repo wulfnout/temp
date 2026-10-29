@@ -69,7 +69,9 @@ img,video{max-width:100%;display:block}
 .story{display:grid;justify-items:center;gap:7px;flex:none;width:76px}
 .story > span{font-size:12px;font-weight:600;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .orb{width:74px;height:74px;padding:5px;position:relative;display:block;border-radius:50%;
-  background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange));animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite}
+  background:conic-gradient(from var(--spin),#ff5500,#ff7a1a,#ffb04d,#ffd27a,#ffb04d,#ff7a1a,#ff5500);animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite}
+/* with a store ring equipped, the story ring is that ring */
+.orb.store{background:none;padding:0;animation:none;border-radius:50%}.prof-orb.store{width:120px;height:120px}
 @keyframes morphsoft{0%,100%{border-radius:52% 48% 51% 49%/49% 52% 48% 51%}33%{border-radius:48% 52% 49% 51%/52% 48% 51% 49%}66%{border-radius:51% 49% 52% 48%/48% 51% 49% 52%}}
 .orb.seen{background:var(--line);animation:morph 11s ease-in-out infinite}
 .orb > .av{width:100%;height:100%;border-radius:inherit;border:3px solid var(--bg)}
@@ -691,7 +693,9 @@ img,video{max-width:100%;display:block}
 .gl-room.ended{display:grid;place-items:center;align-content:center;gap:14px}
 .gl-stage{position:absolute;inset:0;display:grid;grid-template-rows:1fr}.gl-stage.split{grid-template-rows:1fr 1fr}
 .gl-tile{position:relative;overflow:hidden;background:#111}
-.gl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.gl-vid.mirror{transform:scaleX(-1)}
+.gl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(var(--z,1));transition:transform .06s linear}.gl-vid.mirror{transform:scaleX(-1) scale(var(--z,1))}
+.gl-stage{touch-action:pan-y}
+.gl-zoom{position:absolute;right:12px;top:calc(118px + env(safe-area-inset-top,0px));z-index:4;background:rgba(14,14,14,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font-weight:800;font-size:15px;padding:7px 14px;border-radius:999px;opacity:.6;transition:opacity .3s,transform .2s}.gl-zoom.on{opacity:1;transform:scale(1.12)}
 .gl-wait{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:10px;color:#aaa}
 .gl-name{position:absolute;left:12px;bottom:10px;font-weight:800;font-size:13px;background:rgba(0,0,0,.45);padding:3px 9px;--r:8px;border-radius:var(--r);animation:squish 9s ease-in-out -2s infinite}
 .gl-kick{position:absolute;right:10px;top:10px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:grid;place-items:center}
@@ -2165,13 +2169,13 @@ function StoriesRow({s,open,addStory}){
   const sorted=[...others].sort((a,b)=>unseen(b)-unseen(a));
   return html`<div className="stories" aria-label="Stories" data-tour="stories">
     <div className="story">
-      <button className=${'orb'+(s.storyUploading?' uploading':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
-        <${Avatar} u=${s.users.me} size=${64} noRing=${true}/>
+      ${(()=>{const store=!s.storyUploading&&mine&&unseen(mine)&&s.users.me.ring;return html`<button className=${'orb'+(s.storyUploading?' uploading':store?' store':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
+        ${store?html`<${Avatar} u=${s.users.me} size=${74}/>`:html`<${Avatar} u=${s.users.me} size=${64} noRing=${true}/>`}
         ${s.storyUploading?html`<span className="up-spin" aria-hidden="true"></span>`:null}
         <span className="add" role="button" aria-label="Add to your story" onClick=${e=>{e.stopPropagation();addStory()}}><${Icon} n="plus" s=${12} w=${3.2}/></span>
-      </button><span>${s.storyUploading?'Posting…':'Your story'}</span></div>
+      </button>`})()}<span>${s.storyUploading?'Posting…':'Your story'}</span></div>
     ${sorted.map(st=>{const u=s.users[st.userId];return html`<div className="story" key=${st.userId}>
-      <button className=${'orb'+(unseen(st)?'':' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${64} noRing=${true}/></button>
+      <button className=${'orb'+(unseen(st)?(u.ring?' store':''):' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}>${unseen(st)&&u.ring?html`<${Avatar} u=${u} size=${74}/>`:html`<${Avatar} u=${u} size=${64} noRing=${true}/>`}</button>
       <span>${u.handle}</span></div>`})}
   </div>`;
 }
@@ -3335,7 +3339,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
         // the profile picture always has the flowing ring (solid theme colour); grey once you've watched their story
-        const pic=st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${108} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
+        const pic=st&&un&&u.ring?html`<span className="orb prof-orb store"><${Avatar} u=${u} size=${120}/></span>`:st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${108} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
         if(isMe){const tap=e=>{const r=e.currentTarget.getBoundingClientRect();open.drawer({top:Math.max(60,Math.min(r.bottom+8,innerHeight-500)),left:Math.max(12,r.left)})};
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
@@ -3920,6 +3924,9 @@ class StreamEngine{
     this.local=out;Object.values(this.pcs).forEach(st=>this.local.getTracks().forEach(t=>st.pc.addTrack(t,this.local)));this.on({local:this.local});
   }
   setFx(fx){this.fx=fx;if(this.camfx)this.camfx.fx=fx}
+  // pinch zoom: use the camera's own zoom when the phone supports it, so viewers see it too
+  zoomCaps(){const t=this.raw&&this.raw.getVideoTracks()[0];let c=null;try{c=t&&t.getCapabilities&&t.getCapabilities()}catch(e){}return c&&c.zoom&&c.zoom.max>c.zoom.min?c.zoom:null}
+  setZoom(z){const t=this.raw&&this.raw.getVideoTracks()[0];const c=this.zoomCaps();if(!c)return false;const v=Math.max(c.min,Math.min(c.max,(c.min||1)*z));t.applyConstraints({advanced:[{zoom:v}]}).catch(()=>{});return true}
   async flip(){if(!this.local)return;this.facing=this.facing==='user'?'environment':'user';
     const ns=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facing,width:{ideal:720},height:{ideal:1280}}});const nt=ns.getVideoTracks()[0];
     if(this.camfx){this.raw.getVideoTracks().forEach(t=>{t.stop();this.raw.removeTrack(t)});this.raw.addTrack(nt);this.camfx.setSource(new MediaStream([nt]));this.on({local:this.local,facing:this.facing});return}
@@ -4073,8 +4080,20 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   const pend=useRef({likes:0,t:null});const comboRef=useRef(null);const seenIds=useRef(null);
   const [dbViewers,setDbViewers]=useState([]);const [streak,setStreak]=useState(0);const [sent,setSent]=useState(null);const streakT=useRef(null);const streakN=useRef(0);const [conn,setConn]=useState('ok');const lastGiftId=useRef(0);const heard=useRef({});const giftRows=useRef([]);
   const isHost=row&&row.host_id===me;const isGuest=row&&row.guest_id===me;const onCam=isHost||isGuest;
-  const [fol,setFol]=useState(null);const [tools,setTools]=useState(false);const [shares,setShares]=useState(0);const likedBy=useRef(new Set());
+  const [fol,setFol]=useState(null);const [zoom,setZoomS]=useState(1);const [zAt,setZAt]=useState(0);const [hwZoom,setHwZoom]=useState(false);const stageRef=useRef(null);const zr=useRef({z:1,p:null,cam:false});const [tools,setTools]=useState(false);const [shares,setShares]=useState(0);const likedBy=useRef(new Set());
   useEffect(()=>{if(!row||isHost)return;sb.from('follows').select('followee').eq('follower',me).eq('followee',row.host_id).maybeSingle().then(({data})=>setFol(!!data))},[row&&row.host_id]);
+  zr.current.cam=onCam;
+  const applyZoom=z=>{z=Math.max(1,Math.min(5,z));zr.current.z=z;setZoomS(z);setZAt(Date.now());
+    if(zr.current.cam&&eng.current&&eng.current.setZoom)setHwZoom(eng.current.setZoom(z));else setHwZoom(false)};
+  useEffect(()=>{const el=stageRef.current;if(!el)return;const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+    const ts=e=>{if(e.touches.length===2)zr.current.p={d:dist(e.touches),z:zr.current.z}};
+    const tm=e=>{const p=zr.current.p;if(!p||e.touches.length<2)return;e.preventDefault();applyZoom(p.z*dist(e.touches)/p.d)};
+    const te=e=>{if(e.touches.length<2)zr.current.p=null};
+    // trackpad pinch on a computer comes through as ctrl + wheel
+    const gs=e=>e.preventDefault();el.addEventListener('gesturestart',gs);el.addEventListener('gesturechange',gs);
+    const wh=e=>{if(!e.ctrlKey)return;e.preventDefault();applyZoom(zr.current.z*Math.exp(-e.deltaY/120))};
+    el.addEventListener('touchstart',ts,{passive:true});el.addEventListener('touchmove',tm,{passive:false});el.addEventListener('touchend',te);el.addEventListener('touchcancel',te);el.addEventListener('wheel',wh,{passive:false});
+    return()=>{el.removeEventListener('gesturestart',gs);el.removeEventListener('gesturechange',gs);el.removeEventListener('touchstart',ts);el.removeEventListener('touchmove',tm);el.removeEventListener('touchend',te);el.removeEventListener('touchcancel',te);el.removeEventListener('wheel',wh)}},[]);
   const followHost=async()=>{setFol(true);const {error}=await sb.from('follows').insert({followee:row.host_id});if(error&&!/duplicate/i.test(error.message)){setFol(false);setErr(friendly(error))}};
   const loadRow=async(n=0)=>{const {data,error}=await sb.from('live_streams').select('*').eq('id',id).maybeSingle();
     if(!data){if(n<8)setTimeout(()=>loadRow(n+1),1500);else setErr(error?friendly(error):'Couldn’t load this live.');return}
@@ -4170,7 +4189,8 @@ function StreamRoom({id,me,people,setPeople,onExit,fx0,onFx}){
   const name=uid=>(people[uid]||{name:'…'}).name;
   const allViewers=[...new Set([...viewers,...dbViewers])];const watching=Math.max(0,allViewers.filter(v=>!row||v!==row.host_id).length);
   return html`<div className="gl-room" onClick=${tapLike}>
-    <div className=${'gl-stage'+(row&&row.guest_id?' split':'')}>
+    ${zoom>1.01&&html`<button className=${'gl-zoom'+(Date.now()-zAt<1500?' on':'')} onClick=${e=>{e.stopPropagation();applyZoom(1)}} aria-label="Reset zoom">${zoom.toFixed(1)}x</button>`}
+    <div ref=${stageRef} className=${'gl-stage'+(row&&row.guest_id?' split':'')} style=${{'--z':hwZoom?1:zoom}}>
       <div className="gl-tile">${hostStream?html`<${Vid} stream=${hostStream} mirror=${isHost&&eng.current&&eng.current.facing==='user'} muted=${isHost}/>`:null}
         ${res&&html`<span className=${'gl-res '+res[0].toLowerCase()}>${res[0]}</span>`}</div>
       ${row&&row.guest_id&&html`<div className="gl-tile">${guestStream?html`<${Vid} stream=${guestStream} mirror=${isGuest} muted=${isGuest}/>`:null}${people[row.guest_id]&&html`<span className="gl-name">${guest.name}</span>`}

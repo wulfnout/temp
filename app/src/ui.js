@@ -155,10 +155,10 @@ export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const radii = (w) => ({ borderTopLeftRadius: corner(0, w), borderTopRightRadius: corner(0.27, w), borderBottomRightRadius: corner(0.55, w), borderBottomLeftRadius: corner(0.8, w) });
   const mid = size - ring * 2, pic = mid - gap * 2;
   return (
-    <Animated.View style={[{ width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: seen ? C.line : C.orange,
+    <Animated.View style={[{ width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: seen ? C.line : '#ff5500',
       ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }, radii(size)]}>
       {!seen ? <Animated.View style={{ position: 'absolute', width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
-        <LinearGradient colors={[C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ flex: 1 }} />
+        <LinearGradient colors={['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ flex: 1 }} />
       </Animated.View> : null}
       <Animated.View style={[{ width: mid, height: mid, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }, radii(mid)]}>
         <Animated.View style={[{ width: pic, height: pic, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii(pic)]}>{children(pic)}</Animated.View>
@@ -172,7 +172,7 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
   return (
     <Pressable onPress={onPress} accessibilityLabel={label} style={{ width: size + 4, alignItems: 'center', gap: 6 }}>
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>
+        {u.ring && !seen ? <Avatar u={u} size={size} /> : <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>}
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={14} color={C.onOrange} /></Pressable> : null}
       </View>

@@ -224,6 +224,16 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 .prof-id.is-me .prof-idrow .thought{margin-top:-22px!important}
 @keyframes tdrift{0%,100%{transform:scale(1)}50%{transform:scale(.985)}}
 .prof-idrow .thought::after{left:18px}
+
+/* lingering thought = Instagram-style note on top of the profile picture */
+.prof-picwrap{position:relative;flex:none}
+.tnote{position:absolute;left:50%;bottom:calc(100% - 22px);transform:translateX(-50%);z-index:4;width:max-content;max-width:122px;min-width:60px;padding:8px 12px;border-radius:17px;
+  font-family:var(--body,Figtree),system-ui;font-weight:600;font-size:13px;line-height:1.25;letter-spacing:0;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.22);border:0}
+.tnote-in{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.tnote .tt{position:absolute;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.18)}
+.tnote .t1{width:11px;height:11px;left:14px;bottom:-7px}.tnote .t2{width:6px;height:6px;left:9px;bottom:-15px}
+.tnote.ts-bubble{background:radial-gradient(130% 150% at 22% 12%,rgba(255,255,255,.85),rgba(255,255,255,.6) 45%,rgba(255,255,255,.4)) padding-box,conic-gradient(from 200deg,#ff79c6,#9b7bff,#58c7ff,#6dffd0,#ffe27a,#ff79c6) border-box;border:1.5px solid transparent;color:#1a1030}
+.tnote.ts-bubble .tt{background:radial-gradient(circle at 30% 25%,#fff,rgba(255,255,255,.6) 60%) padding-box,conic-gradient(from 200deg,#ff79c6,#9b7bff,#58c7ff,#6dffd0,#ffe27a,#ff79c6) border-box;border:1.2px solid transparent}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3117,10 +3127,10 @@ const THOUGHT_REACTS=['🔥','😂','😮','🧊','💯','👀'];
 // big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
 const thoughtSize=t=>{const n=(t||'').length;return n<=14?32:n<=26?28:n<=40?24:n<=60?20:18};
 function ThoughtBubble({u,isMe,onOpen}){
-  const t=u.thought;const rs=t?Object.entries(t.reacts).sort((a,b)=>b[1]-a[1]).slice(0,3):[];
-  return html`<button className=${'thought ts-'+(u.thoughtStyle||'orange')+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
-    <span className="thought-in" style=${t?{fontSize:thoughtSize(t.text)}:null}>${t?t.text:html`<${Icon} n="plus" s=${14} w=${2.6}/>Lingering thought…`}</span>
-    ${rs.length>0&&html`<span className="thought-rx">${rs.map(([e,n])=>html`<span key=${e}>${e}${n>1?n:''}</span>`)}</span>`}</button>`;
+  // a small note bubble sitting on top of the profile picture (like Instagram notes), in the person's chosen style
+  const t=u.thought;
+  return html`<button className=${'tnote ts-'+(u.thoughtStyle||'orange')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Lingering thought'}>
+    <span className="tnote-in">${t?t.text:''}</span><i className="tt t1"></i><i className="tt t2"></i></button>`;
 }
 function ThoughtSheet({u,s,dispatch,onClose}){
   const isMe=u.id==='me';const t=u.thought;const [txt,setTxt]=useState(isMe&&t?t.text:'');const [reply,setReply]=useState('');
@@ -3770,13 +3780,13 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${back&&html`<button className="header-btn l" onClick=${back} aria-label="Back"><${Icon} n="back" s=${20} w=${2.2} die=${true}/></button>`}
         ${isMe&&html`<button className="header-btn" onClick=${open.settings} aria-label="Settings"><${Icon} n="gear" s=${22} w=${2.2} die=${true}/></button>`}
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
-      <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
+      <div className="prof-top"><div className="prof-picwrap">${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
         // the profile picture always has the flowing ring (solid theme colour); grey once you've watched their story
         // the profile picture always wears the ring the person bought and picked in Fire Sale
         const pic=html`<${Avatar} u=${u} size=${96}/>`;
         if(isMe){const tap=e=>{const r=e.currentTarget.getBoundingClientRect();open.drawer({top:Math.max(60,Math.min(r.bottom+8,innerHeight-500)),left:Math.max(12,r.left)})};
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
-        return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
+        return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}</div>
         <div className="prof-btns">
           ${isMe?null
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
@@ -3785,8 +3795,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
         </div></div>
       <div className=${'prof-id'+(u.thought&&!blocked?' has-thought':'')+(isMe?' is-me':'')}><div className="prof-idrow"><div className="prof-idname"><h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
       <div className="sub" style=${{fontSize:15}}>@${u.handle}${!isMe&&u.followsMe?' · Follows you':''}</div>
-      ${u.bio&&html`<p className="prof-bio">${u.bio}</p>`}</div>
-      ${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}</div></div>
+      ${u.bio&&html`<p className="prof-bio">${u.bio}</p>`}</div></div></div>
       <div className="stats">
         <div className="stat"><b>${all.length+reels.length}</b><span>Posts</span></div>
         <div className="stat"><b>${kfmt(isMe?Object.values(s.users).filter(x=>x.followsMe).length:u.followers)}</b><span>Followers</span></div>

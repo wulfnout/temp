@@ -46,7 +46,9 @@ export function ProfileScreen({ id, isTab }) {
               const openMenu = (e) => { const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMenuAt({ top: pageY - locationY + 104, left: Math.max(12, pageX - locationX) }); };
               const unseen = story ? story.items.some((i) => !s.seen[i.id]) : false;
               // the profile picture always wears the ring the person bought and picked
-              const pic = <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><Avatar u={u} size={100} /></View>;
+              const pic = <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><Avatar u={u} size={100} />
+                {/* lingering thought: an Instagram-style note sitting on top of the picture */}
+                {!blocked && u.thought ? <ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /> : null}</View>;
               if (isMe) return <Pressable onPress={openMenu} accessibilityLabel="Your menu">{pic}</Pressable>;
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}
             <View style={{ flexShrink: 1, flexGrow: isMe ? 1 : 0, alignSelf: 'flex-start', alignItems: isMe ? 'flex-start' : 'flex-end', marginTop: -4 }}>
@@ -62,15 +64,9 @@ export function ProfileScreen({ id, isTab }) {
             {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
           </View>
           {/* name on the left, the lingering thought box beside it on the right; the bio runs full width underneath */}
-          {/* name, handle and bio on the left; the lingering thought orb fills the space on the right, from just under the header down to the stats */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginTop: 12 }}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <T d style={{ fontSize: 25, letterSpacing: -1.2 }} numberOfLines={2} adjustsFontSizeToFit>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
-              <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
-              {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
-            </View>
-            {!blocked && u.thought ? <View style={{ width: '60%', marginTop: isMe ? -66 : 0 }}><ThoughtBubble u={u} isMe={isMe} tall={isMe ? 228 : 168} onOpen={() => setThought(true)} /></View> : null}
-          </View>
+          <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
+          <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
+          {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
             {[[all.length, 'Posts'], [u.followers, 'Followers'], [u.followingCount, 'Following']].map(([n, l]) => (
               <View key={l} style={{ backgroundColor: C.soft, borderRadius: 16, paddingVertical: 10, paddingHorizontal: 14, minWidth: 76 }}>
@@ -312,32 +308,27 @@ export function BubbleChip({ id, label, small, on, onPress }) {
         <T d style={{ fontSize: 13, color: L ? L.ink : '#1a1030' }}>{label}</T>{small ? <T b style={{ fontSize: 11, color: L ? L.ink : '#1a1030', opacity: 0.8 }}>{small}</T> : null}</View>
     </LinearGradient></Pressable>;
 }
-function ThoughtBubble({ u, isMe, onOpen, top = 0, tall = 168 }) {
-  const { C } = useApp(); const t = u.thought; const k = useRef(new Animated.Value(0)).current;
-  // drifts very slowly in place: a gentle stretch and tilt, never floating away
-  useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(k, { toValue: 1, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }), Animated.timing(k, { toValue: 0, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
-  const drift = { transform: [{ scale: k.interpolate({ inputRange: [0, 1], outputRange: [1, 0.985] }) }] };
-  const ORB = { borderRadius: 26 }; // same rounded corners as the app's cards
-  const ORBi = { borderRadius: 24.5 };
+function ThoughtBubble({ u, onOpen }) {
+  const { C } = useApp(); const t = u.thought; if (!t) return null;
   const L = bubbleLook(u.thoughtStyle, C);
   const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
-  const film = C.dark ? 'rgba(30,30,40,.62)' : 'rgba(255,255,255,.66)';
-  const ink = L ? L.ink : C.ink;
-  const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
-  const body = <>
-    {t ? <T style={{ fontFamily: F.display, fontSize: thoughtSize(t.text), lineHeight: thoughtSize(t.text) * 1.12, letterSpacing: -thoughtSize(t.text) * 0.035, color: ink }}>{t.text}</T> : null}
-    {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5, color: ink }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}</>;
+  const ink = L ? L.ink : '#1a1030';
+  const fill = L ? (L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]) : RIM;
+  const Dot = ({ d, style }) => <LinearGradient colors={fill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[{ position: 'absolute', width: d, height: d, borderRadius: d, padding: L ? 0 : 1.2 }, style]}>
+    {L ? null : <View style={{ flex: 1, borderRadius: d, backgroundColor: 'rgba(255,255,255,.75)' }} />}</LinearGradient>;
+  // sits centred over the top of the picture, overlapping it a little, with Instagram's two-dot tail
   return (
-    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Lingering thought'} style={{ marginTop: top }}>
-      <Animated.View style={[drift, ORB, { shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }]}>
-        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...ORB, minHeight: tall, justifyContent: 'center', paddingHorizontal: 26, paddingVertical: 22 }}>{body}</LinearGradient>
-          : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...ORB, padding: 1.6 }}>
-            <View style={{ ...ORBi, backgroundColor: film, paddingHorizontal: 26, paddingVertical: 22, minHeight: tall - 3, justifyContent: 'center', overflow: 'hidden' }}>
-              <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-              <View pointerEvents="none" style={{ position: 'absolute', left: 18, top: 7, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
-              {body}</View></LinearGradient>}
-      </Animated.View>
-    </Pressable>
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: -20, right: -20, bottom: 106 - 22, alignItems: 'center', zIndex: 5 }}>
+      <Pressable onPress={onOpen} accessibilityLabel={'Lingering thought: ' + t.text} style={{ maxWidth: 124, minWidth: 60, shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.22, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } }}>
+        <LinearGradient colors={fill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 17, padding: L ? 0 : 1.5 }}>
+          <View style={{ borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: L ? 'transparent' : 'rgba(255,255,255,.72)' }}>
+            <T numberOfLines={3} style={{ fontFamily: F.bold, fontSize: 13, lineHeight: 16.5, color: ink, textAlign: 'center' }}>{t.text}</T>
+          </View>
+        </LinearGradient>
+        <Dot d={11} style={{ left: 14, bottom: -7 }} />
+        <Dot d={6} style={{ left: 9, bottom: -15 }} />
+      </Pressable>
+    </View>
   );
 }
 const THOUGHT_REACTS = ['🔥', '😂', '😮', '🧊', '💯', '👀'];

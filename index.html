@@ -32,6 +32,19 @@
 .pts{background:none!important;color:var(--ink)!important;padding:4px 6px!important;--die:url(#dieHot)}html.blackout .pts{--die:var(--orange)}.pts .fg{stroke:var(--on-orange)}
 html.btn-clean .die{display:none}.pv-icons{display:flex;gap:10px;align-items:center;justify-content:center}.pv-icons .react.heat.on{color:var(--orange)!important}.pv-icons .react,.pv-icons .circle{width:auto;height:auto}
 html.btn-clean .react.heat.on{color:var(--orange)}html.btn-clean .react.freeze.on{color:var(--ink)}html.btn-clean .pts .fg{stroke:var(--orange)}
+
+/* round 2: header icons solid like the logo; freeze sits on a soft round backdrop (white, icy blue once chosen) */
+.circle .solid-ic{display:block}.circle{color:var(--ink)}.solid-ic .dots{fill:var(--orange)}html.blackout .solid-ic .dots{fill:var(--bg)}
+.react.freeze{--die:#fff}.react.freeze .die{display:none}
+.react.freeze .dico{background:var(--die);border-radius:50%;box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent)}
+.react.freeze .fg{stroke:#0a0a0a}
+.react.freeze.on{--die:#b9def5;color:var(--ink)!important}.react.freeze.on .fg{stroke:#0d3a57}
+html.btn-clean .react.freeze .dico{background:none;box-shadow:none}html.btn-clean .react.freeze .fg{stroke:currentColor}html.btn-clean .react.freeze.on .fg{stroke:#5aa9d6}
+html.blackout .react.heat.on .fg{stroke:var(--on-orange);fill:var(--on-orange)}
+/* blackout story rings: black or white flowing, not orange */
+html.blackout .orb:not(.seen):not(.uploading){background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange))}
+/* watched stories still flow, just slower and grey */
+.orb.seen{background:conic-gradient(from var(--spin),var(--line),color-mix(in srgb,var(--line) 55%,var(--muted)),var(--line));animation:morph 11s ease-in-out infinite,spin 9s linear infinite}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1414,6 +1427,10 @@ const P={
   list:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/>',
   thermo:'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/>',
 };
+// solid one-colour icons (like the logo): heart for Activity, a speech bubble with three orange dots for Messages
+function SolidIcon({n,s=30}){return html`<svg className="solid-ic" width=${s} height=${s} viewBox="0 0 24 24" aria-hidden="true">
+  <g fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" dangerouslySetInnerHTML=${{__html:P[n]}}></g>
+  ${n==='dm'&&html`<g className="dots"><circle cx="8" cy="12" r="1.55"/><circle cx="12.25" cy="12" r="1.55"/><circle cx="16.5" cy="12" r="1.55"/></g>`}</svg>`}
 function Icon({n,s=22,w=1.9,fill,die}){
   // die: the icon sits on a backdrop cut to its own shape (a thick outline in --die), instead of a box
   if(die){const S=Math.round(s*1.5);return html`<svg className="dico" width=${S} height=${S} viewBox="-6 -6 36 36" fill="none" stroke="currentColor" stroke-width=${w} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" dangerouslySetInnerHTML=${{__html:'<g class="die" stroke="var(--die)" fill="var(--die)" stroke-width="'+(w+10)+'">'+P[n]+'</g><g class="fg" fill="'+(fill||'none')+'">'+P[n]+'</g>'}}></svg>`}
@@ -4530,8 +4547,8 @@ function App(){
     top=html`<div className="top"><div className="top-row">
         <h1 className="logo"><button className="logo-btn" aria-label="Temp home — back to the top" onClick=${()=>{setView({tab:'home'});scrollTo({top:0,behavior:'smooth'})}}>temp<i></i></button></h1>
         <div className="top-actions">
-          <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${Icon} n="heart" s=${24} w=${2.2} die=${true}/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
-          <button className="circle" aria-label="Messages" onClick=${guard(()=>setView({tab:'dms'}))}><${Icon} n="dm" s=${24} w=${2.2} die=${true}/>${unread>0&&html`<span className="badge">${unread}</span>`}</button>
+          <button className="circle" aria-label="Activity" data-tour="notifs" onClick=${guard(()=>setView({tab:'activity'}))}><${SolidIcon} n="heart"/>${unreadN>0&&html`<span className="badge">${unreadN}</span>`}</button>
+          <button className="circle" aria-label="Messages" onClick=${guard(()=>setView({tab:'dms'}))}><${SolidIcon} n="dm"/>${unread>0&&html`<span className="badge">${unread}</span>`}</button>
         </div></div></div>`;
   } else if(view.tab==='search'){
     body=html`<${Search} s=${s} dispatch=${dispatch} open=${open} query=${query} setQuery=${setQuery}/>`;

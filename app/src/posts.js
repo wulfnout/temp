@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AshBurn } from './ash';
 import { clock, jsClock, useClockKick } from './fx';
-import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel, DieIcon } from './ui';
+import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, stickerLabel, DieIcon, FreezeIcon } from './ui';
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
 import { GifPicker } from './gif';
@@ -300,10 +300,10 @@ export function PostCard({ p, active = false }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
         <Pressable onPress={heat} accessibilityLabel="Heat" accessibilityState={{ selected: p.myHeat }}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 3, height: 42, paddingRight: 8 }}>
-          <DieIcon name={p.myHeat ? 'flame' : 'flame-outline'} size={22} color={p.myHeat ? '#fff' : C.ink} hot={p.myHeat && !C.mono} die={p.myHeat ? C.orange : C.dark ? '#2a2a2a' : '#dcd9d5'} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.heat)}</T></Pressable>
+          <DieIcon name={p.myHeat ? 'flame' : 'flame-outline'} size={22} color={p.myHeat ? (C.mono ? C.onOrange : '#fff') : C.ink} hot={p.myHeat && !C.mono} die={p.myHeat ? C.orange : C.dark ? '#2a2a2a' : '#dcd9d5'} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.heat)}</T></Pressable>
         <Pressable onPress={() => { if (!p.myFreeze) run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }); }} accessibilityLabel="Freeze" accessibilityState={{ selected: p.myFreeze }}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 3, height: 42, paddingRight: 8 }}>
-          <DieIcon name="snow" size={22} color={p.myFreeze ? C.bg : C.ink} die={p.myFreeze ? C.ink : C.dark ? '#2a2a2a' : '#dcd9d5'} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.freeze)}</T></Pressable>
+          <FreezeIcon on={p.myFreeze} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.freeze)}</T></Pressable>
         <View style={{ flex: 1 }} />
         <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, opacity: frozen ? 0.3 : 1 }}>
           <Ionicons name="chatbubble-outline" size={20} color={C.ink} />{cs.length ? <T muted b>{cs.length}</T> : null}</Pressable>

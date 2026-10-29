@@ -60,6 +60,21 @@ export function Btn({ title, onPress, kind = 'ink', small, disabled, style, icon
   );
 }
 
+// solid one-colour icons like the logo: a heart, and a speech bubble with three dots
+export function SolidGlyph({ name, color, dots, size = 30 }) {
+  return <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <Ionicons name={name === 'dm' ? 'chatbubble' : 'heart'} size={size} color={color} />
+    {name === 'dm' ? <View style={{ position: 'absolute', flexDirection: 'row', gap: size * 0.09, top: size * 0.42 }}>{[0, 1, 2].map((i) => <View key={i} style={{ width: size * 0.13, height: size * 0.13, borderRadius: size, backgroundColor: dots }} />)}</View> : null}
+  </View>;
+}
+// freeze: a smooth round backdrop, white until you freeze it, then icy blue
+export function FreezeIcon({ on, size = 22 }) {
+  const { s, C } = useApp(); const clean = s && s.priv && s.priv.settings && s.priv.settings.btn === 'clean';
+  const W = Math.round(size * 1.5);
+  if (clean) return <View style={{ width: W, height: W, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="snow" size={size} color={on ? '#5aa9d6' : C.ink} /></View>;
+  return <View style={{ width: W, height: W, borderRadius: W / 2, backgroundColor: on ? '#b9def5' : '#ffffff', borderWidth: 1, borderColor: C.dark ? 'transparent' : 'rgba(0,0,0,.08)', alignItems: 'center', justifyContent: 'center' }}>
+    <Ionicons name="snow" size={size} color={on ? '#0d3a57' : '#0a0a0a'} /></View>;
+}
 // A die-cut icon: the icon sits on a thick backdrop cut to its own shape (like a sticker), instead of a box.
 // hot = Temp's orange gradient backdrop. People who bought "Clean Icons" see bare outlined icons instead.
 const lerpHex = (a, b, t) => { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
@@ -78,11 +93,11 @@ export function DieIcon({ name, solid, size = 22, color, die, hot, thick = 0.24 
   );
 }
 
-export function IconBtn({ name, onPress, size = 22, color, label, badge, style, die }) {
+export function IconBtn({ name, onPress, size = 22, color, label, badge, style, die, solid }) {
   const { C } = useApp();
   return (
-    <Pressable onPress={onPress} accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [{ width: 42, height: 42, borderRadius: 21, backgroundColor: die ? 'transparent' : C.card, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 }, style]}>
-      {die ? <DieIcon name={name} size={size + 2} color={color || C.ink} die={die === true ? (C.dark ? '#2a2a2a' : '#dcd9d5') : die} /> : <Ionicons name={name} size={size} color={color || C.ink} />}
+    <Pressable onPress={onPress} accessibilityLabel={label} hitSlop={8} style={({ pressed }) => [{ width: 42, height: 42, borderRadius: 21, backgroundColor: die || solid ? 'transparent' : C.card, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 }, style]}>
+      {solid ? <SolidGlyph name={solid} color={color || C.ink} dots={C.mono ? C.bg : C.orange} /> : die ? <DieIcon name={name} size={size + 2} color={color || C.ink} die={die === true ? (C.dark ? '#2a2a2a' : '#dcd9d5') : die} /> : <Ionicons name={name} size={size} color={color || C.ink} />}
       {badge ? <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
         <Text style={{ color: C.onOrange, fontSize: 11, fontFamily: F.heavy }}>{badge}</Text></View> : null}
     </Pressable>
@@ -159,27 +174,28 @@ function Pill({ bg, fg, icon, text }) {
 // the story ring: the theme colour flowing round and round a round ring (same as the website's .orb)
 export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const { C } = useApp();
-  useClockKick();
-  const spin = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current, wob = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (seen) return;
-    const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 3500, easing: Easing.linear, useNativeDriver: true }));
-    a.start(); return () => a.stop();
+    const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: seen ? 9000 : 3500, easing: Easing.linear, useNativeDriver: true }));
+    const b = Animated.loop(Animated.timing(wob, { toValue: 1, duration: seen ? 11000 : 7000, easing: Easing.linear, useNativeDriver: true }));
+    a.start(); b.start(); return () => { a.stop(); b.stop(); };
   }, [seen]);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   // the liquid wobble: a gentle squash and stretch, like the website's morphing ring
-  const c = clock(seen ? 11000 : 7000);
-  const wob = [{ scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.035, 0.975, 1.02, 1] }) },
-    { scaleY: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.97, 1.03, 0.985, 1] }) },
-    { rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }];
+  const tf = [{ scaleX: wob.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.035, 0.975, 1.02, 1] }) },
+    { scaleY: wob.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.97, 1.03, 0.985, 1] }) },
+    { rotate: wob.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }];
+  // orange everywhere, except Blackout: black or white to match the display
+  const cols = seen ? [C.line, C.dark ? '#3a3a3a' : '#c9c5c0', C.line] : C.mono ? [C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]
+    : ['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500'];
   const mid = size - ring * 2, pic = mid - gap * 2;
   return (
-    <Animated.View style={{ width: size, height: size, transform: wob,
+    <Animated.View style={{ width: size, height: size, transform: tf,
       ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
-      <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: seen ? C.line : '#ff5500' }}>
-        {!seen ? <Animated.View style={{ position: 'absolute', left: -size * 0.21, top: -size * 0.21, width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
-          <LinearGradient colors={['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ width: '100%', height: '100%' }} />
-        </Animated.View> : null}
+      <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: cols[0] }}>
+        <Animated.View style={{ position: 'absolute', left: -size * 0.21, top: -size * 0.21, width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
+          <LinearGradient colors={cols} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ width: '100%', height: '100%' }} />
+        </Animated.View>
         <View style={{ width: mid, height: mid, borderRadius: mid / 2, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {children(pic)}
         </View>

@@ -51,7 +51,7 @@ export function ProfileScreen({ id, isTab }) {
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
               {isMe ? <>
                 <Pressable onPress={() => nav.push('shop')} accessibilityLabel={s.priv.points + ' points, open Fire Sale'} style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 6 }}>
-                  <DieIcon name="flame" size={20} color={C.mono ? C.bg : '#fff'} hot={!C.mono} die={C.orange} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(s.priv.points)}</T></Pressable>
+                  <DieIcon name="bag-handle" size={20} color={C.mono ? C.onOrange : '#fff'} hot={!C.mono} die={C.orange} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(s.priv.points)}</T></Pressable>
                 <Btn kind="ghost" title="Edit profile" onPress={() => setEdit(true)} /></>
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
                 : <>

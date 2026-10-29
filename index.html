@@ -2206,7 +2206,7 @@ function StoriesRow({s,open,addStory}){
   const sorted=[...others].sort((a,b)=>unseen(b)-unseen(a));
   return html`<div className="stories" aria-label="Stories" data-tour="stories">
     <div className="story">
-      ${(()=>{const store=false;return html`<button className=${'orb'+(s.storyUploading?' uploading':store?' store':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
+      ${(()=>{const store=false;return html`<button className=${'orb'+(s.storyUploading?' uploading':mine?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
         ${store?html`<${Avatar} u=${s.users.me} size=${74}/>`:html`<${Avatar} u=${s.users.me} size=${64} noRing=${true}/>`}
         ${s.storyUploading?html`<span className="up-spin" aria-hidden="true"></span>`:null}
         <span className="add" role="button" aria-label="Add to your story" onClick=${e=>{e.stopPropagation();addStory()}}><${Icon} n="plus" s=${12} w=${3.2}/></span>

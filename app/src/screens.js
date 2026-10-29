@@ -120,7 +120,7 @@ export function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 10 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 12 }}>
             <View style={{ alignItems: 'center', gap: 6 }}>
               <View>
-                <StoryOrb u={s.users[s.me]} seen={!mine || !unseen(mine)} add={!uploading} onAdd={addStory} onPress={() => (uploading ? null : mine ? nav.sheet('story', { userId: s.me }) : addStory())} label={uploading ? 'Your story is uploading' : mine ? 'Your story' : 'Add to your story'} />
+                <StoryOrb u={s.users[s.me]} seen={!mine} add={!uploading} onAdd={addStory} onPress={() => (uploading ? null : mine ? nav.sheet('story', { userId: s.me }) : addStory())} label={uploading ? 'Your story is uploading' : mine ? 'Your story' : 'Add to your story'} />
                 {uploading ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, width: 78, height: 74, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View> : null}
               </View>
               <T b muted style={{ fontSize: 12 }}>{uploading ? 'Posting…' : 'Your story'}</T></View>

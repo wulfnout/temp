@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, FlowBox, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
-import { PostCard, Video, RichText, useVideoTaps } from './posts';
+import { PostCard, Video, RichText, useVideoTaps, ReflameIcon } from './posts';
 import { VoiceBubble, useVoiceRecorder, fmtSec } from './voice';
 import { act } from './data';
 import { ReplayOverlay } from './recorder';
@@ -216,7 +216,7 @@ export function ReplayGrid({ posts }) {
 }
 
 function Reel({ p, h, active }) {
-  const { s, C, nav, run } = useApp(); const u = s.users[p.userId] || {}; const frozen = false; const mine = p.userId === s.me;
+  const { s, C, nav, run, tabH = 0 } = useApp(); const u = s.users[p.userId] || {}; const frozen = false; const mine = p.userId === s.me;
   const playerRef = useRef(null); const [ended, setEnded] = useState(false); const [paused, setPaused] = useState(false);
   const icon = useRef(new Animated.Value(0)).current; const burst = useRef(new Animated.Value(0)).current; const lastTap = useRef(0); const tapTimer = useRef(null);
   useEffect(() => {
@@ -235,9 +235,9 @@ function Reel({ p, h, active }) {
   const heatTap = () => { heat(); burst.setValue(0); Animated.sequence([Animated.spring(burst, { toValue: 1, useNativeDriver: true }), Animated.timing(burst, { toValue: 0, duration: 350, delay: 250, useNativeDriver: true })]).start(); };
   const g = useVideoTaps(() => playerRef.current, { onSingle: togglePlay, onCenterDouble: heatTap });
 
-  const Rail = ({ icon: ic, n, on, onColor, onPress, label, disabled }) => (
+  const Rail = ({ icon: ic, node, n, on, onColor, onPress, label, disabled }) => (
     <Pressable onPress={onPress} disabled={disabled} accessibilityLabel={label} accessibilityState={{ selected: !!on }} hitSlop={6} style={{ alignItems: 'center', gap: 2, opacity: disabled ? 0.35 : 1 }}>
-      <Ionicons name={ic} size={31} color={on ? onColor || C.orange : '#fff'} style={{ textShadowColor: 'rgba(0,0,0,.45)', textShadowRadius: 6 }} />
+      {node || <Ionicons name={ic} size={31} color={on ? onColor || C.orange : '#fff'} style={{ textShadowColor: 'rgba(0,0,0,.45)', textShadowRadius: 6 }} />}
       {n !== undefined ? <T h style={{ color: '#fff', fontSize: 12.5, textShadowColor: 'rgba(0,0,0,.6)', textShadowRadius: 4 }}>{kfmt(n)}</T> : null}
     </Pressable>);
   return (
@@ -253,7 +253,7 @@ function Reel({ p, h, active }) {
         <Ionicons name={ended ? 'refresh' : paused ? 'play' : 'pause'} size={34} color="#fff" /></Animated.View> : null}
       <Animated.View pointerEvents="none" style={{ position: 'absolute', top: '38%', alignSelf: 'center', opacity: burst, transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] }}>
         <Ionicons name="flame" size={130} color={C.orange} /></Animated.View>
-      <View style={{ position: 'absolute', left: 16, right: 78, bottom: 22, gap: 10 }}>
+      <View style={{ position: 'absolute', left: 16, right: 78, bottom: 22 + tabH, gap: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Avatar u={u} size={36} /><T h style={{ color: '#fff' }}>{u.handle}</T></Pressable>
           {!mine && !u.following ? <Pressable onPress={() => run(() => act.follow(u.id, false, s.me))} style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,.7)', borderRadius: 15, paddingHorizontal: 12, paddingVertical: 5 }}>
@@ -262,10 +262,10 @@ function Reel({ p, h, active }) {
         {p.text && p.mediaUrl ? <RichText text={p.text} style={{ color: '#fff', fontFamily: F.bold }} onTag={(t) => nav.tab('search', { q: t })} /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Ionicons name="play" size={12} color="rgba(255,255,255,.8)" /><T b style={{ color: 'rgba(255,255,255,.8)', fontSize: 12.5 }}>{kfmt(p.views)} views</T></View>
       </View>
-      <View style={{ position: 'absolute', right: 12, bottom: 22, gap: 18, alignItems: 'center' }}>
+      <View style={{ position: 'absolute', right: 12, bottom: 22 + tabH, gap: 18, alignItems: 'center' }}>
         <Rail icon={p.myHeat ? 'flame' : 'flame-outline'} n={p.heat} on={p.myHeat} label="Heat" onPress={heat} />
         <Rail icon="chatbubble-ellipses-outline" n={p.comments.length} label={frozen ? 'Comments are off while frozen' : 'Comments'} disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} />
-        <Rail icon="flame-outline" n={p.reposts} on={p.myRepost} label={p.myRepost ? 'Undo reflame' : 'Reflame'} onPress={() => nav.sheet('reflame', { post: p })} />
+        <Rail node={<ReflameIcon size={33} color={p.myRepost ? C.orange : '#fff'} />} n={p.reposts} on={p.myRepost} label={p.myRepost ? 'Undo reflame' : 'Reflame'} onPress={() => nav.sheet('reflame', { post: p })} />
         <Rail icon="paper-plane-outline" label="Send" onPress={() => nav.sheet('share', { post: p })} />
         <Rail icon={p.saved ? 'bookmark' : 'bookmark-outline'} on={p.saved} onColor="#ffd60a" label="Save" onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} />
         <Rail icon="ellipsis-horizontal" label="More" onPress={() => nav.sheet('menu', { post: p })} />

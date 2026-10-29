@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Pressable, Text, BackHandler, Animated, ActivityIndicator, AppState, PanResponder, Dimensions, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -179,7 +180,7 @@ function Root() {
     if ((s.priv.points || 0) < ASH_COST) return say('Ashing a post costs ' + ASH_COST + ' pts.');
     ashDone.current = null; setAshing(p.id); setTimeout(() => finishAsh(p.id), 4000);
   };
-  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars, ashing, ash, finishAsh, ASH_COST, typing, sendTyping };
+  const ctx = { s, C, run, nav, reload, uploading, postStory, bars, setBars, tabH, ashing, ash, finishAsh, ASH_COST, typing, sendTyping };
 
   if (session === undefined) return <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 30 }}>
     {bootErr ? <>
@@ -223,7 +224,7 @@ function Root() {
         <ClockKeeper />
         <Animated.View {...edge.panHandlers} style={{ flex: 1, transform: [{ translateX: edgeX }] }}>{screen(current)}</Animated.View>
         {current.name !== 'thread' ? <Animated.View onLayout={(e) => setTabH(e.nativeEvent.layout.height)}
-          style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : null}>
+          style={onHome ? { position: 'absolute', left: 0, right: 0, bottom: 0, transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, tabH] }) }] } : dark ? { position: 'absolute', left: 0, right: 0, bottom: 0 } : null}>
           <TabBar tab={tab.name} stacked={!!top} dark={dark} onTab={(n) => { setBars(false); return n === 'compose' ? nav.sheet('compose', { reel: tab.name === 'replay' }) : nav.tab(n); }} /></Animated.View> : null}
       </View>
       {sheet && sheet.name === 'compose' ? <Composer reel={sheet.params.reel} quoteOf={sheet.params.quoteOf} onClose={() => setSheet(null)} /> : null}
@@ -241,7 +242,7 @@ function Root() {
 
 function TabBar({ tab, stacked, dark, onTab }) {
   const { s, C } = React.useContext(Ctx); const ins = useSafeAreaInsets();
-  const bg = dark ? '#000' : C.card, idle = dark ? '#8d8883' : C.muted, on = dark ? '#fff' : C.ink;
+  const bg = dark ? 'transparent' : C.card, idle = dark ? '#8d8883' : C.muted, on = dark ? '#fff' : C.ink;
   const Item = ({ name, icon, label, children }) => {
     const active = !stacked && tab === name;
     return <Pressable onPress={() => onTab(name)} accessibilityLabel={label} style={{ width: 56, height: 46, alignItems: 'center', justifyContent: 'center' }}>
@@ -250,7 +251,8 @@ function TabBar({ tab, stacked, dark, onTab }) {
     </Pressable>;
   };
   return (
-    <View style={{ backgroundColor: bg, borderTopWidth: 1, borderTopColor: dark ? '#1c1c1c' : C.line, paddingTop: 8, paddingBottom: ins.bottom + 8, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
+    <View style={{ backgroundColor: bg, borderTopWidth: dark ? 0 : 1, borderTopColor: C.line, paddingTop: 8, paddingBottom: ins.bottom + 8, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
+      {dark ? <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0)', 'rgba(0,0,0,.55)']} style={{ position: 'absolute', left: 0, right: 0, top: -30, bottom: 0 }} /> : null}
       <Item name="home" icon="home" label="Home" />
       <Item name="search" icon="search" label="Search" />
       <Pressable onPress={() => onTab('compose')} accessibilityLabel="New post" style={{ ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 0.9, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null), width: 54, height: 44, borderRadius: 15, backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center' }}>

@@ -195,28 +195,13 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 .prof-idrow{display:flex;align-items:flex-start;gap:14px}.prof-idname{flex:1;min-width:0}
 .prof-idrow .thought{position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;flex:0 0 56%;max-width:56%!important;margin:2px 0 0!important;min-height:92px!important;padding:12px 14px!important;border-radius:20px!important;animation:none!important;box-sizing:border-box}
 .prof-id.has-thought{min-height:0}
-/* story ring: an orb-like blob that slowly shifts shape */
-@keyframes orbring{0%,100%{border-radius:58% 42% 55% 45%/46% 56% 44% 54%}33%{border-radius:45% 55% 44% 56%/56% 45% 55% 44%}66%{border-radius:54% 46% 58% 42%/44% 54% 47% 53%}}
-.orb:not(.store):not(.uploading){animation:orbring 9s ease-in-out infinite,spin 7s linear infinite}
-.orb.seen:not(.store):not(.uploading){animation:orbring 13s ease-in-out infinite,spin 14s linear infinite}
-.story:nth-child(2n) .orb:not(.store){animation-delay:-3s,-1s}.story:nth-child(3n) .orb:not(.store){animation-delay:-6s,-2s}
-
 /* orb shapes (squarish blobs, rounded but with a bit of corner) */
 .post.reflamed{box-shadow:inset 0 0 0 3px var(--orange)!important;border-radius:34px 24px 36px 26px!important}
-@keyframes orbring{0%,100%{border-radius:44% 34% 46% 36%}33%{border-radius:36% 45% 35% 46%}66%{border-radius:46% 37% 43% 34%}}
 .prof-idrow .thought{flex:0 0 62%!important;max-width:62%!important;margin:0 -6px 0 0!important;min-height:136px!important;padding:18px 22px!important;border-radius:48px 34px 52px 38px!important;justify-content:center!important;animation:tdrift 10.4s ease-in-out infinite!important}
 .prof-id.is-me .prof-idrow .thought{margin-top:-22px!important}
 @keyframes tdrift{0%,100%{transform:rotate(-.8deg) scale(1,.985)}50%{transform:rotate(.8deg) scale(.985,1)}}
 .prof-idrow .thought::after{left:26px;top:8px}
 
-/* story ring = an orb (the sign-in orbs' blob) behind the picture, morphing and wobbling; the picture stays still on top */
-.orb:not(.store):not(.uploading){background:none!important;animation:none!important;border-radius:50%!important}
-.orb:not(.store):not(.uploading)::before{content:"";position:absolute;inset:0;z-index:0;border-radius:63% 37% 58% 42%/48% 62% 38% 52%;
-  background:conic-gradient(from var(--spin),#ff5500,#ff7a1a,#ffb04d,#ffd27a,#ffb04d,#ff7a1a,#ff5500);animation:morph 6s ease-in-out infinite,blob 3.6s ease-in-out infinite,spin 7s linear infinite}
-html.blackout .orb:not(.seen):not(.store):not(.uploading)::before{background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange))}
-.orb.seen:not(.store):not(.uploading)::before{background:conic-gradient(from var(--spin),var(--line),color-mix(in srgb,var(--line) 55%,var(--muted)),var(--line));animation-duration:12s,7.2s,14s}
-.orb:not(.store) > .av{position:relative;z-index:1}.orb .add{z-index:2}
-.story:nth-child(2n) .orb::before{animation-delay:-2s,-1s,-1s}.story:nth-child(3n) .orb::before{animation-delay:-4s,-2s,-2s}
 /* reflamed: an orb-cornered card in the theme colour sits behind, peeking out like a thick shadow border */
 .post.reflamed{box-shadow:6px 6px 0 0 var(--orange),inset 0 0 0 2px var(--orange)!important;border-radius:34px 24px 36px 26px!important;margin-right:6px;margin-bottom:16px}
 
@@ -228,12 +213,6 @@ html.blackout .orb:not(.seen):not(.store):not(.uploading)::before{background:con
 .post.reflamed{box-shadow:inset 0 0 0 2px var(--orange),0 0 0 7px var(--bg),0 0 0 10.5px var(--orange)!important;margin:16px 0 22px!important;border-radius:28px!important;animation:orbcard 9s ease-in-out infinite}
 @keyframes orbcard{0%,100%{border-radius:30px 22px 34px 24px}25%{border-radius:24px 34px 26px 32px}50%{border-radius:34px 26px 22px 34px}75%{border-radius:26px 32px 34px 22px}}
 
-/* story ring v3: one flat colour, squarish orb, slow ease between shapes, no spin or shine */
-.orb:not(.store):not(.uploading)::before{background:var(--orange)!important;border-radius:42% 32% 44% 34%;animation:orbsq 20s ease-in-out infinite,orblean 16s ease-in-out infinite!important}
-.orb.seen:not(.store):not(.uploading)::before{background:var(--line)!important;animation-duration:26s,22s!important}
-html:not(.blackout) .orb:not(.seen):not(.store):not(.uploading)::before{background:#ff5500!important}
-@keyframes orbsq{0%,100%{border-radius:42% 32% 44% 34%}25%{border-radius:34% 44% 33% 45%}50%{border-radius:45% 35% 31% 43%}75%{border-radius:33% 42% 45% 32%}}
-@keyframes orblean{0%,100%{transform:rotate(-5deg) scale(1,1)}25%{transform:rotate(0deg) scale(1.025,.985)}50%{transform:rotate(5deg) scale(.99,1.02)}75%{transform:rotate(0deg) scale(1.015,.995)}}
 /* reflamed v3: a still, solid orange orb-shaped layer behind the card */
 .post.reflamed{box-shadow:0 0 0 10px var(--orange)!important;animation:none!important;border-radius:34px 22px 38px 24px!important;margin:18px 10px 28px!important}
 </style>

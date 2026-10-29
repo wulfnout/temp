@@ -62,14 +62,15 @@ export function ProfileScreen({ id, isTab }) {
             {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
           </View>
           {/* name on the left, the lingering thought box beside it on the right; the bio runs full width underneath */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
+          {/* name, handle and bio on the left; the lingering thought orb fills the space on the right, from just under the header down to the stats */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginTop: 12 }}>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <T d style={{ fontSize: 25, letterSpacing: -1.2 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
+              <T d style={{ fontSize: 25, letterSpacing: -1.2 }} numberOfLines={2} adjustsFontSizeToFit>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
               <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
+              {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
             </View>
-            {!blocked && u.thought ? <View style={{ width: '62%', marginRight: -6, marginTop: isMe ? -64 : 0 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
+            {!blocked && u.thought ? <View style={{ width: '63%', marginRight: -10, marginTop: isMe ? -66 : 0 }}><ThoughtBubble u={u} isMe={isMe} tall={isMe ? 228 : 168} onOpen={() => setThought(true)} /></View> : null}
           </View>
-          {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
             {[[all.length, 'Posts'], [u.followers, 'Followers'], [u.followingCount, 'Following']].map(([n, l]) => (
               <View key={l} style={{ backgroundColor: C.soft, borderRadius: 16, paddingVertical: 10, paddingHorizontal: 14, minWidth: 76 }}>
@@ -289,7 +290,7 @@ export function EarningsScreen() {
 // a short daily thought in a box beside your name (no tail, no floating)
 // bubble styles: Orange (default) and Blackout are free; Bubble is the only one with the soap-film shine
 // big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
-const thoughtSize = (t) => { const n = (t || '').length; return n <= 14 ? 28 : n <= 26 ? 24 : n <= 40 ? 20 : n <= 60 ? 17 : 15.5; };
+const thoughtSize = (t) => { const n = (t || '').length; return n <= 14 ? 32 : n <= 26 ? 28 : n <= 40 ? 24 : n <= 60 ? 20 : 18; };
 export const BUBBLES = [['orange', 'Orange', 0], ['blackout', 'Blackout', 0], ['bubble', 'Bubble', 300], ['gold', 'Gold', 400], ['ice', 'Ice', 200], ['neon', 'Neon', 250], ['midnight', 'Midnight', 250]];
 function bubbleLook(id, C) {
   switch (id) {
@@ -311,13 +312,13 @@ export function BubbleChip({ id, label, small, on, onPress }) {
         <T d style={{ fontSize: 13, color: L ? L.ink : '#1a1030' }}>{label}</T>{small ? <T b style={{ fontSize: 11, color: L ? L.ink : '#1a1030', opacity: 0.8 }}>{small}</T> : null}</View>
     </LinearGradient></Pressable>;
 }
-function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
+function ThoughtBubble({ u, isMe, onOpen, top = 0, tall = 168 }) {
   const { C } = useApp(); const t = u.thought; const k = useRef(new Animated.Value(0)).current;
   // drifts very slowly in place: a gentle stretch and tilt, never floating away
   useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(k, { toValue: 1, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }), Animated.timing(k, { toValue: 0, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
   const drift = { transform: [{ rotate: k.interpolate({ inputRange: [0, 1], outputRange: ['-0.8deg', '0.8deg'] }) }, { scaleX: k.interpolate({ inputRange: [0, 1], outputRange: [1, 0.985] }) }, { scaleY: k.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1] }) }] };
-  const ORB = { borderTopLeftRadius: 48, borderTopRightRadius: 34, borderBottomRightRadius: 52, borderBottomLeftRadius: 38 }; // the orbs' squarish blob shape
-  const ORBi = { borderTopLeftRadius: 46, borderTopRightRadius: 32, borderBottomRightRadius: 50, borderBottomLeftRadius: 36 };
+  const ORB = { borderTopLeftRadius: 70, borderTopRightRadius: 48, borderBottomRightRadius: 78, borderBottomLeftRadius: 54 }; // the orbs' squarish blob shape
+  const ORBi = { borderTopLeftRadius: 68, borderTopRightRadius: 46, borderBottomRightRadius: 76, borderBottomLeftRadius: 52 };
   const L = bubbleLook(u.thoughtStyle, C);
   const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
   const film = C.dark ? 'rgba(30,30,40,.62)' : 'rgba(255,255,255,.66)';
@@ -329,9 +330,9 @@ function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
   return (
     <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Lingering thought'} style={{ marginTop: top }}>
       <Animated.View style={[drift, ORB, { shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }]}>
-        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...ORB, minHeight: 136, justifyContent: 'center', paddingHorizontal: 22, paddingVertical: 18 }}>{body}</LinearGradient>
+        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...ORB, minHeight: tall, justifyContent: 'center', paddingHorizontal: 26, paddingVertical: 22 }}>{body}</LinearGradient>
           : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...ORB, padding: 1.6 }}>
-            <View style={{ ...ORBi, backgroundColor: film, paddingHorizontal: 22, paddingVertical: 18, minHeight: 133, justifyContent: 'center', overflow: 'hidden' }}>
+            <View style={{ ...ORBi, backgroundColor: film, paddingHorizontal: 26, paddingVertical: 22, minHeight: tall - 3, justifyContent: 'center', overflow: 'hidden' }}>
               <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
               <View pointerEvents="none" style={{ position: 'absolute', left: 26, top: 7, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
               {body}</View></LinearGradient>}

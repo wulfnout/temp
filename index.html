@@ -219,6 +219,14 @@ html.blackout .orb:not(.seen):not(.store):not(.uploading)::before{background:con
 .story:nth-child(2n) .orb::before{animation-delay:-2s,-1s,-1s}.story:nth-child(3n) .orb::before{animation-delay:-4s,-2s,-2s}
 /* reflamed: an orb-cornered card in the theme colour sits behind, peeking out like a thick shadow border */
 .post.reflamed{box-shadow:6px 6px 0 0 var(--orange),inset 0 0 0 2px var(--orange)!important;border-radius:34px 24px 36px 26px!important;margin-right:6px;margin-bottom:16px}
+
+/* bigger thought orb: fills the right side from just under the header down to the stats */
+.prof-idrow .thought{flex:0 0 63%!important;max-width:63%!important;margin:0 -10px 0 0!important;min-height:168px!important;padding:22px 26px!important;border-radius:70px 48px 78px 54px!important}
+.prof-id.is-me .prof-idrow .thought{margin-top:-22px!important;min-height:228px!important}
+.prof-idname .prof-bio{margin-top:10px}
+/* reflamed: a thick orb outline wraps the card with a little gap and slowly reshapes */
+.post.reflamed{box-shadow:inset 0 0 0 2px var(--orange),0 0 0 7px var(--bg),0 0 0 10.5px var(--orange)!important;margin:16px 0 22px!important;border-radius:28px!important;animation:orbcard 9s ease-in-out infinite}
+@keyframes orbcard{0%,100%{border-radius:30px 22px 34px 24px}25%{border-radius:24px 34px 26px 32px}50%{border-radius:34px 26px 22px 34px}75%{border-radius:26px 32px 34px 22px}}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3110,7 +3118,7 @@ function PollBox({p,dispatch}){
 // Lingering thoughts: a short daily message floating on your profile, like a thought bubble with a little tail
 const THOUGHT_REACTS=['🔥','😂','😮','🧊','💯','👀'];
 // big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
-const thoughtSize=t=>{const n=(t||'').length;return n<=14?28:n<=26?24:n<=40?20:n<=60?17:15.5};
+const thoughtSize=t=>{const n=(t||'').length;return n<=14?32:n<=26?28:n<=40?24:n<=60?20:18};
 function ThoughtBubble({u,isMe,onOpen}){
   const t=u.thought;const rs=t?Object.entries(t.reacts).sort((a,b)=>b[1]-a[1]).slice(0,3):[];
   return html`<button className=${'thought ts-'+(u.thoughtStyle||'orange')+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
@@ -3779,9 +3787,9 @@ function Profile({s,id,dispatch,open,back,startTab}){
             <button className=${'btn'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id})}>${u.following?'Following':u.followsMe?'Follow back':'Follow'}</button>`}
         </div></div>
       <div className=${'prof-id'+(u.thought&&!blocked?' has-thought':'')+(isMe?' is-me':'')}><div className="prof-idrow"><div className="prof-idname"><h2 className="prof-name">${u.name}<${Check} u=${u}/>${isMe&&s.settings.private&&html`<${Icon} n="lock" s=${18} w=${2.4}/>`}</h2>
-      <div className="sub" style=${{fontSize:15}}>@${u.handle}${!isMe&&u.followsMe?' · Follows you':''}</div></div>
-      ${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}</div>
+      <div className="sub" style=${{fontSize:15}}>@${u.handle}${!isMe&&u.followsMe?' · Follows you':''}</div>
       ${u.bio&&html`<p className="prof-bio">${u.bio}</p>`}</div>
+      ${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}</div></div>
       <div className="stats">
         <div className="stat"><b>${all.length+reels.length}</b><span>Posts</span></div>
         <div className="stat"><b>${kfmt(isMe?Object.values(s.users).filter(x=>x.followsMe).length:u.followers)}</b><span>Followers</span></div>

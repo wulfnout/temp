@@ -18,12 +18,13 @@ import { StoryPhoto, StoryPhotoEditor } from './storyframe';
 export function ProfileScreen({ id, isTab }) {
   const { s, C, nav, run } = useApp(); const ins = useSafeAreaInsets();
   const uid = id || s.me; const u = s.users[uid]; const isMe = uid === s.me;
-  const [tab, setTab] = useState('posts'); const [pick, setPick] = useState(false); const [edit, setEdit] = useState(false); const [more, setMore] = useState(false); const [menuAt, setMenuAt] = useState(null);
+  const [tab, setTab] = useState('posts'); const [pick, setPick] = useState(false); const [edit, setEdit] = useState(false); const [more, setMore] = useState(false); const [menuAt, setMenuAt] = useState(null); const [thought, setThought] = useState(false);
   if (!u) return <View style={{ flex: 1, backgroundColor: C.bg }}><Header back /><Empty text="Loading…" /></View>;
   const blocked = s.blocked[uid];
   const all = s.posts.filter((p) => p.userId === uid);
   const reposted = (s.repostsBy[uid] || []).map((id) => s.posts.find((p) => p.id === id)).filter(Boolean);
-  const list = tab === 'posts' ? all.filter((p) => !p.reel) : tab === 'replays' ? all.filter((p) => p.reel) : tab === 'reposts' ? reposted : s.posts.filter((p) => p.saved);
+  const pin = u.pinned; const own = all.filter((p) => !p.reel);
+  const list = tab === 'posts' ? (pin ? [...own.filter((p) => p.id === pin), ...own.filter((p) => p.id !== pin)] : own) : tab === 'replays' ? all.filter((p) => p.reel) : tab === 'reposts' ? reposted : s.posts.filter((p) => p.saved);
   const fx = u.headerFx && HEADER_FX[u.headerFx];
   const setStickers = (next) => run(() => act.profileStickers(s.me, next));
   return (
@@ -49,10 +50,8 @@ export function ProfileScreen({ id, isTab }) {
               if (isMe) return <Pressable onPress={openMenu} accessibilityLabel="Your menu">{pic}</Pressable>;
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
-              {isMe ? <>
-                <Pressable onPress={() => nav.push('shop')} accessibilityLabel={s.priv.points + ' points, open Fire Sale'} style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 6 }}>
-                  <DieIcon name="bag-handle" size={20} color={C.mono ? C.onOrange : '#fff'} hot={!C.mono} die={C.orange} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(s.priv.points)}</T></Pressable>
-                <Btn kind="ghost" title="Edit profile" onPress={() => setEdit(true)} /></>
+              {!blocked && (isMe || u.thought) ? <ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /> : null}
+              {isMe ? null
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
                 : <>
                   <Btn kind="ghost" title="Message" onPress={() => nav.push('thread', { id: uid })} />
@@ -75,13 +74,14 @@ export function ProfileScreen({ id, isTab }) {
           <SegTabs items={[['posts', 'Posts'], ['replays', 'Replays'], ['reposts', 'Reflames'], ...(isMe ? [['saved', 'Saved']] : [])]} value={tab} onChange={setTab} style={{ marginTop: 12, marginBottom: 10 }} />
           {tab === 'replays' ? <ReplayGrid posts={list} /> : <>
             {list.some((p) => p.reel) ? <View style={{ marginBottom: 10 }}><ReplayGrid posts={list.filter((p) => p.reel)} /></View> : null}
-            {list.filter((p) => !p.reel).length ? list.filter((p) => !p.reel).map((p) => <PostCard key={p.id} p={p} />) : list.length ? null : <Empty text="Nothing here yet" />}</>}
+            {list.filter((p) => !p.reel).length ? list.filter((p) => !p.reel).map((p) => <View key={p.id}>{tab === 'posts' && p.id === pin ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginLeft: 14, marginBottom: 6 }}><Ionicons name="pin" size={13} color={C.muted} /><T h muted style={{ fontSize: 13 }}>Pinned</T></View> : null}<PostCard p={p} /></View>) : list.length ? null : <Empty text="Nothing here yet" />}</>}
         </View>}
       </ScrollView>
       {pick ? <Sheet visible onClose={() => setPick(false)} title="Add a sticker" right={<Btn small kind="ghost" title="Fire Sale" onPress={() => { setPick(false); nav.push('shop'); }} />}>
         <StickerPicker onPick={(e) => { setPick(false); setStickers([...(u.stickers || []), e].slice(0, 3)); }} /></Sheet> : null}
       {edit ? <EditProfile onClose={() => setEdit(false)} /> : null}
-      {menuAt ? <Drawer at={menuAt} onClose={() => setMenuAt(null)} /> : null}
+      {menuAt ? <Drawer at={menuAt} onClose={() => setMenuAt(null)} onEdit={() => setEdit(true)} /> : null}
+      {thought ? <ThoughtSheet u={u} uid={uid} isMe={isMe} onClose={() => setThought(false)} /> : null}
       {more ? <Sheet visible onClose={() => setMore(false)} title={'@' + u.handle}>
         <View style={{ gap: 8, paddingTop: 4 }}>
           <Pressable onPress={() => { setMore(false); setTimeout(() => Alert.alert('Block @' + u.handle + '?', 'Their posts, stories, comments and messages will be hidden from you.', [
@@ -277,6 +277,53 @@ export function EarningsScreen() {
   );
 }
 
+/* ---------------- lingering thoughts ---------------- */
+// a short daily thought floating on your profile like a see-through bubble, with a three-bubble tail toward your picture
+function ThoughtBubble({ u, isMe, onOpen }) {
+  const { C } = useApp(); const t = u.thought; const bob = useRef(new Animated.Value(0)).current;
+  useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(bob, { toValue: 1, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true }), Animated.timing(bob, { toValue: 0, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
+  const y = (d) => ({ transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -4 + d] }) }] });
+  const glass = { backgroundColor: C.dark ? 'rgba(28,28,28,.62)' : 'rgba(255,255,255,.62)', borderWidth: 1, borderColor: 'rgba(255,255,255,.45)', shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 12, shadowOffset: { width: 0, height: 6 } };
+  const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
+  return (
+    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Add a lingering thought'} style={{ marginTop: -64, marginRight: 2, maxWidth: 240 }}>
+      <Animated.View style={[{ borderRadius: 22, paddingHorizontal: 14, paddingVertical: 10 }, glass, y(0)]}>
+        {t ? <T h style={{ fontSize: 14.5, lineHeight: 19 }}>{t.text}</T> : <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Ionicons name="add" size={15} color={C.muted} /><T h muted style={{ fontSize: 14.5 }}>Lingering thought…</T></View>}
+        {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5 }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}
+      </Animated.View>
+      <Animated.View style={[{ position: 'absolute', left: 6, bottom: -12, width: 14, height: 14, borderRadius: 7 }, glass, y(0.6)]} />
+      <Animated.View style={[{ position: 'absolute', left: -6, bottom: -24, width: 9, height: 9, borderRadius: 5 }, glass, y(1.2)]} />
+      <Animated.View style={[{ position: 'absolute', left: -16, bottom: -33, width: 6, height: 6, borderRadius: 3 }, glass, y(1.8)]} />
+    </Pressable>
+  );
+}
+const THOUGHT_REACTS = ['🔥', '😂', '😮', '🧊', '💯', '👀'];
+function ThoughtSheet({ u, uid, isMe, onClose }) {
+  const { s, C, run } = useApp(); const t = u.thought; const [txt, setTxt] = useState(isMe && t ? t.text : ''); const [reply, setReply] = useState('');
+  const sendReply = () => { const r = reply.trim(); if (!r) return; onClose(); run(() => act.dm(uid, { text: r, note: 'Replied to your thought: “' + t.text + '”' }), { toast: 'Sent to @' + u.handle }); };
+  return (
+    <Sheet visible onClose={onClose} title={isMe ? 'Your lingering thought' : 'Lingering thought'}>
+      {isMe ? <View style={{ gap: 10 }}>
+        <T muted>A short thought that floats on your profile for 24 hours. People can react or reply in your DMs.</T>
+        <TextInput value={txt} onChangeText={setTxt} maxLength={80} multiline placeholder="What’s on your mind?" placeholderTextColor={C.muted}
+          style={{ backgroundColor: C.soft, borderRadius: 16, padding: 14, color: C.ink, fontFamily: F.bold, fontSize: 17, minHeight: 70 }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><T muted style={{ flex: 1 }}>{80 - txt.length}</T>
+          {t ? <Btn kind="ghost" title="Clear" onPress={() => { onClose(); run(() => act.thought(s.me, null), { toast: 'Thought cleared' }); }} /> : null}
+          <Btn kind="orange" title={t ? 'Update' : 'Share'} disabled={!txt.trim() || (t && txt.trim() === t.text)} onPress={() => { const v = txt.trim(); onClose(); run(() => act.thought(s.me, v), { toast: 'Thought posted' }); }} /></View>
+        {t && Object.keys(t.reacts).length ? <T muted>Reactions: {Object.entries(t.reacts).map(([e, n]) => e + ' ' + n).join('   ')}</T> : null}
+      </View> : <View style={{ gap: 12 }}>
+        <View style={{ flexDirection: 'row', gap: 10 }}><Avatar u={u} size={40} /><View style={{ flex: 1 }}><T h>{u.name} <T muted>· {ago(Date.now() - t.at)}</T></T><T b style={{ fontSize: 17, marginTop: 4 }}>{t.text}</T></View></View>
+        <View style={{ flexDirection: 'row', gap: 8 }}>{THOUGHT_REACTS.map((e) => <Pressable key={e} onPress={() => run(() => act.thoughtReact(uid, s.me, t.mine === e ? null : e), { toast: t.mine === e ? null : 'Reacted ' + e })}
+          style={{ flex: 1, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.mine === e ? 'rgba(255,85,0,.22)' : C.soft, borderWidth: t.mine === e ? 2 : 0, borderColor: C.orange }}><T style={{ fontSize: 24 }}>{e}</T></Pressable>)}</View>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <TextInput value={reply} onChangeText={setReply} placeholder={'Reply to @' + u.handle + '…'} placeholderTextColor={C.muted} maxLength={280} onSubmitEditing={sendReply} returnKeyType="send"
+            style={{ flex: 1, backgroundColor: C.soft, borderRadius: 15, paddingHorizontal: 14, paddingVertical: 11, color: C.ink, fontFamily: F.body, fontSize: 16 }} />
+          <Btn kind="orange" small title="Send" disabled={!reply.trim()} onPress={sendReply} /></View>
+      </View>}
+    </Sheet>
+  );
+}
+
 /* ---------------- fire sale ---------------- */
 export function ShopScreen() {
   const { s, C, run } = useApp(); const me = s.users[s.me] || {};
@@ -340,10 +387,11 @@ export function ShopScreen() {
 /* ---------------- composer ---------------- */
 export function Composer({ reel: reel0, onClose, quoteOf }) {
   const { s, C, run, nav } = useApp(); const me = s.users[s.me] || {};
-  const [reel, setReel] = useState(!!reel0); const [gifOpen, setGifOpen] = useState(false); const [text, setText] = useState(''); const [asset, setAsset] = useState(null); const [busy, setBusy] = useState(false); const [crop, setCrop] = useState(false);
+  const [reel, setReel] = useState(!!reel0); const [gifOpen, setGifOpen] = useState(false); const [text, setText] = useState(''); const [asset, setAsset] = useState(null); const [busy, setBusy] = useState(false); const [crop, setCrop] = useState(false); const [poll, setPoll] = useState(null);
   const max = 280, over = text.length > max;
   const ok = !over && (reel ? text.trim() || (asset && asset.type === 'video') : text.trim() || asset || quoteOf);
-  const post = async () => { setBusy(true); const done = await run(() => act.post(s.me, { text: text.trim(), asset, reel: reel && !quoteOf, quoteOf }), { toast: quoteOf ? 'Quote reflamed' : reel ? 'Replay posted' : 'Posted' }); setBusy(false); if (done) onClose(); };
+  const pl = !reel && poll ? poll.map((x) => x.trim()).filter(Boolean) : null;
+  const post = async () => { if (pl && pl.length < 2) { nav.toast('Give your poll at least 2 options.'); return; } setBusy(true); const done = await run(() => act.post(s.me, { text: text.trim(), asset, reel: reel && !quoteOf, quoteOf, poll: pl ? { o: pl.map((x) => x.slice(0, 40)) } : null }), { toast: quoteOf ? 'Quote reflamed' : reel ? 'Replay posted' : 'Posted' }); setBusy(false); if (done) onClose(); };
   return (
     <Sheet visible onClose={onClose} full>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -362,6 +410,15 @@ export function Composer({ reel: reel0, onClose, quoteOf }) {
           <TextInput value={text} onChangeText={setText} multiline placeholder={reel ? 'Caption, or a take to animate' : 'What’s your take?'} placeholderTextColor={C.muted}
             style={{ color: C.ink, fontFamily: F.body, fontSize: 19, minHeight: 100, textAlignVertical: 'top', paddingTop: 8 }} />
           {quoteOf ? <QuoteCard id={quoteOf} /> : null}
+          {poll && !reel ? <View style={{ gap: 8, marginTop: 8 }}>
+            {poll.map((v, i) => <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <TextInput value={v} onChangeText={(x) => setPoll(poll.map((y, j) => (j === i ? x : y)))} placeholder={'Option ' + (i + 1)} placeholderTextColor={C.muted} maxLength={40}
+                style={{ flex: 1, borderWidth: 1.5, borderColor: C.line, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, color: C.ink, fontFamily: F.body, fontSize: 16 }} />
+              {poll.length > 2 ? <Pressable onPress={() => setPoll(poll.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Remove option"><Ionicons name="close" size={18} color={C.muted} /></Pressable> : null}</View>)}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {poll.length < 4 ? <Pressable onPress={() => setPoll([...poll, ''])}><T h style={{ color: C.orange }}>+ Add option</T></Pressable> : <View />}
+              <Pressable onPress={() => setPoll(null)}><T h muted>Remove poll</T></Pressable></View>
+            <T muted style={{ fontSize: 12.5 }}>Polls stay open for 24 hours.</T></View> : null}
           {asset ? <View style={{ borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
             {asset.type === 'video' ? <Video uri={asset.uri} style={{ width: '100%', height: 220 }} /> : <Image source={{ uri: asset.uri }} resizeMode="cover" style={{ width: '100%', aspectRatio: asset.width && asset.height ? Math.max(0.6, Math.min(2, asset.width / asset.height)) : 1.4, backgroundColor: C.soft }} />}
             {asset.type !== 'video' && !asset.gif ? <Pressable onPress={() => setCrop(true)} accessibilityLabel="Crop and resize" style={{ position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,.6)' }}>
@@ -374,6 +431,7 @@ export function Composer({ reel: reel0, onClose, quoteOf }) {
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {!reel ? <Btn small kind="ghost" icon="image-outline" title="Photo" onPress={async () => { const a = await pickMedia('image'); if (a) { setAsset(a); setGifOpen(false); setCrop(true); } }} /> : null}
           {!reel ? <Btn small kind={gifOpen ? 'ink' : 'ghost'} title="GIF" onPress={() => setGifOpen(!gifOpen)} /> : null}
+          {!reel && !quoteOf ? <Btn small kind={poll ? 'ink' : 'ghost'} icon="stats-chart-outline" title="Poll" onPress={() => setPoll(poll ? null : ['', ''])} /> : null}
           {reel ? <Btn small kind="orange" icon="radio-button-on" title="Record" onPress={() => { onClose(); setTimeout(() => nav.sheet('recorder', { mode: 'replay' }), 250); }} /> : null}
           <Btn small kind="ghost" icon="videocam-outline" title={reel ? 'Upload' : 'Video'} onPress={async () => { const a = await pickMedia('video'); if (a) setAsset(a); }} />
         </View>

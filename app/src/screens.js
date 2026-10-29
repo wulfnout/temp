@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, FlowBox, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel } from './ui';
+import { useApp, FlowBox, T, Btn, IconBtn, Avatar, StoryOrb, Thermo, Sticker, StickerPicker, Sheet, Empty, Timer, stickerLabel, SegTabs } from './ui';
 import { PostCard, Video, RichText, useVideoTaps, ReflameIcon } from './posts';
 import { VoiceBubble, useVoiceRecorder, fmtSec } from './voice';
 import { act } from './data';
@@ -41,7 +41,7 @@ export async function accRemember(ses, prof) { if (!ses || !ses.user) return; co
   try { await AsyncStorage.setItem(ACC_KEY, JSON.stringify(next)); } catch (e) {} }
 export async function accSwitch(a) { const { error } = await sb.auth.refreshSession({ refresh_token: a.rt });
   if (error) { const l = (await accList()).filter((x) => x.id !== a.id); await AsyncStorage.setItem(ACC_KEY, JSON.stringify(l)); throw new Error('That account was signed out. Add it again.'); } }
-export function Drawer({ onClose, at }) {
+export function Drawer({ onClose, at, onEdit }) {
   const { s, C, nav } = useApp(); const ins = useSafeAreaInsets(); const me = s.users[s.me] || {}; const W = Math.min(Dimensions.get('window').width * 0.84, 330);
   const k = useRef(new Animated.Value(0)).current; const [accts, setAccts] = useState([]); const [accOpen, setAccOpen] = useState(false);
   useEffect(() => { Animated.spring(k, { toValue: 1, damping: 20, stiffness: 300, useNativeDriver: true }).start(); accList().then(setAccts); }, []);
@@ -49,7 +49,7 @@ export function Drawer({ onClose, at }) {
   const following = Object.values(s.users).filter((u) => u.following).length; const others = accts.filter((a) => a.id !== s.me);
   const sw = async (a) => { close(); try { await accSwitch(a); } catch (e) { nav.toast(e.message); } };
   const hasStory = s.stories.some((x) => x.userId === s.me);
-  const items = [...(hasStory ? [['eye-outline', 'Your story', () => nav.sheet('story', { userId: s.me })]] : []), ['person-outline', 'Profile', () => nav.tab('me')], ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['flame-outline', 'Fire Sale', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
+  const items = [...(hasStory ? [['eye-outline', 'Your story', () => nav.sheet('story', { userId: s.me })]] : []), ['person-outline', 'Profile', () => nav.tab('me')], ...(onEdit ? [['create-outline', 'Edit profile', onEdit]] : []), ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['bag-handle-outline', 'Fire Sale · ' + kfmt(s.priv.points || 0) + ' pts', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
   return (
     <Modal transparent visible animationType="none" onRequestClose={() => close()}>
       <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,.18)', opacity: k }}><Pressable style={{ flex: 1 }} onPress={() => close()} /></Animated.View>
@@ -84,7 +84,13 @@ export function Drawer({ onClose, at }) {
 export function HomeScreen() {
   const { s, C, nav, reload, run } = useApp(); const ins = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
-  const posts = s.posts.filter((p) => !p.reel && !s.blocked[p.userId]);
+  const [feed, setFeed] = useState('foryou');
+  useEffect(() => { AsyncStorage.getItem('temp-feed').then((v) => { if (v) setFeed(v); }).catch(() => {}); }, []);
+  const pickFeed = (v) => { setFeed(v); AsyncStorage.setItem('temp-feed', v).catch(() => {}); };
+  // For you: everything, hottest and newest first. Following: just the people you follow (and you), newest first
+  const base = s.posts.filter((p) => !p.reel && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId]));
+  const score = (p) => p.heat * 3 - p.freeze * 2 + p.comments.length * 2 + (p.reposts || 0) * 4 - (Date.now() - p.createdAt) / 36e5;
+  const posts = feed === 'following' ? base.filter((p) => p.userId === s.me || (s.users[p.userId] || {}).following) : [...base].sort((a, b) => score(b) - score(a));
   const unreadN = s.notifs.filter((n) => !n.read).length, unreadDM = Object.keys(s.unread).filter((k) => !s.blocked[k]).length;
   const viewed = useRef(new Set());
   const [onScreen, setOnScreen] = useState({});
@@ -116,7 +122,7 @@ export function HomeScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 130, paddingTop: Platform.OS === 'ios' ? 0 : hh }}
         onViewableItemsChanged={onViewable} viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.orange} progressViewOffset={hh} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} />}
-        ListHeaderComponent={
+        ListHeaderComponent={<>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 10 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 12 }}>
             <View style={{ alignItems: 'center', gap: 6 }}>
               <View>
@@ -128,8 +134,10 @@ export function HomeScreen() {
               <View key={st.userId} style={{ alignItems: 'center', gap: 6 }}>
                 <StoryOrb u={u} seen={!unseen(st)} onPress={() => nav.sheet('story', { userId: st.userId })} label={'Story from @' + u.handle} />
                 <T b muted numberOfLines={1} style={{ fontSize: 12, maxWidth: 76 }}>{u.handle}</T></View>); })}
-          </ScrollView>}
-        ListEmptyComponent={<Empty text={s.loaded ? 'Nothing here yet. Tap + to post the first take.' : 'Loading…'} />}
+          </ScrollView>
+          <SegTabs items={[['foryou', 'For you'], ['following', 'Following']]} value={feed} onChange={pickFeed} style={{ marginBottom: 12 }} /></>}
+        ListHeaderComponentStyle={{ gap: 0 }}
+        ListEmptyComponent={<Empty text={!s.loaded ? 'Loading…' : feed === 'following' ? 'Follow people to see their takes here' : 'Nothing here yet. Tap + to post the first take.'} />}
         extraData={onScreen} renderItem={({ item }) => <PostCard p={item} active={!!onScreen[item.id]} />} />
       <GoLiveSide />
     </View>
@@ -169,7 +177,7 @@ export function ReplayScreen({ startId }) {
     onPanResponderRelease: (e, d) => { if (d.dx > 70 || d.vx > 0.5) nav.leaveReplay(); },
     onPanResponderTerminationRequest: () => false,
   })).current;
-  const reels0 = s.posts.filter((p) => p.reel && !s.blocked[p.userId]);
+  const reels0 = s.posts.filter((p) => p.reel && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId]));
   // live creators slot in after the 2nd Replay, then every 5 — like TikTok
   const lives = useLiveNow().filter((x) => !s.blocked[x.host_id]);
   const reels = React.useMemo(() => { const out = []; let li = 0;
@@ -341,7 +349,7 @@ export function UserRow({ u, right }) {
 }
 
 /* ---------------- activity ---------------- */
-const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'saved', 'burned', 'storyReact', 'repost', 'reflame', 'quote'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
+const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'saved', 'burned', 'thoughtReact', 'storyReact', 'repost', 'reflame', 'quote'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
 export function ActivityScreen() {
   const { s, C, nav, run } = useApp(); const [tab, setTab] = useState('social'); const [seenNow, setSeenNow] = useState({});
   // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
@@ -353,10 +361,10 @@ export function ActivityScreen() {
     if (n.userId) nav.push('profile', { id: n.userId }); };
   const list = s.notifs.filter((n) => !s.blocked[n.userId] && GROUPS[tab].includes(n.type)).slice(0, 60).map((n) => (seenNow[n.id] ? { ...n, read: true } : n));
   const unread = (k) => s.notifs.filter((n) => !n.read && GROUPS[k].includes(n.type)).length;
-  const text = (n) => ({ follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
+  const text = (n) => ({ thoughtReact: 'reacted ' + n.text + ' to your lingering thought', follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
     heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take stayed hot for a day: ' + n.text, saved: 'Your take survived the freeze: ' + n.text, burned: 'Your take froze out and burned off the timeline: ' + n.text,
     storyComment: 'commented on your story: ' + n.text, repost: 'reflamed your take: ' + n.text, reflame: 'reflamed your take: ' + n.text, quote: 'quoted your take: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
-  const icon = { repost: 'flame', reflame: 'flame', quote: 'chatbubble', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame', saved: 'flame', burned: 'snow' };
+  const icon = { thoughtReact: 'happy-outline', repost: 'flame', reflame: 'flame', quote: 'chatbubble', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame', saved: 'flame', burned: 'snow' };
   const Seg = ({ k, label }) => (
     <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 15, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>

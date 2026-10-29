@@ -45,6 +45,34 @@ html.blackout .react.heat.on .fg{stroke:var(--on-orange);fill:var(--on-orange)}
 html.blackout .orb:not(.seen):not(.uploading){background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange))}
 /* watched stories still flow, just slower and grey */
 .orb.seen{background:conic-gradient(from var(--spin),var(--line),color-mix(in srgb,var(--line) 55%,var(--muted)),var(--line));animation:morph 11s ease-in-out infinite,spin 9s linear infinite}
+
+/* polls */
+.poll{display:grid;gap:8px;margin:12px 0 2px}
+.poll-opt{border:2px solid var(--orange);color:var(--orange);background:none;border-radius:14px;padding:11px 14px;font-weight:800;font-size:15px;text-align:left}
+.poll-opt:active{background:var(--orange);color:var(--on-orange)}
+.poll-res{position:relative;display:flex;align-items:center;gap:8px;border-radius:14px;padding:11px 14px;background:var(--soft);overflow:hidden;font-weight:700}
+.poll-res i{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--ink) 12%,transparent);border-radius:14px;transition:width .5s cubic-bezier(.2,.9,.3,1)}
+.poll-res.top i{background:color-mix(in srgb,var(--orange) 35%,transparent)}.poll-res span,.poll-res b{position:relative}.poll-res span{flex:1;display:flex;align-items:center;gap:4px}
+.poll-meta{margin:2px 2px 0;color:var(--muted);font-size:13px;font-weight:600}
+.pinned-tag{display:flex;align-items:center;gap:5px;margin:0 0 6px 14px;color:var(--muted);font-weight:800;font-size:13px}
+.feed-seg{margin:4px 16px 12px}
+/* composer poll editor */
+.c-poll{display:grid;gap:8px;margin-top:10px}.c-poll input{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:11px 14px;font:inherit;font-size:16px}
+.c-poll-row{display:flex;gap:8px;align-items:center}.c-poll-row input{flex:1;min-width:0}.c-poll-x{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.c-poll-add{justify-self:start;font-weight:800;color:var(--orange);padding:4px 2px}
+
+/* lingering thought bubble: see-through, floating, with a three-bubble tail toward the profile picture */
+.thought{position:relative;align-self:flex-start;max-width:min(240px,58vw);margin:-62px 2px 0 0;padding:10px 14px;border-radius:22px;text-align:left;
+  background:color-mix(in srgb,var(--card) 62%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
+  border:1px solid color-mix(in srgb,#fff 45%,transparent);box-shadow:0 8px 24px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.35);color:var(--ink);animation:tbob 4.6s ease-in-out infinite}
+.thought-in{display:flex;align-items:center;gap:5px;font-weight:700;font-size:14.5px;line-height:1.3;overflow-wrap:anywhere}.thought.empty .thought-in{color:var(--muted)}
+.thought-rx{display:flex;gap:6px;margin-top:5px;font-size:12.5px;font-weight:800}
+.thought .tt{position:absolute;border-radius:50%;background:inherit;border:1px solid color-mix(in srgb,#fff 45%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 4px 10px rgba(0,0,0,.1);animation:tbob 4.6s ease-in-out infinite}
+.thought .t1{width:14px;height:14px;left:6px;bottom:-12px;animation-delay:-.4s}.thought .t2{width:9px;height:9px;left:-6px;bottom:-24px;animation-delay:-.8s}.thought .t3{width:6px;height:6px;left:-16px;bottom:-33px;animation-delay:-1.2s}
+@keyframes tbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.thought-ta{width:100%;box-sizing:border-box;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:16px;padding:12px 14px;font:inherit;font-size:17px;font-weight:600;resize:none}
+.thought-view{display:flex;gap:10px;align-items:flex-start}.thought-view p{margin:4px 0 0;font-size:17px;font-weight:600}
+.thought-reacts{display:flex;gap:8px;justify-content:space-between;margin-top:14px}.thought-reacts button{flex:1;font-size:26px;height:52px;border-radius:16px;background:var(--soft)}.thought-reacts button[aria-pressed="true"]{background:color-mix(in srgb,var(--orange) 25%,var(--soft));box-shadow:inset 0 0 0 2px var(--orange)}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1393,6 +1421,7 @@ const P={
   save:'<path d="M6 3.5h12V21l-6-4-6 4z"/>',
   lock:'<rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   bell:'<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
   eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
@@ -1594,10 +1623,14 @@ async function loadAll(){
   const comments=ids.length?await q(sb.from('comments').select('*').in('post_id',ids).order('created_at').limit(5000)):[];
   const cids=comments.map(c=>c.id);
   const myLikes=cids.length?await q(sb.from('comment_likes').select('comment_id').eq('user_id',myId).in('comment_id',cids)):[];
+  const pids=posts.filter(p=>p.poll).map(p=>p.id);const soft=pr=>pr.then(r=>r.data||[],()=>[]);
+  const [pres,pmine,mutes]=await Promise.all([pids.length?soft(sb.rpc('poll_results',{ids:pids})):[],pids.length?soft(sb.from('poll_votes').select('post_id,choice').in('post_id',pids)):[],soft(sb.from('mutes').select('muted'))]);
+  const treacts=await soft(sb.from('thought_reactions').select('owner,user_id,emoji').limit(10000));
+  const pc={},pm={};(pres||[]).forEach(r=>{(pc[r.post_id]=pc[r.post_id]||[0,0,0,0])[r.choice]=+r.n});(pmine||[]).forEach(r=>pm[r.post_id]=r.choice);
   const priv=privRows[0]||{settings:{},points:0,owned:{stickers:{basic:1},themes:{ember:1},rings:{},headers:{}},theme:'ember',custom:[]};
   const users={};
   profiles.forEach(p=>{users[L(p.id)]={id:L(p.id),uid:p.id,name:p.name,handle:p.handle,bio:p.bio||'',color:colorFor(p.id),avatar:p.avatar_url,header:p.header_url,
-    headerFx:p.header_fx,ring:p.ring,stickers:p.stickers||[],plus:false,verified:false,followers:0,following:false,followsMe:false,online:false,private:p.is_private}});
+    headerFx:p.header_fx,ring:p.ring,pinned:p.pinned_post||null,thought:p.thought&&p.thought_at&&Date.now()-new Date(p.thought_at)<DAY?{text:p.thought,at:+new Date(p.thought_at),reacts:{},mine:null}:null,stickers:p.stickers||[],plus:false,verified:false,followers:0,following:false,followsMe:false,online:false,private:p.is_private}});
   if(!users.me)users.me={id:'me',uid:myId,name:'',handle:'',bio:'',color:colorFor(myId),stickers:[],followers:0};
   users.me.birth=priv.birth;
   follows.forEach(f=>{const a=users[L(f.followee)],b=users[L(f.follower)];if(a)a.followers++;if(f.follower===myId&&a)a.following=true;if(f.followee===myId&&b)b.followsMe=true});
@@ -1610,7 +1643,9 @@ async function loadAll(){
     media:p.media_url&&!p.reel?{type:p.media_type,url:p.media_url,gif:p.is_gif}:null,reel:p.reel,
     clip:p.reel?(p.media_url?{kind:'video',url:p.media_url}:{kind:'art',seed:p.clip_seed||1}):null,poster:p.reel&&!p.media_url?posterFor(p.clip_seed||1):null,
     createdAt:+new Date(p.created_at),status:p.status==='frozen'?'normal':p.status,burnEnds:p.burn_ends?+new Date(p.burn_ends):null,burnLeft:p.burn_left?ivMs(p.burn_left):null,heat:p.heat,freeze:p.freezes,views:p.views,
-    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),overlay:p.overlay||null,reposts:p.reposts||0,myRepost:myRp.has(p.id),kept:!!p.kept,quoteOf:p.quote_of||null,nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
+    myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),overlay:p.overlay||null,reposts:p.reposts||0,myRepost:myRp.has(p.id),kept:!!p.kept,quoteOf:p.quote_of||null,poll:p.poll?{...p.poll,counts:pc[p.id]||[0,0,0,0],mine:pm[p.id]==null?null:pm[p.id]}:null,nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
+  const muted={};mutes.forEach(m=>muted[L(m.muted)]=true);
+  treacts.forEach(r=>{const u=users[L(r.owner)];if(!u||!u.thought)return;u.thought.reacts[r.emoji]=(u.thought.reacts[r.emoji]||0)+1;if(r.user_id===myId)u.thought.mine=r.emoji});
   const sids=stories.map(x=>x.id);
   const [scom,sreact]=sids.length?await Promise.all([q(sb.from('story_comments').select('*').in('story_id',sids).order('created_at').limit(3000)),q(sb.from('story_reactions').select('story_id,user_id,emoji').in('story_id',sids).limit(10000))]):[[],[]];
   const sc={},sr={},smy={};
@@ -1631,7 +1666,7 @@ async function loadAll(){
   const temps={};let mine={heat:0,viral:0,earned:0};
   week.forEach(w=>{if(w.user_id===myId)mine={heat:w.heat,viral:w.viral,earned:w.earned};else temps[w.user_id]={heat:w.heat,viral:w.viral}});
   return {now:Date.now(),storyBurns:typeof storyBurns==='number'?storyBurns:3,users,posts:P,repostsBy,stories:Object.values(st),seen,threads,unread,seenBy,notifs:N,blocked,settings,
-    points:priv.points,owned:priv.owned,theme:priv.theme||'ember',custom:priv.custom||[],week:mine,temps,deals};
+    points:priv.points,owned:priv.owned,theme:priv.theme||'ember',custom:priv.custom||[],week:mine,temps,deals,muted};
 }
 
 async function remote(a,b){
@@ -1643,7 +1678,7 @@ async function remote(a,b){
     case 'view': await sb.rpc('add_view',{pid:a.id});return;
     case 'save':{const p=P(a.id);if(!p)return;
       if(p.saved)await ok(sb.from('saves').delete().eq('user_id',myId).eq('post_id',a.id));else await ok(sb.from('saves').insert({post_id:a.id}));return}
-    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay){row.overlay=a.overlay;if(a.overlay.sound&&/^blob:/.test(a.overlay.sound.u))row.overlay={...a.overlay,sound:{...a.overlay.sound,u:await upload(blobFiles[a.overlay.sound.u])}}}if(a.quoteOf)row.quote_of=a.quoteOf;
+    case 'post':{const row={text:a.text||'',reel:!!a.reel};if(a.overlay){row.overlay=a.overlay;if(a.overlay.sound&&/^blob:/.test(a.overlay.sound.u))row.overlay={...a.overlay,sound:{...a.overlay.sound,u:await upload(blobFiles[a.overlay.sound.u])}}}if(a.quoteOf)row.quote_of=a.quoteOf;if(a.poll)row.poll=a.poll;
       if(a.media){const url=a.media.remote?a.media.url:await upload(a.media.file);
         if(a.reel){row.media_url=url;row.media_type='video'}else{row.media_url=url;row.media_type=a.media.type;row.is_gif=!!a.media.gif}}
       else if(a.reel)row.clip_seed=Math.floor(Math.random()*9999)+1;
@@ -1651,6 +1686,12 @@ async function remote(a,b){
     case 'comment': await ok(sb.from('comments').insert({post_id:a.id,text:a.text||'',sticker:await stick(a.sticker)}));return 'reload';
     case 'likeComment':{const p=P(a.id);const c=p&&p.comments.find(x=>x.id===a.cid);if(!c||c.id<0)return;
       if(c.myLike)await ok(sb.from('comment_likes').delete().eq('comment_id',a.cid).eq('user_id',myId));else await ok(sb.from('comment_likes').insert({comment_id:a.cid}));return}
+    case 'vote':{const {error}=await sb.rpc('vote_poll',{pid:a.id,pick:a.pick});if(error)throw new Error(friendly(error));return}
+    case 'thought':await ok(sb.from('profiles').update({thought:a.text||null}).eq('id',myId));return;
+    case 'thoughtReact':{const u=b.users[a.id];if(!u)return;if(a.emoji)await ok(sb.from('thought_reactions').upsert({owner:u.uid,user_id:myId,emoji:a.emoji},{onConflict:'owner,user_id'}));
+      else await ok(sb.from('thought_reactions').delete().eq('owner',u.uid).eq('user_id',myId));return}
+    case 'pin':await ok(sb.from('profiles').update({pinned_post:a.id||null}).eq('id',myId));return;
+    case 'muteUser':{const u=b.users[a.id];if(!u)return;if(a.on)await ok(sb.from('mutes').insert({muted:u.uid}));else await ok(sb.from('mutes').delete().eq('muter',myId).eq('muted',u.uid));return}
     case 'follow':{const u=b.users[a.id];if(!u||a.id==='temp')return;
       if(u.following)await ok(sb.from('follows').delete().eq('follower',myId).eq('followee',R(a.id)));else await ok(sb.from('follows').insert({followee:R(a.id)}));return}
     case 'story':{const url=await upload(a.file);if(a.layout&&a.layout.sound&&/^blob:/.test(a.layout.sound.u))a={...a,layout:{...a.layout,sound:{...a.layout.sound,u:await upload(blobFiles[a.layout.sound.u])}}};await ok(sb.from('stories').insert({media_url:url,media_type:a.mtype,caption:a.caption||'',layout:a.layout||null}));return {reload:true,toast:'Your story is up'}}
@@ -1777,9 +1818,15 @@ function reducer(s,a){
     case 'view': return s.viewed[a.id]?s:{...s,viewed:{...s.viewed,[a.id]:1},posts:mapPost(a.id,p=>({...p,views:(p.views||0)+1}))};
     case 'save': {const p=s.posts.find(x=>x.id===a.id);return {...s,posts:mapPost(a.id,p=>({...p,saved:!p.saved})),toast:T(p&&p.saved?'Removed from saved':'Saved')}}
     case 'post':
-      return {...s,posts:[{id:nid(),userId:'me',text:a.text,media:a.media,overlay:a.overlay||null,quoteOf:a.quoteOf||null,createdAt:s.now,status:'normal',windowEnds:null,burnEnds:null,heat:0,freeze:0,myHeat:false,myFreeze:false,saved:false,comments:[],goneAt:0,
+      return {...s,posts:[{id:nid(),userId:'me',text:a.text,media:a.media,overlay:a.overlay||null,quoteOf:a.quoteOf||null,poll:a.poll?{...a.poll,counts:[0,0,0,0],mine:null}:null,createdAt:s.now,status:'normal',windowEnds:null,burnEnds:null,heat:0,freeze:0,myHeat:false,myFreeze:false,saved:false,comments:[],goneAt:0,
         views:0,nsfw:!!a.nsfw,flags:MOD.classify(a.text),
         ...(a.reel?{reel:true,clip:a.media&&a.media.type==='video'?{kind:'video',url:a.media.url}:{kind:'art',seed:Math.floor(Math.random()*9999)},plays:0,media:null}:{})},...s.posts],toast:T(a.reel?'Replay posted':a.quoteOf?'Quote reflamed':'Posted')};
+    case 'vote': return {...s,posts:mapPost(a.id,p=>p.poll&&p.poll.mine==null?{...p,poll:{...p.poll,mine:a.pick,counts:p.poll.counts.map((n,i)=>i===a.pick?n+1:n)}}:p)};
+    case 'thought': return {...s,users:{...s.users,me:{...me,thought:a.text?{text:a.text,at:Date.now(),reacts:{},mine:null}:null}},toast:T(a.text?'Thought posted':'Thought cleared')};
+    case 'thoughtReact':{const u=s.users[a.id];if(!u||!u.thought)return s;const t=u.thought;const r={...t.reacts};if(t.mine){r[t.mine]=Math.max(0,(r[t.mine]||1)-1);if(!r[t.mine])delete r[t.mine]}if(a.emoji)r[a.emoji]=(r[a.emoji]||0)+1;
+      return {...s,users:{...s.users,[a.id]:{...u,thought:{...t,reacts:r,mine:a.emoji||null}}}}}
+    case 'pin': return {...s,users:{...s.users,me:{...me,pinned:a.id||null}},toast:T(a.id?'Pinned to your profile':'Unpinned')};
+    case 'muteUser':{const m={...(s.muted||{})};if(a.on)m[a.id]=true;else delete m[a.id];return {...s,muted:m,toast:T(a.on?'Muted. You won’t see their posts.':'Unmuted')}}
     case 'comment': return {...s,posts:mapPost(a.id,p=>({...p,comments:[...p.comments,{id:nid(),userId:'me',text:a.text||'',sticker:a.sticker||null,at:s.now,likes:0,myLike:false,flags:MOD.classify(a.text||'')}]}))};
     case 'likeComment': return {...s,posts:mapPost(a.id,p=>({...p,comments:p.comments.map(c=>c.id===a.cid?{...c,myLike:!c.myLike,likes:c.likes+(c.myLike?-1:1)}:c)}))};
     case 'follow':{const u=s.users[a.id];return {...s,users:{...s.users,[a.id]:{...u,following:!u.following,followers:u.followers+(u.following?-1:1)}},toast:u.following?s.toast:T(`Following @${u.handle}`)}}
@@ -1862,7 +1909,7 @@ function readFile(file){return {url:blobUrl(file),file,type:file.type.startsWith
 const ageOf=b=>b?(Date.now()-new Date(b).getTime())/31557600000:0;
 const isAdult=s=>ageOf(s.users.me.birth)>=18;
 function vis(s,p){
-  if(s.blocked[p.userId])return 'hide';
+  if(s.blocked[p.userId]||(s.muted&&s.muted[p.userId]))return 'hide';
   if(p.userId==='me')return 'show';
   const t=(p.text||'').toLowerCase();
   if(s.settings.muted.some(w=>t.includes(w)))return 'hide';
@@ -2165,6 +2212,7 @@ function Post({p,s,dispatch,open}){
       </div>
       ${covered&&html`<button className="cover-btn" onClick=${()=>setReveal(true)}><span>Strong language · Tap to view</span></button>`}
     </div>
+    ${p.poll&&html`<${PollBox} p=${p} dispatch=${dispatch}/>`}
     <div className="p-actions">
       <button className=${'react heat'+(p.myHeat?' on':'')} aria-pressed=${p.myHeat} aria-label="Heat" data-tour=${t?'heat-'+t:null} onClick=${heat}><${Icon} n="flame" s=${22} w=${2.3} fill=${p.myHeat?'currentColor':null} die=${true}/>${counts?kfmt(p.heat):''}</button>
       <button className=${'react freeze'+(p.myFreeze?' on':'')} aria-pressed=${p.myFreeze} aria-label="Freeze" data-tour=${t?'freeze-'+t:null} onClick=${()=>dispatch({type:'freeze',id:p.id})}><${Icon} n="snow" s=${22} w=${2.3} die=${true}/>${counts?kfmt(p.freeze):''}</button>
@@ -2802,11 +2850,12 @@ function CropEditor({media,onDone,onClose}){
 }
 function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
   const [reel,setReel]=useState(!!startReel&&!quoteOf);const [gifOpen,setGifOpen]=useState(false);
-  const [text,setText]=useState('');const [media,setMedia]=useState(null);const [crop,setCrop]=useState(false);const [nsfw,setNsfw]=useState(false);const [err,setErr]=useState(null);const fileRef=useRef();
+  const [text,setText]=useState('');const [media,setMedia]=useState(null);const [crop,setCrop]=useState(false);const [poll,setPoll]=useState(null);const [nsfw,setNsfw]=useState(false);const [err,setErr]=useState(null);const fileRef=useRef();
   const max=280,over=text.length>max,ok=(reel?(text.trim()||(media&&media.type==='video')):(text.trim()||media||quoteOf))&&!over;
   const adult=isAdult(s),plus=s.users.me.plus;
   const pick=acc=>{fileRef.current.accept=acc;fileRef.current.click()};
-  const submit=()=>{const f=MOD.classify(text);const why=MOD.rules(f,plus,adult);if(why)return setErr(why);dispatch({type:'post',text:text.trim(),media,reel,nsfw:nsfw||f.sexual,quoteOf:quoteOf||undefined});onClose()};
+  const submit=()=>{const f=MOD.classify(text);const why=MOD.rules(f,plus,adult);if(why)return setErr(why);const pl=!reel&&poll?poll.map(x=>x.trim()).filter(Boolean):null;if(pl&&pl.length<2)return setErr('Give your poll at least 2 options.');
+    dispatch({type:'post',text:text.trim(),media,reel,nsfw:nsfw||f.sexual,quoteOf:quoteOf||undefined,poll:pl?{o:pl.map(x=>x.slice(0,40))}:undefined});onClose()};
   return html`<${Sheet} onClose=${onClose} label="New post">
     <div className="sheet-head"><button className="btn ghost" onClick=${onClose}>Cancel</button>
       <div className="mode" role="group" aria-label="Type">${quoteOf?html`<button aria-pressed=${true}>Quote</button>`:html`<button aria-pressed=${!reel} onClick=${()=>setReel(false)}>Post</button>`}<button aria-pressed=${reel} onClick=${()=>{setReel(true);if(media&&media.type!=='video')setMedia(null)}}>Replay</button><button onClick=${()=>{onClose();open.live&&open.live()}}><span className="live-mini"></span>Live</button></div>
@@ -2818,6 +2867,9 @@ function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
         ${media&&html`<div className="c-preview"><div className="media">${media.type==='video'?html`<video src=${media.url} controls playsInline muted></video>`:html`<img src=${media.url} alt="" />`}${media.gif&&html`<span className="gif-tag">GIF</span>`}</div>
           <button className="c-remove" aria-label="Remove" onClick=${()=>setMedia(null)}><${Icon} n="x" s=${16}/></button>
           ${media.type==='image'&&!media.gif&&html`<button className="c-crop" onClick=${()=>setCrop(true)}><${Icon} n="crop" s=${15}/>Crop</button>`}</div>`}
+        ${poll&&!reel&&html`<div className="c-poll">${poll.map((v,i)=>html`<div className="c-poll-row" key=${i}><input placeholder=${'Option '+(i+1)} maxLength=${40} value=${v} onInput=${e=>setPoll(poll.map((x,j)=>j===i?e.target.value:x))} aria-label=${'Poll option '+(i+1)}/>${poll.length>2&&html`<button className="c-poll-x" onClick=${()=>setPoll(poll.filter((_,j)=>j!==i))} aria-label="Remove option"><${Icon} n="x" s=${16}/></button>`}</div>`)}
+          <div style=${{display:'flex',justifyContent:'space-between'}}>${poll.length<4?html`<button className="c-poll-add" onClick=${()=>setPoll([...poll,''])}>+ Add option</button>`:html`<span></span>`}<button className="c-poll-add" style=${{color:'var(--muted)'}} onClick=${()=>setPoll(null)}>Remove poll</button></div>
+          <p className="sub" style=${{margin:0,fontSize:13}}>Polls stay open for 24 hours.</p></div>`}
         ${crop&&media&&html`<${CropEditor} media=${media} onClose=${()=>setCrop(false)} onDone=${m=>{setMedia(m);setCrop(false)}}/>`}
         ${quoteOf&&html`<${QuoteCard} id=${quoteOf} s=${s} open=${{post:()=>{},replay:()=>{}}}/>`}
         <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
@@ -2826,7 +2878,8 @@ function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
     <div className="c-bar">
       <div className="c-tools">
         ${!reel&&html`<button onClick=${()=>pick('image/*')}><${Icon} n="image" s=${19}/>Photo</button>
-        <button aria-pressed=${gifOpen} className=${gifOpen?'tool-on':''} onClick=${()=>setGifOpen(!gifOpen)}><${Icon} n="gif" s=${19}/>GIF</button>`}
+        <button aria-pressed=${gifOpen} className=${gifOpen?'tool-on':''} onClick=${()=>setGifOpen(!gifOpen)}><${Icon} n="gif" s=${19}/>GIF</button>
+        <button aria-pressed=${!!poll} className=${poll?'tool-on':''} onClick=${()=>setPoll(poll?null:['',''])}><${Icon} n="list" s=${19}/>Poll</button>`}
         ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record('replay')}}><span className="rec-dot"></span>Record</button>`}
         <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>${reel?'Upload':'Video'}</button>
         ${adult&&s.users.me.plus&&html`<button className=${nsfw?'tool-on':''} aria-pressed=${nsfw} onClick=${()=>setNsfw(!nsfw)}>18+</button>`}
@@ -2886,6 +2939,41 @@ function BlockConfirm({u,dispatch,onClose,onCancel}){
     <button className="btn orange" style=${{flex:1}} onClick=${()=>{dispatch({type:'block',id:u.id});onClose()}}>Block</button></div>`;
 }
 
+// polls: tap an option to vote; results show once you've voted, it's your own, or it has closed (24 hours)
+function PollBox({p,dispatch}){
+  const P=p.poll;const total=P.counts.slice(0,P.o.length).reduce((a,b)=>a+b,0);const left=p.createdAt+DAY-Date.now();const closed=left<=0;
+  const show=P.mine!=null||closed||p.userId==='me';const top=Math.max(...P.counts);
+  return html`<div className="poll" onClick=${e=>e.stopPropagation()}>
+    ${P.o.map((t,i)=>{const n=P.counts[i]||0;const pct=total?Math.round(n/total*100):0;
+      return show?html`<div key=${i} className=${'poll-res'+(P.mine===i?' mine':'')+(n===top&&total?' top':'')}><i style=${{width:pct+'%'}}></i><span>${t}${P.mine===i&&html` <${Icon} n="check" s=${14} w=${2.8}/>`}</span><b>${pct}%</b></div>`
+        :html`<button key=${i} className="poll-opt" onClick=${()=>dispatch({type:'vote',id:p.id,pick:i})}>${t}</button>`})}
+    <p className="poll-meta">${total.toLocaleString()} vote${total===1?'':'s'} · ${closed?'Final results':(left>36e5?Math.floor(left/36e5)+'h':Math.max(1,Math.floor(left/6e4))+'m')+' left'}</p></div>`;
+}
+// Lingering thoughts: a short daily message floating on your profile, like a thought bubble with a little tail
+const THOUGHT_REACTS=['🔥','😂','😮','🧊','💯','👀'];
+function ThoughtBubble({u,isMe,onOpen}){
+  const t=u.thought;const rs=t?Object.entries(t.reacts).sort((a,b)=>b[1]-a[1]).slice(0,3):[];
+  return html`<button className=${'thought'+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
+    <i className="tt t1"></i><i className="tt t2"></i><i className="tt t3"></i>
+    <span className="thought-in">${t?t.text:html`<${Icon} n="plus" s=${14} w=${2.6}/>Lingering thought…`}</span>
+    ${rs.length>0&&html`<span className="thought-rx">${rs.map(([e,n])=>html`<span key=${e}>${e}${n>1?n:''}</span>`)}</span>`}</button>`;
+}
+function ThoughtSheet({u,s,dispatch,onClose}){
+  const isMe=u.id==='me';const t=u.thought;const [txt,setTxt]=useState(isMe&&t?t.text:'');const [reply,setReply]=useState('');
+  return html`<${Sheet} onClose=${onClose} label="Lingering thought">
+    ${isMe?html`<h3 style=${{marginTop:0}}>Your lingering thought</h3>
+      <p className="sub" style=${{marginTop:-6}}>A short thought that floats on your profile for 24 hours. People can react or reply in your DMs.</p>
+      <textarea className="thought-ta" maxLength=${80} rows=${2} value=${txt} placeholder="What’s on your mind?" onInput=${e=>setTxt(e.target.value)} aria-label="Lingering thought"></textarea>
+      <div style=${{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}><span className="sub">${80-txt.length}</span>
+        <div style=${{display:'flex',gap:8}}>${t&&html`<button className="btn ghost" onClick=${()=>{dispatch({type:'thought',text:null});onClose()}}>Clear</button>`}
+        <button className="btn orange" disabled=${!txt.trim()||(t&&txt.trim()===t.text)} onClick=${()=>{dispatch({type:'thought',text:txt.trim()});onClose()}}>${t?'Update':'Share'}</button></div></div>
+      ${t&&Object.keys(t.reacts).length>0&&html`<p className="sub" style=${{marginBottom:0}}>Reactions: ${Object.entries(t.reacts).map(([e,n])=>e+' '+n).join('   ')}</p>`}`
+    :html`<div className="thought-view"><${Avatar} u=${u} size=${40}/><div><b>${u.name}</b><span className="sub"> · ${ago(Date.now()-t.at)}</span><p>${t.text}</p></div></div>
+      <div className="thought-reacts">${THOUGHT_REACTS.map(e=>html`<button key=${e} aria-pressed=${t.mine===e} onClick=${()=>dispatch({type:'thoughtReact',id:u.id,emoji:t.mine===e?null:e})}>${e}</button>`)}</div>
+      <div className="inputbar" style=${{marginTop:12}}><input placeholder=${'Reply to @'+u.handle+'…'} maxLength=${280} value=${reply} onInput=${e=>setReply(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter'&&reply.trim()){dispatch({type:'dm',to:u.id,text:reply.trim(),note:'Replied to your thought: “'+t.text+'”'});onClose()}}} aria-label="Reply"/>
+        <button className="btn orange sm" disabled=${!reply.trim()} onClick=${()=>{dispatch({type:'dm',to:u.id,text:reply.trim(),note:'Replied to your thought: “'+t.text+'”'});onClose()}}>Send</button></div>`}
+  <//>`;
+}
 function PostMenu({p,s,dispatch,onClose,open}){
   const u=s.users[p.userId];const [confirm,setConfirm]=useState(false);
   return html`<${Sheet} onClose=${onClose} label="Options">
@@ -2895,6 +2983,8 @@ function PostMenu({p,s,dispatch,onClose,open}){
       ${u.id==='me'&&p.reel&&html`<button className="menu-item warn" onClick=${()=>{if(confirm('Delete this Replay? It comes down for everyone.')){onClose();dispatch({type:'deleteReplay',id:p.id})}}}><${Icon} n="x" s=${20}/>Delete Replay</button>`}
       ${u.id==='me'&&!p.reel&&html`<button className="menu-item warn" onClick=${()=>{if(confirm('Ash this post? It burns to ash and is gone for good. Costs '+ASH_COST+' pts (you have '+s.points+').')){onClose();setTimeout(()=>dispatch({type:'ash',id:p.id}),250)}}}><${Icon} n="flame" s=${20}/>Ash this post · ${ASH_COST} pts</button>`}
       <button className="menu-item" onClick=${()=>{dispatch({type:'save',id:p.id});onClose()}}><${Icon} n="save" s=${20}/>${p.saved?'Unsave':'Save'}</button>
+      ${u.id==='me'&&p.id>0&&html`<button className="menu-item" onClick=${()=>{dispatch({type:'pin',id:s.users.me.pinned===p.id?null:p.id});onClose()}}><${Icon} n="pin" s=${20}/>${s.users.me.pinned===p.id?'Unpin from profile':'Pin to your profile'}</button>`}
+      ${u.id!=='me'&&html`<button className="menu-item" onClick=${()=>{dispatch({type:'muteUser',id:u.id,on:!(s.muted&&s.muted[u.id])});onClose()}}><${Icon} n="mute" s=${20}/>${s.muted&&s.muted[u.id]?'Unmute':'Mute'} @${u.handle}</button>`}
       ${u.id!=='me'&&html`<button className="menu-item" onClick=${()=>{dispatch({type:'follow',id:u.id});onClose()}}><${Icon} n="user" s=${20}/>${u.following?'Unfollow':'Follow'} @${u.handle}</button>`}
       <button className="menu-item" onClick=${()=>{onClose();open.profile(u.id)}}><${Icon} n="eye" s=${20}/>View profile</button>
       ${u.id!=='me'&&html`<button className="menu-item" onClick=${()=>{onClose();open.thread(u.id)}}><${Icon} n="dm" s=${20}/>Message</button>`}
@@ -2943,7 +3033,7 @@ function Drawer({s,open,onClose,setView,toast,at}){
   const me=s.users.me;const following=Object.values(s.users).filter(x=>x.following).length;const [acc,setAcc]=useState(false);const [x,setX]=useState(0);const g=useRef(null);
   const go=f=>{onClose();setTimeout(f,60)};
   const hasStory=s.stories.some(x=>x.userId==='me');
-  const items=[...(hasStory?[['eye','Your story',()=>open.story('me')]]:[]),['user','Profile',()=>open.profile('me')],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['flame','Fire Sale',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
+  const items=[...(hasStory?[['eye','Your story',()=>open.story('me')]]:[]),['user','Profile',()=>open.profile('me')],['edit','Edit profile',open.edit],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['bag','Fire Sale · '+kfmt(s.points)+' pts',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
   const others=accList().filter(a=>a.id!==myId);
   return html`<div className="drw pop" onClick=${onClose}>
     <aside className="drw-p" style=${{top:at?at.top:undefined,left:at?at.left:undefined}} onClick=${e=>e.stopPropagation()}>
@@ -3358,12 +3448,17 @@ function BarsOnScroll({on}){
   return null;
 }
 function Home({s,dispatch,open,tourIds,addStory}){
-  const posts=s.posts.filter(p=>!p.reel&&visible(s,p));
+  const [feed,setFeed]=useState(()=>store.get('temp-feed')||'foryou');useEffect(()=>{store.set('temp-feed',feed)},[feed]);
+  // For you: everything, hottest and newest first. Following: just the people you follow (and you), newest first
+  const base=s.posts.filter(p=>!p.reel&&visible(s,p));
+  const score=p=>p.heat*3-p.freeze*2+p.comments.length*2+(p.reposts||0)*4-(s.now-p.createdAt)/36e5;
+  const posts=feed==='following'?base.filter(p=>p.userId==='me'||(s.users[p.userId]||{}).following):[...base].sort((a,b)=>score(b)-score(a));
   const tagged=posts.map(p=>p.id===tourIds.a?{...p,tour:'a'}:p.id===tourIds.b?{...p,tour:'b'}:p);
   return html`<div>
     <${StoriesRow} s=${s} open=${open} addStory=${addStory}/>
+    <div className="seg feed-seg" role="tablist">${[['foryou','For you'],['following','Following']].map(([k,l])=>html`<button key=${k} role="tab" aria-pressed=${feed===k} onClick=${()=>{setFeed(k);scrollTo({top:0,behavior:'smooth'})}}>${l}</button>`)}</div>
     <div className="feed">${tagged.map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
-    ${!posts.length&&html`<div className="empty">Nothing here</div>`}
+    ${!posts.length&&html`<div className="empty">${feed==='following'?'Follow people to see their takes here':'Nothing here'}</div>`}
   </div>`;
 }
 
@@ -3400,7 +3495,7 @@ function Search({s,dispatch,open,query,setQuery}){
   </div>`;
 }
 
-const GROUPS={social:['follow','heat','freeze','viral','saved','burned','storyReact','repost','reflame','quote'],comments:['mention','likeComment','reply','storyComment']};
+const GROUPS={social:['follow','heat','freeze','viral','saved','burned','thoughtReact','storyReact','repost','reflame','quote'],comments:['mention','likeComment','reply','storyComment']};
 function Activity({s,dispatch,open}){
   const [tab,setTab]=useState('social');
   // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
@@ -3411,8 +3506,8 @@ function Activity({s,dispatch,open}){
     open.profile(n.userId)};
   const unread=k=>s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]&&GROUPS[k].includes(n.type)).length;
   const list=s.notifs.filter(n=>!s.blocked[n.userId]&&GROUPS[tab].includes(n.type)).slice(0,60);
-  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take stayed hot for a day: ${n.text}`,saved:`Your take survived the freeze: ${n.text}`,burned:`Your take froze out and burned off the timeline: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reflamed your take: ${n.text}`,reflame:`reflamed your take: ${n.text}`,quote:`quoted your take: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
-  const icon={viral:'flame',saved:'flame',burned:'snow',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
+  const text=n=>({thoughtReact:`reacted ${n.text} to your lingering thought`,follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take stayed hot for a day: ${n.text}`,saved:`Your take survived the freeze: ${n.text}`,burned:`Your take froze out and burned off the timeline: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reflamed your take: ${n.text}`,reflame:`reflamed your take: ${n.text}`,quote:`quoted your take: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
+  const icon={thoughtReact:'smile',viral:'flame',saved:'flame',burned:'snow',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
   return html`<div>
     <div className="seg" role="group" aria-label="Activity type">
       <button aria-pressed=${tab==='social'} onClick=${()=>setTab('social')}>Heat & follows${unread('social')>0&&html`<span className="cnt">${unread('social')}</span>`}</button>
@@ -3428,9 +3523,9 @@ function Activity({s,dispatch,open}){
 }
 
 function Profile({s,id,dispatch,open,back,startTab}){
-  const u=s.users[id];const isMe=id==='me';const blocked=s.blocked[id];const [confirm,setConfirm]=useState(false);const [more,setMore]=useState(false);
+  const u=s.users[id];const isMe=id==='me';const blocked=s.blocked[id];const [confirm,setConfirm]=useState(false);const [more,setMore]=useState(false);const [thought,setThought]=useState(false);
   const [tab,setTab]=useState(startTab||'posts');
-  const all=s.posts.filter(p=>p.userId===id&&!p.reel);
+  const pin=u&&u.pinned;const all0=s.posts.filter(p=>p.userId===id&&!p.reel);const all=pin?[...all0.filter(p=>p.id===pin),...all0.filter(p=>p.id!==pin)]:all0;
   const reels=s.posts.filter(p=>p.userId===id&&p.reel&&p.status!=='gone');
   const saved=s.posts.filter(p=>p.saved&&visible(s,p));
   const following=Object.values(s.users).filter(x=>x.following).length;
@@ -3450,7 +3545,8 @@ function Profile({s,id,dispatch,open,back,startTab}){
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
         <div className="prof-btns">
-          ${isMe?html`<button className="pts" onClick=${open.shop} aria-label=${s.points+' points, open Fire Sale'}><${Icon} n="bag" s=${18} w=${2.2} die=${true}/>${kfmt(s.points)}</button><button className="btn ghost" onClick=${open.edit}>Edit profile</button>`
+          ${!blocked&&(isMe||u.thought)&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>setThought(true)}/>`}
+          ${isMe?null
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
           :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
             <button className=${'btn'+(u.following?' ghost':' orange')} onClick=${()=>dispatch({type:'follow',id})}>${u.following?'Following':u.followsMe?'Follow back':'Follow'}</button>`}
@@ -3467,7 +3563,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
     </div>
     ${blocked?html`<div className="empty">Blocked</div>`:html`
     <div className="seg">${tabs.map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
-    ${tab==='posts'&&html`<div className="feed">${all.map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>${!all.length&&html`<div className="empty">No posts yet</div>`}`}
+    ${tab==='posts'&&html`<div className="feed">${all.map(p=>html`<div key=${p.id}>${p.id===pin&&html`<p className="pinned-tag"><${Icon} n="pin" s=${13} w=${2.4}/>Pinned</p>`}<${Post} p=${p} s=${s} dispatch=${dispatch} open=${open}/></div>`)}</div>${!all.length&&html`<div className="empty">No posts yet</div>`}`}
     ${tab==='replays'&&html`${reels.length?html`<div className="grid3">${reels.map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`:html`<div className="empty">No replays yet</div>`}`}
     ${tab==='reposts'&&html`${reposted.some(p=>p.reel)&&html`<div className="grid3">${reposted.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
       <div className="feed">${reposted.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
@@ -3475,6 +3571,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
     ${tab==='saved'&&html`<div className="feed">${saved.filter(p=>!p.reel).map(p=>html`<${Post} key=${p.id} p=${p} s=${s} dispatch=${dispatch} open=${open}/>`)}</div>
       ${saved.some(p=>p.reel)&&html`<div className="grid3">${saved.filter(p=>p.reel).map(p=>html`<${Thumb} key=${p.id} p=${p} s=${s} open=${open}/>`)}</div>`}
       ${!saved.length&&html`<div className="empty">Nothing saved</div>`}`}`}
+    ${thought&&u&&(isMe||u.thought)&&html`<${ThoughtSheet} u=${u} s=${s} dispatch=${dispatch} onClose=${()=>setThought(false)}/>`}
     ${more&&html`<${Sheet} onClose=${()=>setMore(false)} label="More options"><div className="menu">
       <button className="menu-item warn" onClick=${()=>{setMore(false);setConfirm(true)}}><${Icon} n="block" s=${20}/>Block @${u.handle}</button>
       <button className="menu-item" onClick=${()=>setMore(false)}><${Icon} n="x" s=${20}/>Cancel</button></div><//>`}

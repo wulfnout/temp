@@ -290,6 +290,7 @@ export function PostCard({ p, active = false }) {
         {p.text ? <Pressable onPress={() => nav.push('post', { id: p.id })}><RichText text={p.text} onTag={(t) => nav.tab('search', { q: t })}
           style={!p.mediaUrl && !p.quoteOf && p.text.length < 90 ? { fontFamily: F.displayB, fontSize: 18, lineHeight: 24, marginTop: 12, letterSpacing: -0.5 } : { fontSize: 16.5, lineHeight: 23, marginTop: 12 }} /></Pressable> : null}
         {p.quoteOf ? <QuoteCard id={p.quoteOf} /> : null}
+        {p.poll ? <PollBox p={p} /> : null}
         {p.mediaUrl ? (
           <Pressable onPress={dbl} style={{ marginTop: 12, borderRadius: 20, overflow: 'hidden', backgroundColor: C.soft }}>
             {p.mediaType === 'video' ? <FeedVideo uri={p.mediaUrl} postId={p.id} active={active} onHeat={heatBurst} /> : <Image source={{ uri: p.mediaUrl }} style={{ width: '100%', aspectRatio: 1 }} resizeMode="cover" />}
@@ -423,6 +424,24 @@ export function ShareSheet({ post, onClose }) {
   );
 }
 
+// polls: tap an option to vote; results show after you vote, on your own poll, or once it closes (24 hours)
+export function PollBox({ p }) {
+  const { s, C, run } = useApp(); const P = p.poll; const n = P.o.length;
+  const total = P.counts.slice(0, n).reduce((a, b) => a + b, 0); const left = p.createdAt + 864e5 - Date.now(); const closed = left <= 0;
+  const show = P.mine != null || closed || p.userId === s.me; const top = Math.max(...P.counts.slice(0, n));
+  return (
+    <View style={{ gap: 8, marginTop: 12 }}>
+      {P.o.map((t, i) => { const c = P.counts[i] || 0; const pct = total ? Math.round((c / total) * 100) : 0;
+        return show ? <View key={i} style={{ borderRadius: 14, backgroundColor: C.soft, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 11 }}>
+          <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: pct + '%', borderRadius: 14, backgroundColor: c === top && total ? 'rgba(255,85,0,.32)' : C.dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.08)' }} />
+          <T h style={{ flex: 1 }}>{t}{P.mine === i ? '  ✓' : ''}</T><T h>{pct}%</T></View>
+          : <Pressable key={i} onPress={() => run(() => act.vote(p.id, i), { optimistic: { post: p.id, patch: { poll: { ...P, mine: i, counts: P.counts.map((x, j) => (j === i ? x + 1 : x)) } } } })}
+            style={{ borderRadius: 14, borderWidth: 2, borderColor: C.orange, paddingHorizontal: 14, paddingVertical: 10 }}><T h style={{ color: C.orange }}>{t}</T></Pressable>; })}
+      <T b muted style={{ fontSize: 13 }}>{total.toLocaleString()} vote{total === 1 ? '' : 's'} · {closed ? 'Final results' : (left > 36e5 ? Math.floor(left / 36e5) + 'h' : Math.max(1, Math.floor(left / 6e4)) + 'm') + ' left'}</T>
+    </View>
+  );
+}
+
 export function PostMenu({ post, onClose }) {
   const { s, C, run, nav, ash, ASH_COST } = useApp(); const u = s.users[post.userId] || {}; const mine = post.userId === s.me;
   const Item = ({ icon, label, onPress, warn }) => (
@@ -432,6 +451,8 @@ export function PostMenu({ post, onClose }) {
     <Sheet visible onClose={onClose}>
       <View style={{ backgroundColor: C.soft, borderRadius: 20, overflow: 'hidden' }}>
         <Item icon={post.saved ? 'bookmark' : 'bookmark-outline'} label={post.saved ? 'Unsave' : 'Save'} onPress={() => { onClose(); run(() => act.save(post.id, post.saved, s.me)); }} />
+        {mine ? <Item icon="pin-outline" label={s.users[s.me] && s.users[s.me].pinned === post.id ? 'Unpin from profile' : 'Pin to your profile'} onPress={() => { onClose(); const on = s.users[s.me] && s.users[s.me].pinned === post.id; run(() => act.pin(s.me, on ? null : post.id), { toast: on ? 'Unpinned' : 'Pinned to your profile' }); }} /> : null}
+        {!mine ? <Item icon="volume-mute-outline" label={(s.muted && s.muted[u.id] ? 'Unmute' : 'Mute') + ' @' + u.handle} onPress={() => { onClose(); const on = !(s.muted && s.muted[u.id]); run(() => act.mute(u.id, on, s.me), { toast: on ? 'Muted. You won’t see their posts.' : 'Unmuted' }); }} /> : null}
         {!mine ? <Item icon="person-add-outline" label={(u.following ? 'Unfollow' : 'Follow') + ' @' + u.handle} onPress={() => { onClose(); run(() => act.follow(u.id, u.following, s.me)); }} /> : null}
         <Item icon="person-outline" label="View profile" onPress={() => { onClose(); nav.push('profile', { id: u.id }); }} />
         {!mine ? <Item icon="chatbubbles-outline" label="Message" onPress={() => { onClose(); nav.push('thread', { id: u.id }); }} /> : null}

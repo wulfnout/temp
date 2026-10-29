@@ -3,7 +3,7 @@ import { sb, ok, colorFor, upload, THEMES, GLOW, STICKER_PACKS } from './lib';
 const q = async (p) => { const { data, error } = await p; if (error) throw error; return data || []; };
 
 export const EMPTY = {
-  me: null, users: {}, posts: [], repostsBy: {}, stories: [], seen: {}, threads: {}, unread: {}, seenBy: {}, notifs: [], blocked: {},
+  me: null, users: {}, posts: [], repostsBy: {}, stories: [], seen: {}, threads: {}, unread: {}, seenBy: {}, notifs: [], blocked: {}, muted: {},
   priv: { points: 0, owned: { stickers: { basic: 1 } }, theme: 'ember', custom: [], settings: {} }, week: {}, shop: [], deals: [], loaded: false,
 };
 
@@ -30,11 +30,18 @@ export async function loadAll(myId) {
   const comments = ids.length ? await q(sb.from('comments').select('*').in('post_id', ids).order('created_at').limit(5000)) : [];
   const cids = comments.map((c) => c.id);
   const myLikes = cids.length ? await q(sb.from('comment_likes').select('comment_id').eq('user_id', myId).in('comment_id', cids)) : [];
+  // polls, mutes and lingering-thought reactions (empty if those tables aren't set up yet)
+  const soft = (pr) => pr.then((r) => r.data || [], () => []);
+  const pids = posts.filter((p) => p.poll).map((p) => p.id);
+  const [pres, pmine, mutes, treacts] = await Promise.all([pids.length ? soft(sb.rpc('poll_results', { ids: pids })) : [], pids.length ? soft(sb.from('poll_votes').select('post_id,choice').in('post_id', pids)) : [],
+    soft(sb.from('mutes').select('muted')), soft(sb.from('thought_reactions').select('owner,user_id,emoji').limit(10000))]);
+  const pc = {}, pm = {}; pres.forEach((r) => { (pc[r.post_id] = pc[r.post_id] || [0, 0, 0, 0])[r.choice] = +r.n; }); pmine.forEach((r) => { pm[r.post_id] = r.choice; });
 
   const users = {};
   profiles.forEach((p) => {
     users[p.id] = { id: p.id, name: p.name, handle: p.handle, bio: p.bio || '', avatar: p.avatar_url, header: p.header_url, headerFx: p.header_fx,
-      ring: p.ring, stickers: p.stickers || [], isPrivate: p.is_private, color: colorFor(p.id), followers: 0, followingCount: 0, following: false, followsMe: false };
+      ring: p.ring, stickers: p.stickers || [], isPrivate: p.is_private, pinned: p.pinned_post || null,
+      thought: p.thought && p.thought_at && Date.now() - new Date(p.thought_at) < 864e5 ? { text: p.thought, at: +new Date(p.thought_at), reacts: {}, mine: null } : null, color: colorFor(p.id), followers: 0, followingCount: 0, following: false, followsMe: false };
   });
   follows.forEach((f) => {
     const a = users[f.followee], b = users[f.follower];
@@ -44,6 +51,8 @@ export async function loadAll(myId) {
     if (f.followee === myId && b) b.followsMe = true;
   });
   const blocked = {}; blocks.forEach((b) => (blocked[b.blocked] = true));
+  const muted = {}; mutes.forEach((m) => (muted[m.muted] = true));
+  treacts.forEach((r) => { const u = users[r.owner]; if (!u || !u.thought) return; u.thought.reacts[r.emoji] = (u.thought.reacts[r.emoji] || 0) + 1; if (r.user_id === myId) u.thought.mine = r.emoji; });
   const mh = new Set(reacts.filter((r) => r.kind === 'heat').map((r) => r.post_id));
   const mf = new Set(reacts.filter((r) => r.kind === 'freeze').map((r) => r.post_id));
   const sv = new Set(saves.map((x) => x.post_id)), liked = new Set(myLikes.map((x) => x.comment_id));
@@ -58,6 +67,7 @@ export async function loadAll(myId) {
     id: p.id, userId: p.user_id, text: p.text || '', mediaUrl: p.media_url, mediaType: p.media_type, gif: p.is_gif, reel: p.reel, seed: p.clip_seed || 1,
     createdAt: +new Date(p.created_at), status: p.status === 'frozen' ? 'normal' : p.status, burnEnds: p.burn_ends ? +new Date(p.burn_ends) : null, heat: p.heat, freeze: p.freezes, views: p.views,
     myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [], reposts: p.reposts || 0, myRepost: myReposts.has(p.id), kept: !!p.kept, quoteOf: p.quote_of || null, overlay: p.overlay || null,
+    poll: p.poll ? { ...p.poll, counts: pc[p.id] || [0, 0, 0, 0], mine: pm[p.id] == null ? null : pm[p.id] } : null,
   }));
   const st = {};
   const sids = stories.map((x) => x.id);
@@ -81,7 +91,7 @@ export async function loadAll(myId) {
   const N = notifs.filter((n) => users[n.actor_id || n.user_id]).map((n) => ({ id: n.id, type: n.type, userId: n.actor_id || n.user_id, text: n.text || '', at: +new Date(n.created_at), read: n.read, postId: n.post_id, storyId: n.story_id }));
   const weekMap = {}; week.forEach((w) => (weekMap[w.user_id] = w));
   const priv = privRows[0] || EMPTY.priv;
-  return { me: myId, storyBurns: typeof storyBurns === 'number' ? storyBurns : 3, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked,
+  return { me: myId, storyBurns: typeof storyBurns === 'number' ? storyBurns : 3, users, posts: P, repostsBy, stories: Object.values(st), seen, threads, unread, seenBy, notifs: N, blocked, muted,
     // weekly Fire Sale drops carry their own look (colours / stickers); register them so they work everywhere
     ...(shop.forEach((i) => { if (!i.data) return; if (i.kind === 'themes' && i.data.c) { THEMES[i.id] = i.data.c; if (i.data.glow) GLOW[i.id] = 1; } if (i.kind === 'stickers' && i.data.items) STICKER_PACKS[i.id] = i.data.items; }), {}),
     priv: { ...EMPTY.priv, ...priv, settings: priv.settings || {}, custom: priv.custom || [], owned: priv.owned || EMPTY.priv.owned }, week: weekMap, shop, deals, loaded: true };
@@ -90,11 +100,17 @@ export async function loadAll(myId) {
 /* ---------- writes (the database enforces every rule) ---------- */
 export const act = {
   react: (postId, kind) => ok(sb.from('reactions').insert({ post_id: postId, kind })),
+  vote: async (postId, pick) => { const { error } = await sb.rpc('vote_poll', { pid: postId, pick }); if (error) throw new Error(error.message); },
+  pin: (me, postId) => ok(sb.from('profiles').update({ pinned_post: postId || null }).eq('id', me)),
+  mute: (uid, on, me) => (on ? ok(sb.from('mutes').insert({ muted: uid })) : ok(sb.from('mutes').delete().eq('muter', me).eq('muted', uid))),
+  thought: (me, text) => ok(sb.from('profiles').update({ thought: text || null }).eq('id', me)),
+  thoughtReact: (owner, me, emoji) => (emoji ? ok(sb.from('thought_reactions').upsert({ owner, user_id: me, emoji }, { onConflict: 'owner,user_id' })) : ok(sb.from('thought_reactions').delete().eq('owner', owner).eq('user_id', me))),
   view: (postId) => sb.rpc('add_view', { pid: postId }).then(() => {}, () => {}), // builders only run once awaited/then'd
   repost: (postId, reposted, me) => (reposted ? ok(sb.from('reposts').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('reposts').insert({ post_id: postId }))),
   save: (postId, saved, me) => (saved ? ok(sb.from('saves').delete().eq('user_id', me).eq('post_id', postId)) : ok(sb.from('saves').insert({ post_id: postId }))),
-  async post(me, { text, asset, reel, overlay, quoteOf }) {
+  async post(me, { text, asset, reel, overlay, quoteOf, poll }) {
     const row = { text: text || '', reel: !!reel };
+    if (poll) row.poll = poll;
     if (quoteOf) row.quote_of = quoteOf;
     if (overlay) row.overlay = overlay;
     if (asset && asset.remote) { row.media_url = asset.uri; row.media_type = 'image'; row.is_gif = true; }

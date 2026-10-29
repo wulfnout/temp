@@ -278,7 +278,7 @@ export function PostCard({ p, active = false }) {
   };
   if (!u) return null;
   return (
-    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: 10, overflow: 'hidden', ...(p.kept && (p.reposts > 0 || p.quoteOf) ? { borderWidth: 1.6, borderColor: C.orange } : null) }}>
+    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: 10, overflow: 'hidden', ...(p.kept && (p.reposts > 0 || p.quoteOf) ? { borderWidth: 3, borderColor: C.orange, ...ORB_CARD } : null) }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>
@@ -320,6 +320,8 @@ export function PostCard({ p, active = false }) {
   );
 }
 // heat countdown: the orange line shrinks toward its end with a small time pill riding on the tip
+// reflamed cards: a thick outline with the orbs' uneven, rounded-but-angular corners
+const ORB_CARD = { borderTopLeftRadius: 34, borderTopRightRadius: 24, borderBottomRightRadius: 36, borderBottomLeftRadius: 26 };
 // time-left orb: a soft, lumpy orange orb that ticks round once every real second while the time stays upright
 // time-left orb: moves like the Morph ring — a liquid orange orb that wobbles and reshapes, the time stays put
 function TimeOrb({ label }) {

@@ -187,8 +187,8 @@ export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   // the ring is an orb-like blob (like the logo's orbs): uneven corners that slowly turn and stretch, so its outline gently shifts
   const turn = tv.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-360deg'] });
-  const breathe = [{ rotate: turn }, { scaleX: wob.interpolate({ inputRange: [0, 1], outputRange: [1.02, 0.985] }) }, { scaleY: wob.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.02] }) }];
-  const blob = { borderTopLeftRadius: size * 0.58, borderTopRightRadius: size * 0.4, borderBottomRightRadius: size * 0.55, borderBottomLeftRadius: size * 0.42 };
+  const breathe = [{ rotate: turn }, { scaleX: wob.interpolate({ inputRange: [0, 1], outputRange: [1.025, 0.98] }) }, { scaleY: wob.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1.025] }) }];
+  const blob = { borderTopLeftRadius: size * 0.44, borderTopRightRadius: size * 0.34, borderBottomRightRadius: size * 0.46, borderBottomLeftRadius: size * 0.36 }; // squarish orb: rounded but with a bit of corner
   // orange everywhere, except Blackout: black or white to match the display
   const cols = seen ? [C.line, C.dark ? '#3a3a3a' : '#c9c5c0', C.line] : C.mono ? [C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]
     : ['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500'];

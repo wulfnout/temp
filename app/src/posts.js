@@ -279,9 +279,9 @@ export function PostCard({ p, active = false }) {
   if (!u) return null;
   const rf = p.kept && (p.reposts > 0 || p.quoteOf);
   return (
-    <View style={rf ? { marginTop: 10, marginBottom: 22 } : null}>
+    <View style={rf ? { marginTop: 10, marginBottom: 22, marginHorizontal: 10 } : null}>
     {/* reflamed: a still, solid orange orb-shaped layer behind the card, showing all around it */}
-    {rf ? <View pointerEvents="none" style={{ position: 'absolute', left: -9, top: -10, right: -9, bottom: -10, backgroundColor: C.orange, borderTopLeftRadius: 44, borderTopRightRadius: 30, borderBottomRightRadius: 48, borderBottomLeftRadius: 32 }} /> : null}
+    {rf ? <View pointerEvents="none" style={{ position: 'absolute', left: -10, top: -10, right: -10, bottom: -10, backgroundColor: C.orange, borderTopLeftRadius: 44, borderTopRightRadius: 30, borderBottomRightRadius: 48, borderBottomLeftRadius: 32 }} /> : null}
     <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden' }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>

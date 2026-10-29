@@ -73,6 +73,24 @@ html.blackout .orb:not(.seen):not(.uploading){background:conic-gradient(from var
 .thought-ta{width:100%;box-sizing:border-box;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:16px;padding:12px 14px;font:inherit;font-size:17px;font-weight:600;resize:none}
 .thought-view{display:flex;gap:10px;align-items:flex-start}.thought-view p{margin:4px 0 0;font-size:17px;font-weight:600}
 .thought-reacts{display:flex;gap:8px;justify-content:space-between;margin-top:14px}.thought-reacts button{flex:1;font-size:26px;height:52px;border-radius:16px;background:var(--soft)}.thought-reacts button[aria-pressed="true"]{background:color-mix(in srgb,var(--orange) 25%,var(--soft));box-shadow:inset 0 0 0 2px var(--orange)}
+
+/* one flame for heat and freeze: hold, slide, let go */
+.p-actions{gap:14px}.rp{position:relative}.rp-btn{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.rp-n{display:inline-flex;align-items:baseline;gap:6px}.rp-n em{font-style:normal;font-size:12px;font-weight:800;color:#5aa9d6}.rp-n em::before{content:"❄ ";font-size:10px}
+.rp-pop{position:absolute;left:-6px;bottom:calc(100% + 10px);z-index:20;display:flex;gap:6px;padding:7px;border-radius:999px;background:var(--card);box-shadow:0 14px 34px rgba(0,0,0,.22),0 0 0 1px color-mix(in srgb,var(--ink) 8%,transparent);animation:rpin .22s cubic-bezier(.2,1.5,.4,1)}
+@keyframes rpin{from{opacity:0;transform:translateY(10px) scale(.85)}}
+.rp-o{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 6px;transition:transform .16s cubic-bezier(.2,1.5,.4,1)}
+.rp-o b{font-size:11.5px;font-weight:800;color:var(--muted);white-space:nowrap;transition:color .15s}
+.rp-orb{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;transition:transform .16s cubic-bezier(.2,1.5,.4,1)}
+.rp-o.heat .rp-orb{background:linear-gradient(225deg,#ffc061,#ff7a1a 45%,#ff4500);color:#fff}
+.rp-o.freeze .rp-orb{background:#b9def5;color:#0d3a57}
+html.blackout .rp-o.heat .rp-orb{background:var(--orange);color:var(--on-orange)}
+.rp-o.hov{transform:translateY(-8px)}.rp-o.hov .rp-orb{transform:scale(1.22)}.rp-o.hov b{color:var(--ink)}
+.rp-o.mine b{color:var(--orange)}
+/* reflamed: the icon in a small orange orb */
+.rf-orb{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;background:radial-gradient(circle at 30% 25%,#ffc061,#ff7a1a 55%,#ff4500);color:#fff;box-shadow:0 2px 8px rgba(255,85,0,.35)}
+html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow:none}
+.p-actions .ic.cm,.p-actions>.ic.rf{padding:0 2px}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1997,7 +2015,7 @@ function Sheet({onClose,children,label}){
 
 function Timer({p,now}){
   const tag=p.tour?'state-'+p.tour:null;
-  if(p.kept&&p.status!=='frozen')return p.reposts>0||p.quoteOf?html`<span className="timer kept" data-tour=${tag}><${Icon} n="reflame" s=${14} w=${2.2}/>Reflamed</span>`:null;
+  if(p.kept&&p.status!=='frozen')return p.reposts>0||p.quoteOf?html`<span className="rf-orb" data-tour=${tag} title="Reflamed" aria-label="Reflamed"><${Icon} n="reflame" s=${15} w=${2.3}/></span>`:null;
   if(p.status==='normal')return null;
   if(p.status==='frozen')return html`<span className="timer frozen" data-tour=${tag}><${Icon} n="snow" s=${14} w=${2.4}/>Frozen</span>`;
   if(p.status==='kept')return html`<span className="timer burning" data-tour=${tag}><${Icon} n="pin" s=${14} w=${2.4}/>Kept</span>`;
@@ -2214,11 +2232,10 @@ function Post({p,s,dispatch,open}){
     </div>
     ${p.poll&&html`<${PollBox} p=${p} dispatch=${dispatch}/>`}
     <div className="p-actions">
-      <button className=${'react heat'+(p.myHeat?' on':'')} aria-pressed=${p.myHeat} aria-label="Heat" data-tour=${t?'heat-'+t:null} onClick=${heat}><${Icon} n="flame" s=${22} w=${2.3} fill=${p.myHeat?'currentColor':null} die=${true}/>${counts?kfmt(p.heat):''}</button>
-      <button className=${'react freeze'+(p.myFreeze?' on':'')} aria-pressed=${p.myFreeze} aria-label="Freeze" data-tour=${t?'freeze-'+t:null} onClick=${()=>dispatch({type:'freeze',id:p.id})}><${Icon} n="snow" s=${22} w=${2.3} die=${true}/>${counts?kfmt(p.freeze):''}</button>
+      <${ReactPick} p=${p} counts=${counts} tour=${t} onPick=${k=>k==='heat'?heat():dispatch({type:'freeze',id:p.id})}/>
+      <button className="ic cm" aria-label=${frozen?'Comments are off while frozen':'Comments'} disabled=${frozen} onClick=${()=>open.comments(p.id)}><${Icon} n="comment" s=${22}/><span className="n">${cs.length||''}</span></button>
+      <button className=${'ic rf'+(p.myRepost?' on':'')} aria-label=${p.myRepost?'Undo reflame':'Reflame'} onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${22} w=${2}/><span className="n">${p.reposts||''}</span></button>
       <div className="social" data-tour=${t?'social-'+t:null}>
-        <button className="ic" aria-label=${frozen?'Comments are off while frozen':'Comments'} disabled=${frozen} onClick=${()=>open.comments(p.id)}><${Icon} n="comment" s=${21}/><span className="n">${cs.length||''}</span></button>
-        <button className=${'ic rf'+(p.myRepost?' on':'')} aria-label=${p.myRepost?'Undo reflame':'Reflame'} onClick=${()=>open.reflame(p.id)}><${Icon} n="reflame" s=${21} w=${2}/><span className="n">${p.reposts||''}</span></button>
         <button className="ic" aria-label="Send" onClick=${()=>open.share(p.id)}><${Icon} n="share" s=${20}/></button>
         <button className=${'ic'+(p.saved?' on':'')} aria-pressed=${p.saved} aria-label="Save" onClick=${()=>dispatch({type:'save',id:p.id})}><${Icon} n="save" s=${20} fill=${p.saved?'currentColor':null}/></button>
         <span className="views" aria-label=${kfmt(p.views||0)+' views'}><${Icon} n="views" s=${17} w=${2.2}/>${kfmt(p.views||0)}</span>
@@ -2973,6 +2990,29 @@ function ThoughtSheet({u,s,dispatch,onClose}){
       <div className="inputbar" style=${{marginTop:12}}><input placeholder=${'Reply to @'+u.handle+'…'} maxLength=${280} value=${reply} onInput=${e=>setReply(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter'&&reply.trim()){dispatch({type:'dm',to:u.id,text:reply.trim(),note:'Replied to your thought: “'+t.text+'”'});onClose()}}} aria-label="Reply"/>
         <button className="btn orange sm" disabled=${!reply.trim()} onClick=${()=>{dispatch({type:'dm',to:u.id,text:reply.trim(),note:'Replied to your thought: “'+t.text+'”'});onClose()}}>Send</button></div>`}
   <//>`;
+}
+// heat or freeze from one flame: hold it, slide to a reaction and let go (a quick tap opens the choices too)
+let __toast=null;const toastMsg=m=>__toast&&__toast(m);
+function ReactPick({p,counts,tour,onPick}){
+  const [open,setOpen]=useState(false);const [hover,setHover]=useState(null);const st=useRef({t:null,held:false,down:false});const box=useRef();
+  const done=p.myHeat?'heat':p.myFreeze?'freeze':null;
+  const pickAt=x=>{const el=box.current&&box.current.querySelector('.rp-pop');if(!el)return null;const r=el.getBoundingClientRect();if(x<r.left-30||x>r.right+30)return null;return x<r.left+r.width/2?'heat':'freeze'};
+  const choose=k=>{setOpen(false);setHover(null);if(!k)return;if(done){if(done!==k)toastMsg('You already '+(done==='heat'?'heated':'froze')+' this take');return}
+    try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}onPick(k)};
+  useEffect(()=>{if(!open)return;const close=e=>{if(box.current&&!box.current.contains(e.target)){setOpen(false);setHover(null)}};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close)},[open]);
+  const down=e=>{const S=st.current;S.down=true;S.held=false;clearTimeout(S.t);S.t=setTimeout(()=>{S.held=true;setOpen(true);try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}},260);try{e.currentTarget.setPointerCapture(e.pointerId)}catch(x){}};
+  const move=e=>{if(st.current.held)setHover(pickAt(e.clientX))};
+  const up=e=>{const S=st.current;clearTimeout(S.t);if(!S.down)return;S.down=false;if(S.held){choose(pickAt(e.clientX));S.held=false}else setOpen(o=>!o)};
+  return html`<div className="rp" ref=${box}>
+    <button className=${'react rp-btn'+(done==='heat'?' heat on':done==='freeze'?' freeze on':' heat')} data-tour=${tour?'heat-'+tour:null}
+      aria-label=${done==='heat'?'You heated this. Heat '+p.heat+', freeze '+p.freeze:done==='freeze'?'You froze this. Heat '+p.heat+', freeze '+p.freeze:'Hold to heat or freeze'} aria-haspopup="true" aria-expanded=${open}
+      onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${()=>{clearTimeout(st.current.t);st.current.down=false}} onContextMenu=${e=>e.preventDefault()}>
+      ${done==='freeze'?html`<${Icon} n="snow" s=${22} w=${2.3} die=${true}/>`:html`<${Icon} n="flame" s=${22} w=${2.3} fill=${done==='heat'?'currentColor':null} die=${true}/>`}
+      ${counts&&html`<span className="rp-n">${kfmt(p.heat)}${p.freeze>0&&html`<em>${kfmt(p.freeze)}</em>`}</span>`}</button>
+    ${open&&html`<div className="rp-pop" role="menu">
+      <button role="menuitem" className=${'rp-o heat'+(hover==='heat'?' hov':'')+(done==='heat'?' mine':'')} onClick=${()=>choose('heat')} aria-label="Heat"><span className="rp-orb"><${Icon} n="flame" s=${26} w=${2.3} fill="currentColor"/></span><b>Heat${counts?' · '+kfmt(p.heat):''}</b></button>
+      <button role="menuitem" className=${'rp-o freeze'+(hover==='freeze'?' hov':'')+(done==='freeze'?' mine':'')} onClick=${()=>choose('freeze')} aria-label="Freeze"><span className="rp-orb"><${Icon} n="snow" s=${26} w=${2.3}/></span><b>Freeze${counts?' · '+kfmt(p.freeze):''}</b></button></div>`}
+  </div>`;
 }
 function PostMenu({p,s,dispatch,onClose,open}){
   const u=s.users[p.userId];const [confirm,setConfirm]=useState(false);
@@ -3753,8 +3793,8 @@ function makeSteps(s,ids){
   return [
     {title:`Welcome, ${s.users.me.name.split(' ')[0]}.`,body:'Temp is for hot takes. The ones that land stay up. The ones that flop get frozen, and frozen takes are racing the clock.'},
     {target:'post-a',title:'Every take starts normal',body:'A new post has no clock. What happens next is up to everyone who sees it.'},
-    {target:'heat-a',title:'Heat a take that lands',body:'Heat means the take hit. Takes with more heat than freezes stay on the timeline. You can also double-tap a photo to heat it.',try:'Tap the flame',done:()=>A&&A.myHeat},
-    {target:'freeze-b',title:'Freeze a take that flops',body:'When freezes outnumber heat, the clock starts.',try:'Tap the snowflake',done:()=>B&&B.myFreeze},
+    {target:'heat-a',title:'Heat a take that lands',body:'Hold the flame, slide to Heat and let go. Takes with more heat than freezes stay on the timeline. You can also double-tap a photo to heat it.',try:'Hold the flame',done:()=>A&&A.myHeat},
+    {target:'heat-b',title:'Freeze a take that flops',body:'Hold the flame, slide to Freeze and let go. When freezes outnumber heat, the clock starts.',try:'Hold, slide, let go',done:()=>B&&B.myFreeze},
     {target:'state-b',title:'Race the temperature',body:'The flame timer shows how long it has to heat back up. Heat it past its freezes and the clock stops. Double its freezes and it’s safe for good. Run out of time and it burns off the timeline.'},
     {target:'social-a',title:'Comment, send, save',body:'Comments can be liked and replied to. Send a post to someone’s DMs and it stays there even after it disappears. Save it to find it later.'},
     {target:'more-a',title:'More options',body:'Follow, message, report or block the poster.'},
@@ -4528,6 +4568,7 @@ function App(){
     try{const st=await loadAll();raw({type:'hydrate',st})}catch(e){console.error(e)}},350)},[]);
   const dispatch=useCallback(a=>{const before=sRef.current;raw(a);if(!myId)return;
     remote(a,before).then(r=>{if(a.type==='story')raw({type:'storyDone'});if(r&&r.toast)raw({type:'toast',msg:r.toast});if(r==='reload'||(r&&r.reload))reload()}).catch(e=>{if(a.type==='story')raw({type:'storyDone'});raw({type:'toast',msg:e.message||'Something went wrong. Try again.'});reload()})},[]);
+  __toast=m=>raw({type:'toast',msg:m});
 
   useEffect(()=>{
     sb.auth.getSession().then(({data})=>setSession(data.session||null));

@@ -298,18 +298,13 @@ export function PostCard({ p, active = false }) {
               <Ionicons name="flame" size={120} color={C.orange} /></Animated.View>
           </Pressable>) : null}
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
-        <Pressable onPress={heat} accessibilityLabel="Heat" accessibilityState={{ selected: p.myHeat }}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 3, height: 42, paddingRight: 8 }}>
-          <DieIcon name={p.myHeat ? 'flame' : 'flame-outline'} size={22} color={p.myHeat ? (C.mono ? C.onOrange : '#fff') : C.ink} hot={p.myHeat && !C.mono} die={p.myHeat ? C.orange : C.dark ? '#2a2a2a' : '#dcd9d5'} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.heat)}</T></Pressable>
-        <Pressable onPress={() => { if (!p.myFreeze) run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }); }} accessibilityLabel="Freeze" accessibilityState={{ selected: p.myFreeze }}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 3, height: 42, paddingRight: 8 }}>
-          <FreezeIcon on={p.myFreeze} /><T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.freeze)}</T></Pressable>
-        <View style={{ flex: 1 }} />
-        <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, opacity: frozen ? 0.3 : 1 }}>
-          <Ionicons name="chatbubble-outline" size={20} color={C.ink} />{cs.length ? <T muted b>{cs.length}</T> : null}</Pressable>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, zIndex: 5 }}>
+        <ReactPick p={p} onPick={(k) => (k === 'heat' ? heat() : run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }))} />
+        <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, marginLeft: 8, opacity: frozen ? 0.3 : 1 }}>
+          <Ionicons name="chatbubble-outline" size={21} color={C.ink} />{cs.length ? <T muted b>{cs.length}</T> : null}</Pressable>
         <Pressable onPress={() => nav.sheet('reflame', { post: p })} accessibilityLabel={p.myRepost ? 'Undo reflame' : 'Reflame'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6 }}>
-          <ReflameIcon size={20} color={p.myRepost ? C.orange : C.ink} />{p.reposts ? <T muted b>{p.reposts}</T> : null}</Pressable>
+          <ReflameIcon size={21} color={p.myRepost ? C.orange : C.ink} />{p.reposts ? <T muted b>{p.reposts}</T> : null}</Pressable>
+        <View style={{ flex: 1 }} />
         <Pressable onPress={() => nav.sheet('share', { post: p })} accessibilityLabel="Send" style={{ padding: 6 }}><Ionicons name="paper-plane-outline" size={20} color={C.ink} /></Pressable>
         <Pressable onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} accessibilityLabel="Save" style={{ padding: 6 }}>
           <Ionicons name={p.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={p.saved ? C.orange : C.ink} /></Pressable>
@@ -425,6 +420,44 @@ export function ShareSheet({ post, onClose }) {
 }
 
 // polls: tap an option to vote; results show after you vote, on your own poll, or once it closes (24 hours)
+// heat or freeze from one flame: hold it, slide to a reaction and let go (a quick tap opens the choices too)
+export function ReactPick({ p, onPick }) {
+  const { C, nav } = useApp(); const [open, setOpen] = useState(false); const [hover, setHover] = useState(null);
+  const done = p.myHeat ? 'heat' : p.myFreeze ? 'freeze' : null;
+  const pop = useRef(new Animated.Value(0)).current; const st = useRef({ t: null, held: false, x0: 0 }); const openR = useRef(false); openR.current = open;
+  const cb = useRef({}); cb.current = { onPick, done };
+  const show = (v) => { setOpen(v); Animated.spring(pop, { toValue: v ? 1 : 0, useNativeDriver: true, speed: 18, bounciness: 9 }).start(); };
+  // the picker sits above the flame: Heat on the left half, Freeze on the right (positions relative to where the finger went down)
+  const which = (dx) => (dx < -30 || dx > 150 ? null : dx < 60 ? 'heat' : 'freeze');
+  const choose = (k) => { show(false); setHover(null); if (!k) return; const d = cb.current.done; if (d) { if (d !== k) nav.toast('You already ' + (d === 'heat' ? 'heated' : 'froze') + ' this take'); return; } cb.current.onPick(k); };
+  const pr = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true, onPanResponderTerminationRequest: () => !st.current.held,
+    onPanResponderGrant: (e) => { const S = st.current; S.held = false; S.x0 = e.nativeEvent.locationX; clearTimeout(S.t); S.t = setTimeout(() => { S.held = true; show(true); }, 260); },
+    onPanResponderMove: (e, g) => { if (st.current.held) setHover(which(st.current.x0 + g.dx)); },
+    onPanResponderRelease: (e, g) => { const S = st.current; clearTimeout(S.t); if (S.held) { S.held = false; choose(which(S.x0 + g.dx)); } else show(!openR.current); },
+    onPanResponderTerminate: () => { clearTimeout(st.current.t); st.current.held = false; },
+  })).current;
+  const Orb = ({ k }) => { const h = hover === k; return (
+    <Pressable onPress={() => choose(k)} accessibilityLabel={k === 'heat' ? 'Heat' : 'Freeze'} style={{ alignItems: 'center', gap: 3, paddingHorizontal: 4, transform: [{ translateY: h ? -8 : 0 }] }}>
+      <View style={{ transform: [{ scale: h ? 1.22 : 1 }] }}>{k === 'heat'
+        ? <LinearGradient colors={C.mono ? [C.orange, C.orange] : ['#ffc061', '#ff7a1a', '#ff4500']} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} style={{ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="flame" size={26} color={C.mono ? C.onOrange : '#fff'} /></LinearGradient>
+        : <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#b9def5', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="snow" size={26} color="#0d3a57" /></View>}</View>
+      <T h style={{ fontSize: 11.5, color: done === k ? C.orange : h ? C.ink : C.muted }}>{k === 'heat' ? 'Heat · ' + kfmt(p.heat) : 'Freeze · ' + kfmt(p.freeze)}</T></Pressable>); };
+  return (
+    <View style={{ zIndex: 10 }}>
+      <View {...pr.panHandlers} accessible accessibilityRole="button" accessibilityLabel={done ? 'You ' + (done === 'heat' ? 'heated' : 'froze') + ' this. Heat ' + p.heat + ', freeze ' + p.freeze : 'Hold to heat or freeze'}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, height: 42, paddingRight: 4 }}>
+        {done === 'freeze' ? <FreezeIcon on /> : <DieIcon name={done === 'heat' ? 'flame' : 'flame-outline'} size={22} color={done === 'heat' ? (C.mono ? C.onOrange : '#fff') : C.ink} hot={done === 'heat' && !C.mono} die={done === 'heat' ? C.orange : C.dark ? '#2a2a2a' : '#dcd9d5'} />}
+        <T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.heat)}</T>
+        {p.freeze > 0 ? <T h style={{ color: '#5aa9d6', fontSize: 12 }}>❄ {kfmt(p.freeze)}</T> : null}
+      </View>
+      {open ? <Animated.View style={{ position: 'absolute', left: -6, bottom: 52, flexDirection: 'row', gap: 6, padding: 7, borderRadius: 40, backgroundColor: C.card,
+        shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 10 }, elevation: 12, opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }] }}>
+        <Orb k="heat" /><Orb k="freeze" /></Animated.View> : null}
+    </View>
+  );
+}
+
 export function PollBox({ p }) {
   const { s, C, run } = useApp(); const P = p.poll; const n = P.o.length;
   const total = P.counts.slice(0, n).reduce((a, b) => a + b, 0); const left = p.createdAt + 864e5 - Date.now(); const closed = left <= 0;

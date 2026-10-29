@@ -277,8 +277,12 @@ export function PostCard({ p, active = false }) {
     lastTap.current = now;
   };
   if (!u) return null;
+  const rf = p.kept && (p.reposts > 0 || p.quoteOf);
   return (
-    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: 10, overflow: 'hidden', ...(p.kept && (p.reposts > 0 || p.quoteOf) ? { borderWidth: 3, borderColor: C.orange, ...ORB_CARD } : null) }}>
+    <View style={rf ? { marginBottom: 16, marginRight: 6 } : null}>
+    {/* reflamed: an orb-cornered card in the theme colour sits behind, peeking out like a thick shadow border */}
+    {rf ? <View pointerEvents="none" style={{ position: 'absolute', left: 6, top: 6, right: -6, bottom: -6, backgroundColor: C.orange, ...ORB_CARD }} /> : null}
+    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden', ...(rf ? { ...ORB_CARD, borderWidth: 2, borderColor: C.orange } : null) }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>
@@ -316,6 +320,7 @@ export function PostCard({ p, active = false }) {
       {top && !frozen ? <Pressable onPress={() => nav.sheet('comments', { id: p.id })}><T muted numberOfLines={2} style={{ fontSize: 14, marginTop: 10 }}>
         <T b style={{ fontSize: 14 }}>{(s.users[top.userId] || {}).handle} </T>{top.sticker ? stickerLabel(top.sticker) : top.text}{cs.length > 1 ? ' · View all ' + cs.length : ''}</T></Pressable> : null}
       {p.status === 'burning' && !p.kept ? <BurnBar p={p} /> : null}
+    </View>
     </View>
   );
 }

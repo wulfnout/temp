@@ -208,6 +208,17 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 .prof-id.is-me .prof-idrow .thought{margin-top:-22px!important}
 @keyframes tdrift{0%,100%{transform:rotate(-.8deg) scale(1,.985)}50%{transform:rotate(.8deg) scale(.985,1)}}
 .prof-idrow .thought::after{left:26px;top:8px}
+
+/* story ring = an orb (the sign-in orbs' blob) behind the picture, morphing and wobbling; the picture stays still on top */
+.orb:not(.store):not(.uploading){background:none!important;animation:none!important;border-radius:50%!important}
+.orb:not(.store):not(.uploading)::before{content:"";position:absolute;inset:0;z-index:0;border-radius:63% 37% 58% 42%/48% 62% 38% 52%;
+  background:conic-gradient(from var(--spin),#ff5500,#ff7a1a,#ffb04d,#ffd27a,#ffb04d,#ff7a1a,#ff5500);animation:morph 6s ease-in-out infinite,blob 3.6s ease-in-out infinite,spin 7s linear infinite}
+html.blackout .orb:not(.seen):not(.store):not(.uploading)::before{background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange))}
+.orb.seen:not(.store):not(.uploading)::before{background:conic-gradient(from var(--spin),var(--line),color-mix(in srgb,var(--line) 55%,var(--muted)),var(--line));animation-duration:12s,7.2s,14s}
+.orb:not(.store) > .av{position:relative;z-index:1}.orb .add{z-index:2}
+.story:nth-child(2n) .orb::before{animation-delay:-2s,-1s,-1s}.story:nth-child(3n) .orb::before{animation-delay:-4s,-2s,-2s}
+/* reflamed: an orb-cornered card in the theme colour sits behind, peeking out like a thick shadow border */
+.post.reflamed{box-shadow:6px 6px 0 0 var(--orange),inset 0 0 0 2px var(--orange)!important;border-radius:34px 24px 36px 26px!important;margin-right:6px;margin-bottom:16px}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">

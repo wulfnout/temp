@@ -227,6 +227,15 @@ html.blackout .orb:not(.seen):not(.store):not(.uploading)::before{background:con
 /* reflamed: a thick orb outline wraps the card with a little gap and slowly reshapes */
 .post.reflamed{box-shadow:inset 0 0 0 2px var(--orange),0 0 0 7px var(--bg),0 0 0 10.5px var(--orange)!important;margin:16px 0 22px!important;border-radius:28px!important;animation:orbcard 9s ease-in-out infinite}
 @keyframes orbcard{0%,100%{border-radius:30px 22px 34px 24px}25%{border-radius:24px 34px 26px 32px}50%{border-radius:34px 26px 22px 34px}75%{border-radius:26px 32px 34px 22px}}
+
+/* story ring v3: one flat colour, squarish orb, slow ease between shapes, no spin or shine */
+.orb:not(.store):not(.uploading)::before{background:var(--orange)!important;border-radius:42% 32% 44% 34%;animation:orbsq 20s ease-in-out infinite,orblean 16s ease-in-out infinite!important}
+.orb.seen:not(.store):not(.uploading)::before{background:var(--line)!important;animation-duration:26s,22s!important}
+html:not(.blackout) .orb:not(.seen):not(.store):not(.uploading)::before{background:#ff5500!important}
+@keyframes orbsq{0%,100%{border-radius:42% 32% 44% 34%}25%{border-radius:34% 44% 33% 45%}50%{border-radius:45% 35% 31% 43%}75%{border-radius:33% 42% 45% 32%}}
+@keyframes orblean{0%,100%{transform:rotate(-5deg) scale(1,1)}25%{transform:rotate(0deg) scale(1.025,.985)}50%{transform:rotate(5deg) scale(.99,1.02)}75%{transform:rotate(0deg) scale(1.015,.995)}}
+/* reflamed v3: a still, solid orange orb-shaped layer behind the card */
+.post.reflamed{box-shadow:0 0 0 10px var(--orange)!important;animation:none!important;border-radius:34px 22px 38px 24px!important;margin:18px 10px 28px!important}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">

@@ -279,10 +279,10 @@ export function PostCard({ p, active = false }) {
   if (!u) return null;
   const rf = p.kept && (p.reposts > 0 || p.quoteOf);
   return (
-    <View style={rf ? { marginTop: 8, marginBottom: 20 } : null}>
-    {/* reflamed: a thick orb-shaped outline wraps the whole card with a little gap, slowly reshaping like the orbs */}
-    {rf ? <OrbOutline color={C.orange} /> : null}
-    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden', ...(rf ? { borderWidth: 2, borderColor: C.orange } : null) }}>
+    <View style={rf ? { marginTop: 10, marginBottom: 22 } : null}>
+    {/* reflamed: a still, solid orange orb-shaped layer behind the card, showing all around it */}
+    {rf ? <View pointerEvents="none" style={{ position: 'absolute', left: -9, top: -10, right: -9, bottom: -10, backgroundColor: C.orange, borderTopLeftRadius: 44, borderTopRightRadius: 30, borderBottomRightRadius: 48, borderBottomLeftRadius: 32 }} /> : null}
+    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden' }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>
@@ -326,15 +326,6 @@ export function PostCard({ p, active = false }) {
 }
 // heat countdown: the orange line shrinks toward its end with a small time pill riding on the tip
 // reflamed cards: a thick outline with the orbs' uneven, rounded-but-angular corners
-function OrbOutline({ color }) {
-  useClockKick();
-  const r = jsClock(9000), c = clock(9000);
-  const corner = (ph) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => 40 + 14 * Math.sin((i / 4 + ph) * Math.PI * 2)) });
-  return <Animated.View pointerEvents="none" style={{ position: 'absolute', left: -9, top: -9, right: -9, bottom: -9,
-    transform: [{ rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-0.6deg', '0.6deg', '-0.6deg'] }) }] }}>
-    <Animated.View style={{ flex: 1, borderWidth: 3.5, borderColor: color, borderTopLeftRadius: corner(0), borderTopRightRadius: corner(0.27), borderBottomRightRadius: corner(0.55), borderBottomLeftRadius: corner(0.8) }} />
-  </Animated.View>;
-}
 // time-left orb: a soft, lumpy orange orb that ticks round once every real second while the time stays upright
 // time-left orb: moves like the Morph ring — a liquid orange orb that wobbles and reshapes, the time stays put
 function TimeOrb({ label }) {

@@ -176,26 +176,22 @@ function Pill({ bg, fg, icon, text }) {
 export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const { C } = useApp();
   useClockKick();
-  const c = clock(seen ? 7200 : 3600), r = jsClock(seen ? 12000 : 6000), sp = clock(seen ? 14000 : 7000);
-  const corner = (ph) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => size * (0.5 + 0.12 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
+  // slow: the squarish orb shape eases between a few uneven forms and leans a little, nothing spins
+  const c = clock(seen ? 22000 : 16000), r = jsClock(seen ? 26000 : 20000);
+  const corner = (ph) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => size * (0.38 + 0.08 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
   const radii = { borderTopLeftRadius: corner(0), borderTopRightRadius: corner(0.27), borderBottomRightRadius: corner(0.55), borderBottomLeftRadius: corner(0.8) };
   const wobble = [
-    { scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.04, 0.98, 1.02, 1] }) },
-    { scaleY: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.97, 1.03, 0.99, 1] }) },
-    { rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }];
-  // orange everywhere, except Blackout: black or white to match the display
-  const cols = seen ? [C.line, C.dark ? '#3a3a3a' : '#c9c5c0', C.line] : C.mono ? [C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]
-    : ['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500'];
+    { scaleX: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.025, 0.99, 1.015, 1] }) },
+    { scaleY: c.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.985, 1.02, 0.995, 1] }) },
+    { rotate: c.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-5deg', '5deg', '-5deg'] }) }];
+  // one flat colour, no shine: orange (Blackout's own colour in Blackout), grey once watched
+  const col = seen ? C.line : C.orange;
   const mid = size - ring * 2, pic = mid - gap * 2;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center',
       ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
       <Animated.View style={{ position: 'absolute', width: size, height: size, transform: wobble }}>
-        <Animated.View style={[{ width: size, height: size, overflow: 'hidden', backgroundColor: cols[0] }, radii]}>
-          <Animated.View style={{ position: 'absolute', left: -size * 0.25, top: -size * 0.25, width: size * 1.5, height: size * 1.5, transform: [{ rotate: sp.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
-            <LinearGradient colors={cols} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ width: '100%', height: '100%' }} />
-          </Animated.View>
-        </Animated.View>
+        <Animated.View style={[{ width: size, height: size, backgroundColor: col }, radii]} />
       </Animated.View>
       <View style={{ width: mid, height: mid, borderRadius: mid / 2, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {children(pic)}

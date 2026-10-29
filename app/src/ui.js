@@ -172,7 +172,7 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
   return (
     <Pressable onPress={onPress} accessibilityLabel={label} style={{ width: size + 4, alignItems: 'center', gap: 6 }}>
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        {u && u.ring && !seen ? <Avatar u={u} size={size} /> : <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>}
+        <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={14} color={C.onOrange} /></Pressable> : null}
       </View>

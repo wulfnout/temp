@@ -2185,13 +2185,13 @@ function StoriesRow({s,open,addStory}){
   const sorted=[...others].sort((a,b)=>unseen(b)-unseen(a));
   return html`<div className="stories" aria-label="Stories" data-tour="stories">
     <div className="story">
-      ${(()=>{const store=!s.storyUploading&&mine&&unseen(mine)&&s.users.me.ring;return html`<button className=${'orb'+(s.storyUploading?' uploading':store?' store':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
+      ${(()=>{const store=false;return html`<button className=${'orb'+(s.storyUploading?' uploading':store?' store':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
         ${store?html`<${Avatar} u=${s.users.me} size=${74}/>`:html`<${Avatar} u=${s.users.me} size=${64} noRing=${true}/>`}
         ${s.storyUploading?html`<span className="up-spin" aria-hidden="true"></span>`:null}
         <span className="add" role="button" aria-label="Add to your story" onClick=${e=>{e.stopPropagation();addStory()}}><${Icon} n="plus" s=${12} w=${3.2}/></span>
       </button>`})()}<span>${s.storyUploading?'Posting…':'Your story'}</span></div>
     ${sorted.map(st=>{const u=s.users[st.userId];return html`<div className="story" key=${st.userId}>
-      <button className=${'orb'+(unseen(st)?(u.ring?' store':''):' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}>${unseen(st)&&u.ring?html`<${Avatar} u=${u} size=${74}/>`:html`<${Avatar} u=${u} size=${64} noRing=${true}/>`}</button>
+      <button className=${'orb'+(unseen(st)?'':' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${64} noRing=${true}/></button>
       <span>${u.handle}</span></div>`})}
   </div>`;
 }
@@ -3405,7 +3405,8 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
         // the profile picture always has the flowing ring (solid theme colour); grey once you've watched their story
-        const pic=st&&un&&u.ring?html`<span className="orb prof-orb store"><${Avatar} u=${u} size=${120}/></span>`:st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${108} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
+        // the profile picture always wears the ring the person bought and picked in Fire Sale
+        const pic=html`<${Avatar} u=${u} size=${96}/>`;
         if(isMe){const tap=e=>{const r=e.currentTarget.getBoundingClientRect();open.drawer({top:Math.max(60,Math.min(r.bottom+8,innerHeight-500)),left:Math.max(12,r.left)})};
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}

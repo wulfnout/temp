@@ -40,7 +40,7 @@ export function ProfileScreen({ id, isTab }) {
               style={{ position: 'absolute', top: ins.top + 8, right: 12, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,.45)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               {[0, 1, 2].map((i) => <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' }} />)}</Pressable> : null}
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -46 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -46, zIndex: 3 }}>
             {(() => { const story = s.stories.find((x) => x.userId === uid);
               // your own picture opens your menu as a drop-down card
               const openMenu = (e) => { const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMenuAt({ top: pageY - locationY + 104, left: Math.max(12, pageX - locationX) }); };
@@ -51,7 +51,6 @@ export function ProfileScreen({ id, isTab }) {
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}
             <View style={{ flexShrink: 1, flexGrow: isMe ? 1 : 0, alignSelf: 'flex-start', alignItems: isMe ? 'flex-start' : 'flex-end', marginTop: -4 }}>
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {!blocked && isMe ? <ThoughtBubble u={u} isMe onOpen={() => setThought(true)} /> : null}
               {isMe ? null
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
                 : <>
@@ -59,8 +58,9 @@ export function ProfileScreen({ id, isTab }) {
                   <Btn kind={u.following ? 'ghost' : 'orange'} title={u.following ? 'Following' : u.followsMe ? 'Follow back' : 'Follow'} onPress={() => run(() => act.follow(uid, u.following, s.me))} />
 </>}
             </View>
-            {!blocked && !isMe && u.thought ? <ThoughtBubble u={u} top={16} onOpen={() => setThought(true)} /> : null}
             </View>
+            {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
+            {!blocked && u.thought ? <View style={{ position: 'absolute', left: 118, right: 0, top: '100%', marginTop: 16 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
           </View>
           <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
           <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
@@ -83,7 +83,7 @@ export function ProfileScreen({ id, isTab }) {
       {pick ? <Sheet visible onClose={() => setPick(false)} title="Add a sticker" right={<Btn small kind="ghost" title="Fire Sale" onPress={() => { setPick(false); nav.push('shop'); }} />}>
         <StickerPicker onPick={(e) => { setPick(false); setStickers([...(u.stickers || []), e].slice(0, 3)); }} /></Sheet> : null}
       {edit ? <EditProfile onClose={() => setEdit(false)} /> : null}
-      {menuAt ? <Drawer at={menuAt} onClose={() => setMenuAt(null)} onEdit={() => setEdit(true)} /> : null}
+      {menuAt ? <Drawer at={menuAt} onClose={() => setMenuAt(null)} onEdit={() => setEdit(true)} onThought={() => setThought(true)} /> : null}
       {thought ? <ThoughtSheet u={u} uid={uid} isMe={isMe} onClose={() => setThought(false)} /> : null}
       {more ? <Sheet visible onClose={() => setMore(false)} title={'@' + u.handle}>
         <View style={{ gap: 8, paddingTop: 4 }}>
@@ -282,7 +282,7 @@ export function EarningsScreen() {
 
 /* ---------------- lingering thoughts ---------------- */
 // a short daily thought floating on your profile like a see-through bubble, with a three-bubble tail toward your picture
-function ThoughtBubble({ u, isMe, onOpen, top = 50 }) {
+function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
   const { C } = useApp(); const t = u.thought; const bob = useRef(new Animated.Value(0)).current;
   useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(bob, { toValue: 1, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true }), Animated.timing(bob, { toValue: 0, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
   const y = (d) => ({ transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -4 + d] }) }] });
@@ -293,7 +293,7 @@ function ThoughtBubble({ u, isMe, onOpen, top = 50 }) {
     <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, borderRadius: size, padding: 1.4 }}><View style={{ flex: 1, borderRadius: size, backgroundColor: film }} /></LinearGradient></Animated.View>;
   const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
   return (
-    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Add a lingering thought'} style={{ marginTop: top, marginLeft: 30, maxWidth: 260, alignSelf: 'flex-start' }}>
+    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Add a lingering thought'} style={{ marginTop: top }}>
       <Animated.View style={[{ borderRadius: 22, shadowColor: '#5a3ca0', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }, y(0)]}>
         <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 1.6 }}>
           <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 16, paddingVertical: 11, overflow: 'hidden' }}>
@@ -304,9 +304,9 @@ function ThoughtBubble({ u, isMe, onOpen, top = 50 }) {
           </View>
         </LinearGradient>
       </Animated.View>
-      <Bub size={15} style={[{ left: -20, bottom: 6 }, y(0.6)]} />
-      <Bub size={10} style={[{ left: -36, bottom: -4 }, y(1.2)]} />
-      <Bub size={6} style={[{ left: -48, bottom: -12 }, y(1.8)]} />
+      <Bub size={15} style={[{ left: -8, top: -12 }, y(0.6)]} />
+      <Bub size={10} style={[{ left: -20, top: -26 }, y(1.2)]} />
+      <Bub size={6} style={[{ left: -28, top: -37 }, y(1.8)]} />
     </Pressable>
   );
 }

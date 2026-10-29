@@ -149,6 +149,14 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
   .sheet{max-width:600px;margin-inline:auto}
 }
 @media (min-width:1100px) and (max-width:1340px){.dsk-right{display:none}.dsk-left{left:max(12px,calc(50% - 300px - 290px))}}
+
+/* lingering thought v3: fills the open space beside your name, the bubble trail drops down from the profile picture */
+.prof-top{position:relative}
+.prof-btns:has(.thought){position:static}
+.thought{position:absolute!important;left:122px;right:0;top:calc(100% + 18px);margin:0!important;max-width:none!important;z-index:2;animation:tbob 6s ease-in-out infinite!important}
+.thought .t1{left:-8px!important;top:-12px!important;bottom:auto!important}
+.thought .t2{left:-20px!important;top:-26px!important;bottom:auto!important}
+.thought .t3{left:-28px!important;top:-37px!important;bottom:auto!important}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3168,7 +3176,7 @@ function Drawer({s,open,onClose,setView,toast,at}){
   const me=s.users.me;const following=Object.values(s.users).filter(x=>x.following).length;const [acc,setAcc]=useState(false);const [x,setX]=useState(0);const g=useRef(null);
   const go=f=>{onClose();setTimeout(f,60)};
   const hasStory=s.stories.some(x=>x.userId==='me');
-  const items=[...(hasStory?[['eye','Your story',()=>open.story('me')]]:[]),['user','Profile',()=>open.profile('me')],['edit','Edit profile',open.edit],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['bag','Fire Sale · '+kfmt(s.points)+' pts',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
+  const items=[...(hasStory?[['eye','Your story',()=>open.story('me')]]:[]),['user','Profile',()=>open.profile('me')],['edit','Edit profile',open.edit],['smile','Lingering thought',open.thought],['crown','Temp+',open.plus],['save','Saved',()=>open.profile('me','saved')],['bag','Fire Sale · '+kfmt(s.points)+' pts',open.shop],['bell','Live Takes',open.live],['rocket','Creator Studio',open.earnings]];
   const others=accList().filter(a=>a.id!==myId);
   return html`<div className="drw pop" onClick=${onClose}>
     <aside className="drw-p" style=${{top:at?at.top:undefined,left:at?at.left:undefined}} onClick=${e=>e.stopPropagation()}>
@@ -3694,7 +3702,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}
         <div className="prof-btns">
-          ${!blocked&&(u.thought||(isMe&&!WEB_LITE))&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}
+          ${!blocked&&u.thought&&html`<${ThoughtBubble} u=${u} isMe=${isMe} onOpen=${()=>isMe&&WEB_LITE?getApp('Lingering thoughts are written in the app'):setThought(true)}/>`}
           ${isMe?null
           :blocked?html`<button className="btn ghost" onClick=${()=>dispatch({type:'unblock',id})}>Unblock</button>`
           :html`<button className="btn ghost" onClick=${()=>open.thread(id)}>Message</button>
@@ -4748,6 +4756,7 @@ function App(){
     search:q=>{setQuery(q);setView({tab:'search'})},
     replay:id=>setView({tab:'replay',reelId:id}),
     post:id=>{postBack.current=viewRef.current.tab==='post'?postBack.current:viewRef.current;setView({tab:'post',postId:id})},
+    thought:()=>WEB_LITE?setSheet({kind:'getapp',why:'Lingering thoughts are written in the app'}):setSheet({kind:'thought'}),
     compose:reel=>WEB_LITE&&reel?setSheet({kind:'getapp',why:'Replays are made in the app'}):setSheet({kind:'compose',reel}),
     reflame:id=>setSheet({kind:'reflame',id}),
     quote:id=>setSheet({kind:'compose',quoteOf:id}),
@@ -4865,6 +4874,7 @@ function App(){
     ${sheet&&sheet.kind==='comments'&&sheetPost&&html`<${Comments} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
     ${sheet&&sheet.kind==='share'&&sheetPost&&html`<${Share} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${sheet&&sheet.kind==='menu'&&sheetPost&&html`<${PostMenu} p=${sheetPost} s=${s} dispatch=${dispatch} onClose=${close} open=${open}/>`}
+    ${sheet&&sheet.kind==='thought'&&html`<${ThoughtSheet} u=${s.users.me} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${sheet&&sheet.kind==='getapp'&&html`<${GetAppSheet} why=${sheet.why} onClose=${close}/>`}
     ${sheet&&sheet.kind==='edit'&&html`<${EditProfile} s=${s} dispatch=${dispatch} onClose=${close}/>`}
     ${storyUser&&html`<${StoryViewer} s=${s} startUser=${storyUser} dispatch=${dispatch} onClose=${()=>setStoryUser(null)} onAdd=${()=>{setStoryUser(null);setSheet({kind:'record',mode:'story'})}}/>`}

@@ -41,7 +41,7 @@ export async function accRemember(ses, prof) { if (!ses || !ses.user) return; co
   try { await AsyncStorage.setItem(ACC_KEY, JSON.stringify(next)); } catch (e) {} }
 export async function accSwitch(a) { const { error } = await sb.auth.refreshSession({ refresh_token: a.rt });
   if (error) { const l = (await accList()).filter((x) => x.id !== a.id); await AsyncStorage.setItem(ACC_KEY, JSON.stringify(l)); throw new Error('That account was signed out. Add it again.'); } }
-export function Drawer({ onClose, at, onEdit }) {
+export function Drawer({ onClose, at, onEdit, onThought }) {
   const { s, C, nav } = useApp(); const ins = useSafeAreaInsets(); const me = s.users[s.me] || {}; const W = Math.min(Dimensions.get('window').width * 0.84, 330);
   const k = useRef(new Animated.Value(0)).current; const [accts, setAccts] = useState([]); const [accOpen, setAccOpen] = useState(false);
   useEffect(() => { Animated.spring(k, { toValue: 1, damping: 20, stiffness: 300, useNativeDriver: true }).start(); accList().then(setAccts); }, []);
@@ -49,7 +49,7 @@ export function Drawer({ onClose, at, onEdit }) {
   const following = Object.values(s.users).filter((u) => u.following).length; const others = accts.filter((a) => a.id !== s.me);
   const sw = async (a) => { close(); try { await accSwitch(a); } catch (e) { nav.toast(e.message); } };
   const hasStory = s.stories.some((x) => x.userId === s.me);
-  const items = [...(hasStory ? [['eye-outline', 'Your story', () => nav.sheet('story', { userId: s.me })]] : []), ['person-outline', 'Profile', () => nav.tab('me')], ...(onEdit ? [['create-outline', 'Edit profile', onEdit]] : []), ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['bag-handle-outline', 'Fire Sale · ' + kfmt(s.priv.points || 0) + ' pts', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
+  const items = [...(hasStory ? [['eye-outline', 'Your story', () => nav.sheet('story', { userId: s.me })]] : []), ['person-outline', 'Profile', () => nav.tab('me')], ...(onEdit ? [['create-outline', 'Edit profile', onEdit]] : []), ...(onThought ? [['happy-outline', 'Lingering thought', onThought]] : []), ['bookmark-outline', 'Saved', () => nav.push('profile', { id: s.me })], ['bag-handle-outline', 'Fire Sale · ' + kfmt(s.priv.points || 0) + ' pts', () => nav.push('shop')], ['radio-outline', 'Live Takes', () => nav.tab('live')], ['rocket-outline', 'Creator Studio', () => nav.push('earnings')]];
   return (
     <Modal transparent visible animationType="none" onRequestClose={() => close()}>
       <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,.18)', opacity: k }}><Pressable style={{ flex: 1 }} onPress={() => close()} /></Animated.View>

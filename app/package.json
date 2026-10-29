@@ -21,6 +21,7 @@
     "expo-font": "~58.0.10",
     "expo-image": "~58.0.17",
     "expo-image-picker": "~58.0.10",
+    "expo-image-manipulator": "*",
     "expo-linear-gradient": "~58.0.3",
     "expo-status-bar": "~58.0.4",
     "expo-updates": "~58.0.18",

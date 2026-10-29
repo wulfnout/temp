@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, FlowBox, tapAway, SegTabs, StoryOrb, GradRing, T, Btn, IconBtn, Avatar, Thermo, Sticker, StickerPicker, Sheet, Empty } from './ui';
 import { PostCard, Video, QuoteCard } from './posts';
 import { Header, pickMedia, ReplayGrid, Drawer } from './screens';
+import { CropEditor } from './crop';
 import { GifPicker } from './gif';
 import { act } from './data';
 import { sb, kfmt, F, THEMES, GLOW, STICKER_PACKS, ago, friendly } from './lib';
@@ -338,7 +339,7 @@ export function ShopScreen() {
 /* ---------------- composer ---------------- */
 export function Composer({ reel: reel0, onClose, quoteOf }) {
   const { s, C, run, nav } = useApp(); const me = s.users[s.me] || {};
-  const [reel, setReel] = useState(!!reel0); const [gifOpen, setGifOpen] = useState(false); const [text, setText] = useState(''); const [asset, setAsset] = useState(null); const [busy, setBusy] = useState(false);
+  const [reel, setReel] = useState(!!reel0); const [gifOpen, setGifOpen] = useState(false); const [text, setText] = useState(''); const [asset, setAsset] = useState(null); const [busy, setBusy] = useState(false); const [crop, setCrop] = useState(false);
   const max = 280, over = text.length > max;
   const ok = !over && (reel ? text.trim() || (asset && asset.type === 'video') : text.trim() || asset || quoteOf);
   const post = async () => { setBusy(true); const done = await run(() => act.post(s.me, { text: text.trim(), asset, reel: reel && !quoteOf, quoteOf }), { toast: quoteOf ? 'Quote reflamed' : reel ? 'Replay posted' : 'Posted' }); setBusy(false); if (done) onClose(); };
@@ -361,20 +362,23 @@ export function Composer({ reel: reel0, onClose, quoteOf }) {
             style={{ color: C.ink, fontFamily: F.body, fontSize: 19, minHeight: 100, textAlignVertical: 'top', paddingTop: 8 }} />
           {quoteOf ? <QuoteCard id={quoteOf} /> : null}
           {asset ? <View style={{ borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
-            {asset.type === 'video' ? <Video uri={asset.uri} style={{ width: '100%', height: 220 }} /> : <Image source={{ uri: asset.uri }} style={{ width: '100%', height: 220 }} />}
+            {asset.type === 'video' ? <Video uri={asset.uri} style={{ width: '100%', height: 220 }} /> : <Image source={{ uri: asset.uri }} resizeMode="cover" style={{ width: '100%', aspectRatio: asset.width && asset.height ? Math.max(0.6, Math.min(2, asset.width / asset.height)) : 1.4, backgroundColor: C.soft }} />}
+            {asset.type !== 'video' && !asset.gif ? <Pressable onPress={() => setCrop(true)} accessibilityLabel="Crop and resize" style={{ position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,.6)' }}>
+              <Ionicons name="crop" size={16} color="#fff" /><T h style={{ color: '#fff', fontSize: 13 }}>Crop</T></Pressable> : null}
             <Pressable onPress={() => setAsset(null)} accessibilityLabel="Remove" style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,.6)', alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="close" size={16} color="#fff" /></Pressable></View> : null}
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          {!reel ? <Btn small kind="ghost" icon="image-outline" title="Photo" onPress={async () => { const a = await pickMedia('image'); if (a) { setAsset(a); setGifOpen(false); } }} /> : null}
+          {!reel ? <Btn small kind="ghost" icon="image-outline" title="Photo" onPress={async () => { const a = await pickMedia('image'); if (a) { setAsset(a); setGifOpen(false); setCrop(true); } }} /> : null}
           {!reel ? <Btn small kind={gifOpen ? 'ink' : 'ghost'} title="GIF" onPress={() => setGifOpen(!gifOpen)} /> : null}
           {reel ? <Btn small kind="orange" icon="radio-button-on" title="Record" onPress={() => { onClose(); setTimeout(() => nav.sheet('recorder', { mode: 'replay' }), 250); }} /> : null}
           <Btn small kind="ghost" icon="videocam-outline" title={reel ? 'Upload' : 'Video'} onPress={async () => { const a = await pickMedia('video'); if (a) setAsset(a); }} />
         </View>
         <T b style={{ color: over ? C.orange : C.muted, fontSize: 13 }}>{max - text.length}</T>
       </View>
+      {crop && asset ? <CropEditor asset={asset} onClose={() => setCrop(false)} onDone={(a) => { setAsset(a); setCrop(false); }} /> : null}
       {gifOpen && !reel ? <GifPicker onClose={() => setGifOpen(false)} onPick={(g) => { setAsset({ uri: g.url, type: 'image', remote: true, gif: true }); setGifOpen(false); }} /> : null}
     </Sheet>
   );

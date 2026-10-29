@@ -3,7 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<style>html{-webkit-text-size-adjust:100%;overscroll-behavior:none}body{overflow-x:clip;overscroll-behavior:none;max-width:100%}input,textarea,select{font-size:16px!important}*{scrollbar-width:none;-ms-overflow-style:none}*::-webkit-scrollbar{display:none;width:0;height:0}.stories,.deals,.picker{touch-action:pan-x pan-y;overscroll-behavior-x:contain}</style>
+<style>html{-webkit-text-size-adjust:100%;overscroll-behavior:none}body{overflow-x:clip;overscroll-behavior:none;max-width:100%}input,textarea,select{font-size:16px!important}*{scrollbar-width:none;-ms-overflow-style:none}*::-webkit-scrollbar{display:none;width:0;height:0}.stories,.deals,.picker{touch-action:pan-x pan-y;overscroll-behavior-x:contain}
+/* photo crop */
+.crop-ed{position:fixed;inset:0;z-index:400;background:#000;color:#fff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 0 calc(14px + env(safe-area-inset-bottom,0px))}
+.crop-top{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:48px}.crop-top>button:first-child{color:#fff;font-weight:700;font-size:16px}.crop-top b{font-size:17px}
+.crop-stage{flex:1;display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.crop-frame{position:relative;overflow:hidden;border-radius:4px}.crop-frame img{position:absolute;max-width:none;transform-origin:center;pointer-events:none}
+.crop-grid{position:absolute;inset:0;border:2px solid #fff;border-radius:4px;pointer-events:none;background:linear-gradient(90deg,transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px) calc(33.33% + .5px),transparent 0,transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px) calc(66.66% + .5px),transparent 0),linear-gradient(transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px) calc(33.33% + .5px),transparent 0,transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px) calc(66.66% + .5px),transparent 0)}
+.crop-tip{text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;margin:4px 0 12px}
+.crop-shapes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 12px}.crop-shapes button{padding:9px 15px;border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font-weight:800;font-size:14px}.crop-shapes button[aria-pressed="true"]{background:#fff;color:#000}
+.c-crop{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:17px;background:rgba(0,0,0,.6);color:#fff;font-weight:800;font-size:13px}
+</style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=3">
@@ -1338,6 +1348,7 @@ const P={
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.8-2.4 2.2-2.4 3.7M12 17.2v.1"/>',
   block:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
   pin:'<path d="M12 16.5V22M8 3h8l-1.2 6 3.2 4.5H6L9.2 9z"/>',
+  crop:'<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/>',
   link:'<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>',
   camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
@@ -2698,9 +2709,43 @@ function Replay({s,dispatch,open,startId}){
 }
 
 /* ---------- sheets ---------- */
+// crop & resize a photo before posting: pick a shape, pinch or scroll to zoom, drag to frame it
+const CROP_SHAPES=[['orig','Original'],[1,'Square'],[4/5,'4:5'],[3/4,'3:4'],[16/9,'16:9'],[9/16,'9:16']];
+function CropEditor({media,onDone,onClose}){
+  const [img,setImg]=useState(null);const [shape,setShape]=useState('orig');const [busy,setBusy]=useState(false);const [vp,setVp]=useState({w:innerWidth,h:innerHeight});
+  const [t,setT]=useState({k:1,tx:0,ty:0});const tr=useRef(t);tr.current=t;const ptrs=useRef(new Map());const g=useRef(null);
+  useEffect(()=>{const im=new Image();im.onload=()=>setImg(im);im.src=media.url;const r=()=>setVp({w:innerWidth,h:innerHeight});addEventListener('resize',r);return()=>removeEventListener('resize',r)},[]);
+  const boxW=Math.min(vp.w-32,640),boxH=vp.h-250;
+  const aspect=img?(shape==='orig'?img.naturalWidth/img.naturalHeight:shape):1;
+  const FW=Math.min(boxW,boxH*aspect),FH=FW/aspect;const base=img?Math.max(FW/img.naturalWidth,FH/img.naturalHeight):1;
+  const clamp=(k,tx,ty)=>{if(!img)return {k,tx,ty};k=Math.max(1,Math.min(6,k));const mx=Math.max(0,(img.naturalWidth*base*k-FW)/2),my=Math.max(0,(img.naturalHeight*base*k-FH)/2);return {k,tx:Math.max(-mx,Math.min(mx,tx)),ty:Math.max(-my,Math.min(my,ty))}};
+  useEffect(()=>{setT({k:1,tx:0,ty:0})},[shape,img]);
+  const snap=()=>{const p=[...ptrs.current.values()];if(!p.length){g.current=null;return}const c=p.length>1?{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2}:p[0];g.current={n:p.length,c,d:p.length>1?Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y):0,s:{...tr.current}}};
+  const down=e=>{e.currentTarget.setPointerCapture&&e.currentTarget.setPointerCapture(e.pointerId);ptrs.current.set(e.pointerId,{x:e.clientX,y:e.clientY});snap()};
+  const move=e=>{if(!ptrs.current.has(e.pointerId))return;ptrs.current.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...ptrs.current.values()];const G=g.current;if(!G||G.n!==p.length)return snap();
+    const c=p.length>1?{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2}:p[0];const d=p.length>1?Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y):0;
+    setT(clamp(G.d&&d?G.s.k*d/G.d:G.s.k,G.s.tx+c.x-G.c.x,G.s.ty+c.y-G.c.y))};
+  const up=e=>{ptrs.current.delete(e.pointerId);snap()};
+  const wheel=e=>{e.preventDefault();const v=tr.current;setT(clamp(v.k*Math.exp(-e.deltaY/300),v.tx,v.ty))};
+  const box=useRef();useEffect(()=>{const el=box.current;if(!el)return;el.addEventListener('wheel',wheel,{passive:false});return()=>el.removeEventListener('wheel',wheel)});
+  const done=()=>{if(!img)return;setBusy(true);const s=base*t.k,W=img.naturalWidth,H=img.naturalHeight;
+    const cw=Math.min(W,FW/s),ch=Math.min(H,FH/s);const x=Math.max(0,Math.min(W-cw,W/2-t.tx/s-cw/2)),y=Math.max(0,Math.min(H-ch,H/2-t.ty/s-ch/2));
+    const sc=Math.min(1,2160/cw);const c=document.createElement('canvas');c.width=Math.round(cw*sc);c.height=Math.round(ch*sc);
+    const x2=c.getContext('2d');x2.imageSmoothingQuality='high';x2.drawImage(img,x,y,cw,ch,0,0,c.width,c.height);
+    c.toBlob(b=>{if(!b){setBusy(false);return}onDone(readFile(new File([b],'photo.jpg',{type:'image/jpeg'})))},'image/jpeg',.9)};
+  return html`<div className="crop-ed" role="dialog" aria-label="Crop photo">
+    <div className="crop-top"><button onClick=${onClose}>Cancel</button><b>Crop</b><button className="btn orange sm" disabled=${busy||!img} onClick=${done}>${busy?'One sec…':'Done'}</button></div>
+    <div className="crop-stage" ref=${box} onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}>
+      ${img&&html`<div className="crop-frame" style=${{width:FW,height:FH}}>
+        <img src=${media.url} alt="" draggable=${false} style=${{width:img.naturalWidth*base,height:img.naturalHeight*base,left:(FW-img.naturalWidth*base)/2,top:(FH-img.naturalHeight*base)/2,transform:`translate(${t.tx}px,${t.ty}px) scale(${t.k})`}}/>
+        <i className="crop-grid"></i></div>`}</div>
+    <p className="crop-tip">Pinch or scroll to zoom · drag to move</p>
+    <div className="crop-shapes">${CROP_SHAPES.map(([v,l])=>html`<button key=${l} aria-pressed=${shape===v} onClick=${()=>setShape(v)}>${l}</button>`)}</div>
+  </div>`;
+}
 function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
   const [reel,setReel]=useState(!!startReel&&!quoteOf);const [gifOpen,setGifOpen]=useState(false);
-  const [text,setText]=useState('');const [media,setMedia]=useState(null);const [nsfw,setNsfw]=useState(false);const [err,setErr]=useState(null);const fileRef=useRef();
+  const [text,setText]=useState('');const [media,setMedia]=useState(null);const [crop,setCrop]=useState(false);const [nsfw,setNsfw]=useState(false);const [err,setErr]=useState(null);const fileRef=useRef();
   const max=280,over=text.length>max,ok=(reel?(text.trim()||(media&&media.type==='video')):(text.trim()||media||quoteOf))&&!over;
   const adult=isAdult(s),plus=s.users.me.plus;
   const pick=acc=>{fileRef.current.accept=acc;fileRef.current.click()};
@@ -2714,7 +2759,9 @@ function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
         <label htmlFor="compose-text" className="vh">Post</label>
         <textarea id="compose-text" placeholder=${reel?'Caption, or a take to animate':'What’s your take?'} value=${text} onChange=${e=>{setText(e.target.value);setErr(null)}}></textarea>
         ${media&&html`<div className="c-preview"><div className="media">${media.type==='video'?html`<video src=${media.url} controls playsInline muted></video>`:html`<img src=${media.url} alt="" />`}${media.gif&&html`<span className="gif-tag">GIF</span>`}</div>
-          <button className="c-remove" aria-label="Remove" onClick=${()=>setMedia(null)}><${Icon} n="x" s=${16}/></button></div>`}
+          <button className="c-remove" aria-label="Remove" onClick=${()=>setMedia(null)}><${Icon} n="x" s=${16}/></button>
+          ${media.type==='image'&&!media.gif&&html`<button className="c-crop" onClick=${()=>setCrop(true)}><${Icon} n="crop" s=${15}/>Crop</button>`}</div>`}
+        ${crop&&media&&html`<${CropEditor} media=${media} onClose=${()=>setCrop(false)} onDone=${m=>{setMedia(m);setCrop(false)}}/>`}
         ${quoteOf&&html`<${QuoteCard} id=${quoteOf} s=${s} open=${{post:()=>{},replay:()=>{}}}/>`}
         <${ModError} err=${err} open=${{plus:()=>{onClose();open.plus()}}}/>
       </div></div>
@@ -2726,7 +2773,7 @@ function Composer({s,dispatch,onClose,startReel,open,quoteOf}){
         ${reel&&html`<button className="tool-rec" onClick=${()=>{onClose();open.record('replay')}}><span className="rec-dot"></span>Record</button>`}
         <button onClick=${()=>pick('video/*')}><${Icon} n="video" s=${19}/>${reel?'Upload':'Video'}</button>
         ${adult&&s.users.me.plus&&html`<button className=${nsfw?'tool-on':''} aria-pressed=${nsfw} onClick=${()=>setNsfw(!nsfw)}>18+</button>`}
-        <input ref=${fileRef} id="compose-file" type="file" className="vh" onChange=${e=>{const f=e.target.files[0];if(f)setMedia(readFile(f));e.target.value=''}}/>
+        <input ref=${fileRef} id="compose-file" type="file" className="vh" onChange=${e=>{const f=e.target.files[0];if(f){const m=readFile(f);setMedia(m);if(m.type==='image'&&!m.gif)setCrop(true)}e.target.value=''}}/>
       </div>
       <span className=${'count'+(over?' over':'')}>${max-text.length}</span>
     </div>

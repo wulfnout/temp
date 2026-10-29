@@ -60,7 +60,7 @@ export function ProfileScreen({ id, isTab }) {
             </View>
             </View>
             {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
-            {!blocked && u.thought ? <View style={{ position: 'absolute', left: 118, right: 0, top: '100%', marginTop: 4 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
+            {!blocked && u.thought ? <View style={{ position: 'absolute', left: 128, right: 0, top: 54 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
           </View>
           <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
           <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
@@ -329,9 +329,9 @@ function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
               <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
               {body}</View></LinearGradient>}
       </Animated.View>
-      <Bub size={15} style={[{ left: -8, top: -12 }, y(0.6)]} />
-      <Bub size={10} style={[{ left: -20, top: -26 }, y(1.2)]} />
-      <Bub size={6} style={[{ left: -28, top: -37 }, y(1.8)]} />
+      <Bub size={14} style={[{ left: -13, top: 22 }, y(0.6)]} />
+      <Bub size={9} style={[{ left: -23, top: 13 }, y(1.2)]} />
+      <Bub size={6} style={[{ left: -29, top: 6 }, y(1.8)]} />
     </Pressable>
   );
 }

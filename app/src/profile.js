@@ -60,7 +60,7 @@ export function ProfileScreen({ id, isTab }) {
             </View>
             </View>
             {/* lingering thought: fills the open space beside your name; the bubble trail drops from your picture */}
-            {!blocked && u.thought ? <View style={{ position: 'absolute', left: 118, right: 0, top: '100%', marginTop: 16 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
+            {!blocked && u.thought ? <View style={{ position: 'absolute', left: 118, right: 0, top: '100%', marginTop: 4 }}><ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /></View> : null}
           </View>
           <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
           <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
@@ -282,27 +282,52 @@ export function EarningsScreen() {
 
 /* ---------------- lingering thoughts ---------------- */
 // a short daily thought floating on your profile like a see-through bubble, with a three-bubble tail toward your picture
+// bubble styles: Orange (default) and Blackout are free; Bubble is the only one with the soap-film shine
+export const BUBBLES = [['orange', 'Orange', 0], ['blackout', 'Blackout', 0], ['bubble', 'Bubble', 300], ['gold', 'Gold', 400], ['ice', 'Ice', 200], ['neon', 'Neon', 250], ['midnight', 'Midnight', 250]];
+function bubbleLook(id, C) {
+  switch (id) {
+    case 'blackout': return C.dark ? { fill: ['#ffffff', '#ffffff'], ink: '#0a0a0a', dot: '#ffffff' } : { fill: ['#0a0a0a', '#0a0a0a'], ink: '#ffffff', dot: '#0a0a0a' };
+    case 'gold': return { fill: ['#fff1b8', '#f2c94c', '#c9962a', '#f7d774'], ink: '#3d2a00', dot: '#e4b545' };
+    case 'ice': return { fill: ['#eef8ff', '#cfe9fb', '#a9d6f5'], ink: '#0d3a57', dot: '#bfe0f6' };
+    case 'neon': return { fill: ['#ff2bd6', '#8a5cff'], ink: '#ffffff', dot: '#c443eb', glow: '#ff2bd6' };
+    case 'midnight': return { fill: ['#2c3a7a', '#141b3a', '#0b1026'], ink: '#ffffff', dot: '#1b2350' };
+    case 'bubble': return null;
+    default: return { fill: ['#ff8a2b', '#ff5500', '#ff4500'], ink: '#0a0a0a', dot: '#ff6a10' };
+  }
+}
+export function BubbleChip({ id, label, small, on, onPress }) {
+  const { C } = useApp(); const L = bubbleLook(id, C);
+  const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
+  return <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ selected: !!on }} style={{ borderRadius: 18, borderWidth: on ? 2.5 : 0, borderColor: C.ink, padding: on ? 2 : 0 }}>
+    <LinearGradient colors={L ? (L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]) : RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 15, padding: L ? 0 : 1.6 }}>
+      <View style={{ borderRadius: 14, paddingHorizontal: 14, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: L ? 'transparent' : 'rgba(255,255,255,.7)' }}>
+        <T d style={{ fontSize: 13, color: L ? L.ink : '#1a1030' }}>{label}</T>{small ? <T b style={{ fontSize: 11, color: L ? L.ink : '#1a1030', opacity: 0.8 }}>{small}</T> : null}</View>
+    </LinearGradient></Pressable>;
+}
 function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
   const { C } = useApp(); const t = u.thought; const bob = useRef(new Animated.Value(0)).current;
-  useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(bob, { toValue: 1, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true }), Animated.timing(bob, { toValue: 0, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
+  useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(bob, { toValue: 1, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }), Animated.timing(bob, { toValue: 0, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
   const y = (d) => ({ transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -4 + d] }) }] });
-  // soap-bubble look: a thin rainbow film for the rim, a see-through middle with a faint sheen and a highlight
+  const L = bubbleLook(u.thoughtStyle, C);
   const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
   const film = C.dark ? 'rgba(30,30,40,.62)' : 'rgba(255,255,255,.66)';
+  const ink = L ? L.ink : C.ink;
   const Bub = ({ size, style }) => <Animated.View style={[{ position: 'absolute', width: size, height: size, borderRadius: size }, style]}>
-    <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, borderRadius: size, padding: 1.4 }}><View style={{ flex: 1, borderRadius: size, backgroundColor: film }} /></LinearGradient></Animated.View>;
+    {L ? <View style={{ flex: 1, borderRadius: size, backgroundColor: L.dot }} />
+      : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, borderRadius: size, padding: 1.4 }}><View style={{ flex: 1, borderRadius: size, backgroundColor: film }} /></LinearGradient>}</Animated.View>;
   const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
+  const body = <>
+    {t ? <T style={{ fontFamily: L ? F.display : F.bold, fontSize: L ? 14.5 : 14.5, lineHeight: 19, letterSpacing: L ? -0.3 : 0, color: ink }}>{t.text}</T> : null}
+    {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5, color: ink }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}</>;
   return (
-    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Add a lingering thought'} style={{ marginTop: top }}>
-      <Animated.View style={[{ borderRadius: 22, shadowColor: '#5a3ca0', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }, y(0)]}>
-        <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 1.6 }}>
-          <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 16, paddingVertical: 11, overflow: 'hidden' }}>
-            <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-            <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
-            {t ? <T h style={{ fontSize: 14.5, lineHeight: 19 }}>{t.text}</T> : <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Ionicons name="add" size={15} color={C.muted} /><T h muted style={{ fontSize: 14.5 }}>Lingering thought…</T></View>}
-            {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5 }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}
-          </View>
-        </LinearGradient>
+    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Lingering thought'} style={{ marginTop: top }}>
+      <Animated.View style={[{ borderRadius: 22, shadowColor: L && L.glow ? L.glow : '#000', shadowOpacity: L && L.glow ? 0.5 : 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }, y(0)]}>
+        {L ? <LinearGradient colors={L.fill.length > 1 ? L.fill : [L.fill[0], L.fill[0]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, minHeight: 84, justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 14 }}>{body}</LinearGradient>
+          : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 1.6 }}>
+            <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 18, paddingVertical: 14, minHeight: 81, justifyContent: 'center', overflow: 'hidden' }}>
+              <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+              <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
+              {body}</View></LinearGradient>}
       </Animated.View>
       <Bub size={15} style={[{ left: -8, top: -12 }, y(0.6)]} />
       <Bub size={10} style={[{ left: -20, top: -26 }, y(1.2)]} />
@@ -318,6 +343,8 @@ function ThoughtSheet({ u, uid, isMe, onClose }) {
     <Sheet visible onClose={onClose} title={isMe ? 'Your lingering thought' : 'Lingering thought'}>
       {isMe ? <View style={{ gap: 10 }}>
         <T muted>A short thought that floats on your profile for 24 hours. People can react or reply in your DMs.</T>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{BUBBLES.map(([id, name, price]) => { const own = !price || ((s.priv.owned || {}).bubbles || {})[id]; const on = (u.thoughtStyle || 'orange') === id;
+          return <BubbleChip key={id} id={id} label={name} small={own ? null : price + ' pts'} on={on} onPress={() => (own ? run(() => act.thoughtStyle(s.me, id)) : run(async () => { await act.buy('bubbles', id); await act.thoughtStyle(s.me, id); }, { toast: 'Unlocked' }))} />; })}</View>
         <TextInput value={txt} onChangeText={setTxt} maxLength={80} multiline placeholder="What’s on your mind?" placeholderTextColor={C.muted}
           style={{ backgroundColor: C.soft, borderRadius: 16, padding: 14, color: C.ink, fontFamily: F.bold, fontSize: 17, minHeight: 70 }} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><T muted style={{ flex: 1 }}>{80 - txt.length}</T>
@@ -345,11 +372,12 @@ export function ShopScreen() {
   const live = (i) => !i.available_until || new Date(i.available_until) > Date.now(); // limited items leave the shop when their time is up
   const items = s.shop.filter((i) => i.kind === tab && !i.plus_only && live(i));
   const isOwned = (k, id) => !!(owned[k] && owned[k][id]);
-  const using = (k, id) => (k === 'themes' ? (s.priv.theme || 'ember') === id : k === 'rings' ? me.ring === id : k === 'headers' ? me.headerFx === id : k === 'styles' ? (s.priv.settings || {}).btn === id : false);
+  const using = (k, id) => (k === 'themes' ? (s.priv.theme || 'ember') === id : k === 'rings' ? me.ring === id : k === 'headers' ? me.headerFx === id : k === 'styles' ? (s.priv.settings || {}).btn === id : k === 'bubbles' ? (me.thoughtStyle || 'orange') === id : false);
   const Action = ({ k, it, price }) => {
     if (!isOwned(k, it.id) && it.price > 0) return <Btn small kind="orange" title={price + ' pts'} disabled={s.priv.points < price} onPress={() => run(() => act.buy(k, it.id), { toast: 'Unlocked' })} />;
     if (k === 'stickers' || it.id === 'gif' || it.id === 'studio') return <Btn small kind="ghost" title="Owned" disabled />;
     const on = using(k, it.id);
+    if (k === 'bubbles') return <Btn small kind={on ? 'ghost' : 'ink'} title={on ? 'Using' : 'Use'} disabled={on} onPress={() => run(() => act.thoughtStyle(s.me, it.id))} />;
     if (k === 'styles') return <Btn small kind={on ? 'ghost' : 'ink'} title={on ? 'Remove' : 'Use'} onPress={() => run(() => act.settings(s.me, { ...(s.priv.settings || {}), btn: on ? null : it.id }))} />;
     return <Btn small kind={on ? 'ghost' : 'ink'} title={on ? (k === 'themes' ? 'Using' : 'Remove') : 'Use'} onPress={() => run(() => act.equip(s.me, k, on ? (k === 'themes' ? 'ember' : null) : it.id))} />;
   };
@@ -363,6 +391,7 @@ export function ShopScreen() {
     if (k === 'themes') { const c = THEMES[it.id] || THEMES.ember; const g = GLOW[it.id];
       return <View style={g ? { borderRadius: 18, shadowColor: c[0], shadowOpacity: 1, shadowRadius: 16, shadowOffset: { width: 0, height: 0 }, elevation: 10 } : null}><LinearGradient colors={c} style={{ width: 54, height: 54, borderRadius: 18, borderWidth: g ? 2 : 0, borderColor: c[1] }} /></View>; }
     if (k === 'rings') return <Avatar u={{ ...me, ring: it.id }} size={60} />;
+    if (k === 'bubbles') return <BubbleChip id={it.id} label="Hot take" />;
     if (k === 'styles') return <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}><Ionicons name="flame" size={24} color="#ff5500" /><Ionicons name="snow" size={24} color={C.ink} /><Ionicons name="heart-outline" size={24} color={C.ink} /></View>;
     return <HeaderFx id={it.id} fallback={[C.orange, '#0a0a0a']} />;
   };
@@ -388,7 +417,7 @@ export function ShopScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
             {deals.slice(0, 4).map((d) => { const it = s.shop.find((x) => x.kind === d.kind && x.id === d.id); if (!it) return null; return <Card key={d.kind + d.id} k={d.kind} it={it} price={d.price} off={d.off} />; })}
           </View></> : null}
-        <SegTabs items={[['stickers', 'Stickers'], ['themes', 'Themes'], ['rings', 'Rings'], ['headers', 'Headers'], ['styles', 'Icons']]} value={tab} onChange={setTab} size={13} style={{ marginTop: 20, marginBottom: 10 }} />
+        <SegTabs items={[['stickers', 'Stickers'], ['themes', 'Themes'], ['rings', 'Rings'], ['headers', 'Headers'], ['bubbles', 'Bubbles'], ['styles', 'Icons']]} value={tab} onChange={setTab} size={13} style={{ marginTop: 20, marginBottom: 10 }} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
           {items.map((it) => <Card key={it.id} k={tab} it={it} price={it.price} />)}
         </View>

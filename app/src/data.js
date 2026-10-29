@@ -40,7 +40,7 @@ export async function loadAll(myId) {
   const users = {};
   profiles.forEach((p) => {
     users[p.id] = { id: p.id, name: p.name, handle: p.handle, bio: p.bio || '', avatar: p.avatar_url, header: p.header_url, headerFx: p.header_fx,
-      ring: p.ring, stickers: p.stickers || [], isPrivate: p.is_private, pinned: p.pinned_post || null,
+      ring: p.ring, stickers: p.stickers || [], isPrivate: p.is_private, pinned: p.pinned_post || null, thoughtStyle: p.thought_style || 'orange',
       thought: p.thought && p.thought_at && Date.now() - new Date(p.thought_at) < 864e5 ? { text: p.thought, at: +new Date(p.thought_at), reacts: {}, mine: null } : null, color: colorFor(p.id), followers: 0, followingCount: 0, following: false, followsMe: false };
   });
   follows.forEach((f) => {
@@ -103,6 +103,7 @@ export const act = {
   vote: async (postId, pick) => { const { error } = await sb.rpc('vote_poll', { pid: postId, pick }); if (error) throw new Error(error.message); },
   pin: (me, postId) => ok(sb.from('profiles').update({ pinned_post: postId || null }).eq('id', me)),
   mute: (uid, on, me) => (on ? ok(sb.from('mutes').insert({ muted: uid })) : ok(sb.from('mutes').delete().eq('muter', me).eq('muted', uid))),
+  thoughtStyle: (me, id) => ok(sb.from('profiles').update({ thought_style: id || 'orange' }).eq('id', me)),
   thought: (me, text) => ok(sb.from('profiles').update({ thought: text || null }).eq('id', me)),
   thoughtReact: (owner, me, emoji) => (emoji ? ok(sb.from('thought_reactions').upsert({ owner, user_id: me, emoji }, { onConflict: 'owner,user_id' })) : ok(sb.from('thought_reactions').delete().eq('owner', owner).eq('user_id', me))),
   view: (postId) => sb.rpc('add_view', { pid: postId }).then(() => {}, () => {}), // builders only run once awaited/then'd

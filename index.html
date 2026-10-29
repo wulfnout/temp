@@ -157,6 +157,27 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 .thought .t1{left:-8px!important;top:-12px!important;bottom:auto!important}
 .thought .t2{left:-20px!important;top:-26px!important;bottom:auto!important}
 .thought .t3{left:-28px!important;top:-37px!important;bottom:auto!important}
+
+/* lingering thought v4: a touch higher and taller; colour styles (only "Bubble" keeps the soap-film shine) */
+.thought{top:calc(100% + 4px)!important;min-height:84px;padding:14px 18px!important;display:flex!important;flex-direction:column;justify-content:center}
+.thought:not(.ts-bubble){border:0!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 10px 24px rgba(0,0,0,.14)!important}
+.thought:not(.ts-bubble)::after{display:none}
+.thought:not(.ts-bubble) .thought-in{font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:15px;line-height:1.25}
+.thought:not(.ts-bubble) .tt{border:0!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 3px 8px rgba(0,0,0,.12)}
+.ts-orange{background:linear-gradient(135deg,#ff8a2b,#ff5500 60%,#ff4500)!important;color:#0a0a0a!important}.ts-orange .tt{background:#ff6a10!important}
+.ts-blackout{background:#0a0a0a!important;color:#fff!important}.ts-blackout .tt{background:#0a0a0a!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ts-blackout{background:#fff!important;color:#0a0a0a!important}:root:not([data-theme="light"]) .ts-blackout .tt{background:#fff!important}}
+:root[data-theme="dark"] .ts-blackout{background:#fff!important;color:#0a0a0a!important}:root[data-theme="dark"] .ts-blackout .tt{background:#fff!important}
+.ts-gold{background:linear-gradient(135deg,#fff1b8,#f2c94c 35%,#c9962a 70%,#f7d774)!important;color:#3d2a00!important}.ts-gold .tt{background:#e4b545!important}
+.ts-ice{background:linear-gradient(135deg,#eef8ff,#cfe9fb 50%,#a9d6f5)!important;color:#0d3a57!important}.ts-ice .tt{background:#bfe0f6!important}
+.ts-neon{background:linear-gradient(135deg,#ff2bd6,#8a5cff)!important;color:#fff!important;box-shadow:0 0 22px rgba(255,43,214,.45)!important}.ts-neon .tt{background:#c443eb!important}
+.ts-midnight{background:radial-gradient(circle at 80% 20%,#2c3a7a,#141b3a 60%,#0b1026)!important;color:#fff!important}.ts-midnight .tt{background:#1b2350!important}
+.thought.ts-bubble{color:var(--ink)}
+.thought-chip{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:16px;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:-.01em;border:2px solid transparent}
+.thought-chip small{font-family:var(--body,Figtree),system-ui;font-size:11px;opacity:.8}
+.thought-chip.ts-bubble{background:radial-gradient(130% 150% at 22% 12%,rgba(255,255,255,.8),rgba(255,255,255,.5) 40%,rgba(255,255,255,.25)) padding-box,conic-gradient(from 200deg,#ff79c6,#9b7bff,#58c7ff,#6dffd0,#ffe27a,#ff79c6) border-box;color:#1a1030}
+.thought-chip.on{outline:2.5px solid var(--ink);outline-offset:2px}
+.ts-pick{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 12px}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1719,7 +1740,7 @@ async function loadAll(){
   const priv=privRows[0]||{settings:{},points:0,owned:{stickers:{basic:1},themes:{ember:1},rings:{},headers:{}},theme:'ember',custom:[]};
   const users={};
   profiles.forEach(p=>{users[L(p.id)]={id:L(p.id),uid:p.id,name:p.name,handle:p.handle,bio:p.bio||'',color:colorFor(p.id),avatar:p.avatar_url,header:p.header_url,
-    headerFx:p.header_fx,ring:p.ring,pinned:p.pinned_post||null,thought:p.thought&&p.thought_at&&Date.now()-new Date(p.thought_at)<DAY?{text:p.thought,at:+new Date(p.thought_at),reacts:{},mine:null}:null,stickers:p.stickers||[],plus:false,verified:false,followers:0,following:false,followsMe:false,online:false,private:p.is_private}});
+    headerFx:p.header_fx,ring:p.ring,pinned:p.pinned_post||null,thoughtStyle:p.thought_style||'orange',thought:p.thought&&p.thought_at&&Date.now()-new Date(p.thought_at)<DAY?{text:p.thought,at:+new Date(p.thought_at),reacts:{},mine:null}:null,stickers:p.stickers||[],plus:false,verified:false,followers:0,following:false,followsMe:false,online:false,private:p.is_private}});
   if(!users.me)users.me={id:'me',uid:myId,name:'',handle:'',bio:'',color:colorFor(myId),stickers:[],followers:0};
   users.me.birth=priv.birth;
   follows.forEach(f=>{const a=users[L(f.followee)],b=users[L(f.follower)];if(a)a.followers++;if(f.follower===myId&&a)a.following=true;if(f.followee===myId&&b)b.followsMe=true});
@@ -1818,6 +1839,7 @@ async function remote(a,b){
       if(a.kind==='themes')await ok(sb.from('profile_private').update({theme:a.id||'ember'}).eq('id',myId));
       if(a.kind==='rings')await ok(sb.from('profiles').update({ring:a.id}).eq('id',myId));
       if(a.kind==='headers')await ok(sb.from('profiles').update({header_fx:a.id}).eq('id',myId));
+      if(a.kind==='bubbles')await ok(sb.from('profiles').update({thought_style:a.id||'orange'}).eq('id',myId));
       if(a.kind==='styles'){const n=reducer(b,a);await ok(sb.from('profile_private').update({settings:n.settings}).eq('id',myId))}
       return;
     case 'profileSticker':{const n=reducer(b,a);await ok(sb.from('profiles').update({stickers:await Promise.all((n.users.me.stickers||[]).map(stick))}).eq('id',myId));return}
@@ -1986,6 +2008,7 @@ function reducer(s,a){
       if(a.kind==='rings')return {...s,users:{...s.users,me:{...me,ring:a.id}},toast:t};
       if(a.kind==='headers')return {...s,users:{...s.users,me:{...me,headerFx:a.id}},toast:t};
       if(a.kind==='styles')return {...s,settings:{...s.settings,btn:a.id||null},toast:t};
+      if(a.kind==='bubbles')return {...s,users:{...s.users,me:{...me,thoughtStyle:a.id||'orange'}},toast:t};
       return s}
     default: return s;
   }
@@ -2051,6 +2074,8 @@ const SHOP={
   rings:[{id:'fire',name:'Fire',price:200},{id:'ice',name:'Ice',price:200},{id:'morph',name:'Morph',price:300},{id:'gold',name:'Gold',price:400},{id:'glitch',name:'Glitch',price:500},{id:'plus',name:'Temp+',plusOnly:true}],
   // button looks: the default die-cut icons, or Clean Icons (bare outlines)
   styles:[{id:'clean',name:'Clean Icons',price:250}],
+  // lingering thought bubbles: Orange and Blackout are free
+  bubbles:[{id:'orange',name:'Orange',price:0},{id:'blackout',name:'Blackout',price:0},{id:'bubble',name:'Bubble',price:300},{id:'gold',name:'Gold',price:400},{id:'ice',name:'Ice',price:200},{id:'neon',name:'Neon',price:250},{id:'midnight',name:'Midnight',price:250}],
   headers:[{id:'templogo',name:'Temp Logo',price:0},{id:'lava',name:'Lava',price:250},{id:'aurora',name:'Aurora',price:250},{id:'static',name:'Static',price:350},{id:'embers',name:'Embers',price:350},
     {id:'hazard',name:'Hazard',price:300},{id:'sunburst',name:'Sunburst',price:350},{id:'snow',name:'Snowstorm',price:350},{id:'thermal',name:'Thermal Cam',price:450},
     {id:'disco',name:'Disco Inferno',price:450},{id:'checker',name:'Checkered Flag',price:300},{id:'synth',name:'Synthwave',price:550},{id:'rain',name:'Rain',price:450},
@@ -3045,7 +3070,7 @@ function PollBox({p,dispatch}){
 const THOUGHT_REACTS=['🔥','😂','😮','🧊','💯','👀'];
 function ThoughtBubble({u,isMe,onOpen}){
   const t=u.thought;const rs=t?Object.entries(t.reacts).sort((a,b)=>b[1]-a[1]).slice(0,3):[];
-  return html`<button className=${'thought'+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
+  return html`<button className=${'thought ts-'+(u.thoughtStyle||'orange')+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
     <i className="tt t1"></i><i className="tt t2"></i><i className="tt t3"></i>
     <span className="thought-in">${t?t.text:html`<${Icon} n="plus" s=${14} w=${2.6}/>Lingering thought…`}</span>
     ${rs.length>0&&html`<span className="thought-rx">${rs.map(([e,n])=>html`<span key=${e}>${e}${n>1?n:''}</span>`)}</span>`}</button>`;
@@ -3055,6 +3080,8 @@ function ThoughtSheet({u,s,dispatch,onClose}){
   return html`<${Sheet} onClose=${onClose} label="Lingering thought">
     ${isMe?html`<h3 style=${{marginTop:0}}>Your lingering thought</h3>
       <p className="sub" style=${{marginTop:-6}}>A short thought that floats on your profile for 24 hours. People can react or reply in your DMs.</p>
+      <div className="ts-pick" role="radiogroup" aria-label="Bubble style">${SHOP.bubbles.map(b=>{const own=b.price===0||(s.owned.bubbles||{})[b.id];const on=(u.thoughtStyle||'orange')===b.id;
+        return html`<button key=${b.id} role="radio" aria-checked=${on} className=${'thought-chip ts-'+b.id+(on?' on':'')} onClick=${()=>own?dispatch({type:'equip',kind:'bubbles',id:b.id}):(s.points>=b.price?dispatch({type:'buy',kind:'bubbles',id:b.id,price:b.price}):dispatch({type:'toast',msg:'Not enough points'}))}>${b.name}${!own&&html`<small>${b.price}</small>`}</button>`})}</div>
       <textarea className="thought-ta" maxLength=${80} rows=${2} value=${txt} placeholder="What’s on your mind?" onInput=${e=>setTxt(e.target.value)} aria-label="Lingering thought"></textarea>
       <div style=${{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}><span className="sub">${80-txt.length}</span>
         <div style=${{display:'flex',gap:8}}>${t&&html`<button className="btn ghost" onClick=${()=>{dispatch({type:'thought',text:null});onClose()}}>Clear</button>`}
@@ -3505,6 +3532,7 @@ function ShopPreview({kind,it,s}){
   if(kind==='stickers')return it.studio?html`<div className="pv"><${Sticker} v="T|YOUR TEXT|y" size=${44}/></div>`:(it.items.some(e=>e.startsWith('T|'))?html`<div className="pv pv-stk">${it.items.filter(e=>e.startsWith('T|')).slice(0,2).map((e,i)=>html`<${Sticker} key=${i} v=${e} size=${26}/>`)}</div>`:html`<div className="pv" style=${{gap:6,gridAutoFlow:'column'}}>${it.items.slice(0,3).map((e,i)=>html`<${Sticker} key=${i} v=${e} size=${30}/>`)}</div>`);
   if(kind==='themes')return html`<div className="pv"><span className=${it.glow?'glow-sw':''} style=${{width:56,height:56,borderRadius:18,background:`linear-gradient(135deg,${it.c[0]},${it.c[1]})`,'--sw':it.c[0]}}></span></div>`;
   if(kind==='rings')return html`<div className="pv"><${Avatar} u=${{...s.users.me,ring:it.id}} size=${64}/></div>`;
+  if(kind==='bubbles')return html`<div className="pv"><span className=${'thought-chip ts-'+it.id}>Hot take</span></div>`;
   if(kind==='styles')return html`<div className="pv pv-icons"><span className="react heat on"><${Icon} n="flame" s=${20} w=${2.3} fill="currentColor"/></span><span className="react freeze"><${Icon} n="snow" s=${20} w=${2.3}/></span><span className="circle"><${Icon} n="heart" s=${20}/></span></div>`;
   if(it.id==='gif')return html`<div className="pv fx-lava"><span style=${{fontFamily:'var(--display)',fontWeight:800,color:'#fff',fontSize:24}}>GIF</span></div>`;
   return html`<div className=${'pv fx-'+it.id}><${HeaderArt} id=${it.id}/></div>`;
@@ -3516,7 +3544,7 @@ function dealsFor(s){
 
 function ShopView({s,dispatch,open}){
   const [tab,setTab]=useState('stickers');const [pack,setPack]=useState(null);const [studio,setStudio]=useState(false);const me=s.users.me;
-  const equipped=(k,id)=>k==='themes'?s.theme===id:k==='rings'?me.ring===id:k==='headers'?me.headerFx===id:k==='styles'?s.settings.btn===id:false;
+  const equipped=(k,id)=>k==='bubbles'?(me.thoughtStyle||'orange')===id:k==='themes'?s.theme===id:k==='rings'?me.ring===id:k==='headers'?me.headerFx===id:k==='styles'?s.settings.btn===id:false;
   const owns=(k,it)=>it.price===0||(s.owned[k]||{})[it.id]||(it.plusOnly&&me.plus);
   const action=(k,it,price)=>{
     if(WEB_LITE)return html`<button className="btn ghost sm" onClick=${()=>getApp('Fire Sale looks are used in the app')}>${owns(k,it)?'In the app':price+' pts · App'}</button>`;
@@ -3525,6 +3553,7 @@ function ShopView({s,dispatch,open}){
     if(!owns(k,it))return html`<button className="btn orange sm" disabled=${s.points<price} onClick=${()=>dispatch({type:'buy',kind:k,id:it.id,price})}>${price} pts</button>`;
     if(it.studio)return html`<button className="btn sm" onClick=${()=>setStudio(true)}>Open studio</button>`;
     if(k==='stickers'||it.id==='gif')return html`<button className="btn ghost sm" disabled>Owned</button>`;
+    if(k==='bubbles')return html`<button className=${'btn sm'+(eq?' ghost':'')} disabled=${eq} onClick=${()=>dispatch({type:'equip',kind:k,id:it.id})}>${eq?'Using':'Use'}</button>`;
     return html`<button className=${'btn sm'+(eq?' ghost':'')} onClick=${()=>dispatch({type:'equip',kind:k,id:eq?(k==='themes'?'ember':null):it.id})}>${eq?(k==='themes'?'Using':'Remove'):'Use'}</button>`;
   };
   const deals=dealsFor(s);
@@ -3541,7 +3570,7 @@ function ShopView({s,dispatch,open}){
     <div className="deal-head" id="packs"><h3>Points</h3></div>
     <div className="packs">${PACKS.map(p=>html`<button className="pack" key=${p.n} disabled style=${{opacity:.6,cursor:'default'}}>${p.tag&&html`<span className="tag">${p.tag}</span>`}
       <b><span style=${{color:'var(--orange)',display:'inline-flex'}}><${Icon} n="flame" s=${18} w=${2.4} fill="currentColor"/></span>${p.n.toLocaleString()}</b><span className="usd">${p.usd} · Coming soon</span></button>`)}</div>
-    <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers'],['styles','Icons']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
+    <div className="seg" style=${{marginTop:22}}>${[['stickers','Stickers'],['themes','Themes'],['rings','Rings'],['headers','Headers'],['bubbles','Bubbles'],['styles','Icons']].map(([k,l])=>html`<button key=${k} aria-pressed=${tab===k} onClick=${()=>setTab(k)}>${l}</button>`)}</div>
     <div className="shop-grid">${SHOP[tab].filter(it=>!it.until||new Date(it.until)>Date.now()).map(it=>html`<div className="item" key=${it.id}><${ShopPreview} kind=${tab} it=${it} s=${s}/>${it.until&&html`<span className="ltd">${it.drop?'✨ New · ':'🎃 '}${Math.max(0,Math.ceil((new Date(it.until)-Date.now())/864e5))}d left</span>`}<div className="nm"><span>${it.name}</span></div>${action(tab,it,it.price)}</div>`)}</div>
     ${studio&&html`<${StickerStudio} s=${s} dispatch=${dispatch} onClose=${()=>setStudio(false)}/>`}
     ${pack&&html`<${Sheet} onClose=${()=>setPack(null)} label="Buy points"><h3>${pack.n.toLocaleString()} points</h3>

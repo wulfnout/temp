@@ -69,7 +69,7 @@ export function ProfileScreen({ id, isTab }) {
               <T muted style={{ fontSize: 15 }}>@{u.handle}{!isMe && u.followsMe ? ' · Follows you' : ''}</T>
               {u.bio ? <T style={{ marginTop: 10 }}>{u.bio}</T> : null}
             </View>
-            {!blocked && u.thought ? <View style={{ width: '63%', marginRight: -10, marginTop: isMe ? -66 : 0 }}><ThoughtBubble u={u} isMe={isMe} tall={isMe ? 228 : 168} onOpen={() => setThought(true)} /></View> : null}
+            {!blocked && u.thought ? <View style={{ width: '60%', marginTop: isMe ? -66 : 0 }}><ThoughtBubble u={u} isMe={isMe} tall={isMe ? 228 : 168} onOpen={() => setThought(true)} /></View> : null}
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
             {[[all.length, 'Posts'], [u.followers, 'Followers'], [u.followingCount, 'Following']].map(([n, l]) => (
@@ -316,9 +316,9 @@ function ThoughtBubble({ u, isMe, onOpen, top = 0, tall = 168 }) {
   const { C } = useApp(); const t = u.thought; const k = useRef(new Animated.Value(0)).current;
   // drifts very slowly in place: a gentle stretch and tilt, never floating away
   useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(k, { toValue: 1, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }), Animated.timing(k, { toValue: 0, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
-  const drift = { transform: [{ rotate: k.interpolate({ inputRange: [0, 1], outputRange: ['-0.8deg', '0.8deg'] }) }, { scaleX: k.interpolate({ inputRange: [0, 1], outputRange: [1, 0.985] }) }, { scaleY: k.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1] }) }] };
-  const ORB = { borderTopLeftRadius: 70, borderTopRightRadius: 48, borderBottomRightRadius: 78, borderBottomLeftRadius: 54 }; // the orbs' squarish blob shape
-  const ORBi = { borderTopLeftRadius: 68, borderTopRightRadius: 46, borderBottomRightRadius: 76, borderBottomLeftRadius: 52 };
+  const drift = { transform: [{ scale: k.interpolate({ inputRange: [0, 1], outputRange: [1, 0.985] }) }] };
+  const ORB = { borderRadius: 26 }; // same rounded corners as the app's cards
+  const ORBi = { borderRadius: 24.5 };
   const L = bubbleLook(u.thoughtStyle, C);
   const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
   const film = C.dark ? 'rgba(30,30,40,.62)' : 'rgba(255,255,255,.66)';
@@ -334,7 +334,7 @@ function ThoughtBubble({ u, isMe, onOpen, top = 0, tall = 168 }) {
           : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...ORB, padding: 1.6 }}>
             <View style={{ ...ORBi, backgroundColor: film, paddingHorizontal: 26, paddingVertical: 22, minHeight: tall - 3, justifyContent: 'center', overflow: 'hidden' }}>
               <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-              <View pointerEvents="none" style={{ position: 'absolute', left: 26, top: 7, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
+              <View pointerEvents="none" style={{ position: 'absolute', left: 18, top: 7, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
               {body}</View></LinearGradient>}
       </Animated.View>
     </Pressable>

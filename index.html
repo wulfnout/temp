@@ -215,6 +215,15 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 
 /* reflamed v3: a still, solid orange orb-shaped layer behind the card */
 .post.reflamed{box-shadow:0 0 0 10px var(--orange)!important;animation:none!important;border-radius:34px 22px 38px 24px!important;margin:18px 10px 28px!important}
+
+/* story ring: the outline slowly morphs like liquid while the colour rotates round it; the picture stays round and still */
+.orb:not(.store):not(.uploading){animation:morph 11s ease-in-out infinite,spin 7s linear infinite}
+.orb.seen:not(.store):not(.uploading){animation:morph 11s ease-in-out infinite,spin 14s linear infinite}
+/* lingering thought: a plain rounded card like the rest of the app, inside the page edges */
+.prof-idrow .thought{flex:0 0 60%!important;max-width:60%!important;margin:0!important;border-radius:26px!important}
+.prof-id.is-me .prof-idrow .thought{margin-top:-22px!important}
+@keyframes tdrift{0%,100%{transform:scale(1)}50%{transform:scale(.985)}}
+.prof-idrow .thought::after{left:18px}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">

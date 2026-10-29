@@ -81,14 +81,41 @@ export function Drawer({ onClose, at, onEdit }) {
 }
 
 /* ---------------- home ---------------- */
+// For you / Following lives in the logo (and the Replay title): tap it to switch feeds
+const feedSubs = {};
+function useFeedPref(key) {
+  const [v, setV] = useState('foryou');
+  useEffect(() => { AsyncStorage.getItem(key).then((x) => { if (x) setV(x); }).catch(() => {}); (feedSubs[key] = feedSubs[key] || new Set()).add(setV); return () => feedSubs[key].delete(setV); }, [key]);
+  return [v, (n) => { AsyncStorage.setItem(key, n).catch(() => {}); (feedSubs[key] || new Set([setV])).forEach((f) => f(n)); }];
+}
+function FeedSwitch({ value, onChange, dark, children }) {
+  const { C } = useApp(); const [open, setOpen] = useState(false);
+  return (
+    <View style={{ zIndex: 50 }}>
+      <Pressable onPress={() => setOpen(!open)} accessibilityLabel={'Showing ' + (value === 'following' ? 'Following' : 'For you') + '. Switch feed'} style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
+        {children}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20, marginBottom: 5, backgroundColor: dark ? 'rgba(255,255,255,.16)' : C.dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.06)' }}>
+          <T h style={{ fontSize: 13, color: dark ? 'rgba(255,255,255,.85)' : C.muted }}>{value === 'following' ? 'Following' : 'For you'}</T>
+          <Ionicons name="chevron-down" size={13} color={dark ? 'rgba(255,255,255,.85)' : C.muted} /></View>
+      </Pressable>
+      {open ? <View style={{ position: 'absolute', top: '100%', left: 0, marginTop: 8, width: 250, backgroundColor: C.card, borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 14 }}>
+        {[['foryou', 'For you', 'Hottest and newest from everyone'], ['following', 'Following', 'Only people you follow']].map(([k, l, d]) => (
+          <Pressable key={k} onPress={() => { onChange(k); setOpen(false); }} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, backgroundColor: pressed ? C.soft : 'transparent' })}>
+            <View style={{ flex: 1 }}><T h style={{ fontSize: 16 }}>{l}</T><T muted style={{ fontSize: 13, marginTop: 2 }}>{d}</T></View>
+            {value === k ? <Ionicons name="checkmark" size={20} color={C.orange} /> : null}</Pressable>))}
+      </View> : null}
+    </View>
+  );
+}
+
 export function HomeScreen() {
   const { s, C, nav, reload, run } = useApp(); const ins = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
-  const [feed, setFeed] = useState('foryou');
-  useEffect(() => { AsyncStorage.getItem('temp-feed').then((v) => { if (v) setFeed(v); }).catch(() => {}); }, []);
-  const pickFeed = (v) => { setFeed(v); AsyncStorage.setItem('temp-feed', v).catch(() => {}); };
+  const [feed, pickFeed] = useFeedPref('temp-feed');
   // For you: everything, hottest and newest first. Following: just the people you follow (and you), newest first
-  const base = s.posts.filter((p) => !p.reel && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId]));
+  // burned takes leave the feed; a quote of a burned take goes too if the quote was all it had
+  const base = s.posts.filter((p) => !p.reel && p.status !== 'gone' && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId])
+    && !(p.quoteOf && !p.text && !p.mediaUrl && !p.poll && !s.posts.some((q) => q.id === p.quoteOf && q.status !== 'gone')));
   const score = (p) => p.heat * 3 - p.freeze * 2 + p.comments.length * 2 + (p.reposts || 0) * 4 - (Date.now() - p.createdAt) / 36e5;
   const posts = feed === 'following' ? base.filter((p) => p.userId === s.me || (s.users[p.userId] || {}).following) : [...base].sort((a, b) => score(b) - score(a));
   const unreadN = s.notifs.filter((n) => !n.read).length, unreadDM = Object.keys(s.unread).filter((k) => !s.blocked[k]).length;
@@ -111,7 +138,7 @@ export function HomeScreen() {
       <Animated.View onLayout={(e) => setHh(e.nativeEvent.layout.height)} style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5, backgroundColor: C.bg, paddingTop: ins.top + 8, paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', alignItems: 'center',
         transform: [{ translateY: bars.interpolate({ inputRange: [0, 1], outputRange: [0, -hh] }) }] }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, flex: 1 }}>
-          <T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6, ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } } : null) }} /></View>
+          <FeedSwitch value={feed} onChange={pickFeed}><View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3 }}><T d style={{ fontSize: 27, letterSpacing: -1.3 }}>temp</T><View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: C.orange, marginBottom: 6, ...(C.glow ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } } : null) }} /></View></FeedSwitch></View>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <IconBtn solid="heart" name="heart" label="Activity" badge={unreadN || null} onPress={() => nav.push('activity')} />
           <IconBtn solid="dm" name="chatbubble" label="Messages" badge={unreadDM || null} onPress={() => nav.push('dms')} />
@@ -134,8 +161,7 @@ export function HomeScreen() {
               <View key={st.userId} style={{ alignItems: 'center', gap: 6 }}>
                 <StoryOrb u={u} seen={!unseen(st)} onPress={() => nav.sheet('story', { userId: st.userId })} label={'Story from @' + u.handle} />
                 <T b muted numberOfLines={1} style={{ fontSize: 12, maxWidth: 76 }}>{u.handle}</T></View>); })}
-          </ScrollView>
-          <SegTabs items={[['foryou', 'For you'], ['following', 'Following']]} value={feed} onChange={pickFeed} style={{ marginBottom: 12 }} /></>}
+          </ScrollView></>}
         ListHeaderComponentStyle={{ gap: 0 }}
         ListEmptyComponent={<Empty text={!s.loaded ? 'Loading…' : feed === 'following' ? 'Follow people to see their takes here' : 'Nothing here yet. Tap + to post the first take.'} />}
         extraData={onScreen} renderItem={({ item }) => <PostCard p={item} active={!!onScreen[item.id]} />} />
@@ -177,7 +203,8 @@ export function ReplayScreen({ startId }) {
     onPanResponderRelease: (e, d) => { if (d.dx > 70 || d.vx > 0.5) nav.leaveReplay(); },
     onPanResponderTerminationRequest: () => false,
   })).current;
-  const reels0 = s.posts.filter((p) => p.reel && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId]));
+  const [rfeed, pickRfeed] = useFeedPref('temp-rfeed');
+  const reels0 = s.posts.filter((p) => p.reel && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId]) && (rfeed !== 'following' || p.userId === s.me || (s.users[p.userId] || {}).following));
   // live creators slot in after the 2nd Replay, then every 5 — like TikTok
   const lives = useLiveNow().filter((x) => !s.blocked[x.host_id]);
   const reels = React.useMemo(() => { const out = []; let li = 0;
@@ -196,7 +223,7 @@ export function ReplayScreen({ startId }) {
         ListEmptyComponent={<View style={{ height: H, alignItems: 'center', justifyContent: 'center' }}><T b style={{ color: '#fff' }}>No Replays yet. Tap + to post one.</T></View>}
         renderItem={({ item }) => item.live ? <LiveCard x={item.live} h={H} onOpen={() => nav.push('golive', { stream: item.live.id })} /> : <Reel p={item} h={H} active={item.id === active} />} /> : null}
       <View pointerEvents="box-none" style={{ position: 'absolute', top: ins.top + 10, left: 16, right: 16, flexDirection: 'row', alignItems: 'center' }}>
-        <T d style={{ color: '#fff', fontSize: 22, letterSpacing: -1, flex: 1 }}>Replay</T>
+        <View style={{ flex: 1 }}><FeedSwitch value={rfeed} onChange={pickRfeed} dark><T d style={{ color: '#fff', fontSize: 22, letterSpacing: -1 }}>Replay</T></FeedSwitch></View>
         <IconBtn name="videocam-outline" color="#fff" label="New Replay" style={{ backgroundColor: 'rgba(255,255,255,.14)' }} onPress={() => nav.sheet('compose', { reel: true })} />
       </View>
     </View>

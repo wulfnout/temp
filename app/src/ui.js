@@ -162,10 +162,7 @@ export function StickerPicker({ onPick }) {
 export function Timer({ p }) {
   const { C } = useApp(); const now = useNow(1000);
   if (p.status === 'frozen') return <Pill bg={C.ink} fg={C.bg} icon="snow" text="Frozen" />;
-  // reflamed: the Reflame icon in a small orange orb
-  if (p.kept && (p.reposts > 0 || p.quoteOf)) return <View accessibilityLabel="Reflamed" style={{ width: 28, height: 28, borderRadius: 14, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#ff5500', shadowOpacity: C.mono ? 0 : 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } }}>
-    <LinearGradient colors={C.mono ? [C.orange, C.orange] : ['#ffc061', '#ff7a1a', '#ff4500']} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-    <Ionicons name="flame-outline" size={15} color={C.mono ? C.onOrange : '#fff'} /><Ionicons name="repeat" size={9} color={C.mono ? C.onOrange : '#fff'} style={{ position: 'absolute', right: 5, bottom: 4 }} /></View>;
+  if (p.kept) return null; // reflamed takes get a thin theme outline around the post instead
   return null;
 }
 function Pill({ bg, fg, icon, text }) {

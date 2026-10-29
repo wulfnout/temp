@@ -49,14 +49,17 @@ export function ProfileScreen({ id, isTab }) {
               const pic = <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><Avatar u={u} size={100} /></View>;
               if (isMe) return <Pressable onPress={openMenu} accessibilityLabel="Your menu">{pic}</Pressable>;
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 1, alignSelf: 'flex-start', marginTop: -4 }}>
-              {!blocked && (isMe || u.thought) ? <ThoughtBubble u={u} isMe={isMe} onOpen={() => setThought(true)} /> : null}
+            <View style={{ flexShrink: 1, flexGrow: isMe ? 1 : 0, alignSelf: 'flex-start', alignItems: isMe ? 'flex-start' : 'flex-end', marginTop: -4 }}>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {!blocked && isMe ? <ThoughtBubble u={u} isMe onOpen={() => setThought(true)} /> : null}
               {isMe ? null
                 : blocked ? <Btn kind="ghost" title="Unblock" onPress={() => run(() => act.unblock(uid, s.me))} />
                 : <>
                   <Btn kind="ghost" title="Message" onPress={() => nav.push('thread', { id: uid })} />
                   <Btn kind={u.following ? 'ghost' : 'orange'} title={u.following ? 'Following' : u.followsMe ? 'Follow back' : 'Follow'} onPress={() => run(() => act.follow(uid, u.following, s.me))} />
 </>}
+            </View>
+            {!blocked && !isMe && u.thought ? <ThoughtBubble u={u} top={16} onOpen={() => setThought(true)} /> : null}
             </View>
           </View>
           <T d style={{ fontSize: 25, letterSpacing: -1.2, marginTop: 12 }}>{u.name}{u.isPrivate ? '  🔒' : ''}</T>
@@ -279,21 +282,31 @@ export function EarningsScreen() {
 
 /* ---------------- lingering thoughts ---------------- */
 // a short daily thought floating on your profile like a see-through bubble, with a three-bubble tail toward your picture
-function ThoughtBubble({ u, isMe, onOpen }) {
+function ThoughtBubble({ u, isMe, onOpen, top = 50 }) {
   const { C } = useApp(); const t = u.thought; const bob = useRef(new Animated.Value(0)).current;
   useEffect(() => { const a = Animated.loop(Animated.sequence([Animated.timing(bob, { toValue: 1, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true }), Animated.timing(bob, { toValue: 0, duration: 2300, easing: Easing.inOut(Easing.ease), useNativeDriver: true })])); a.start(); return () => a.stop(); }, []);
   const y = (d) => ({ transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -4 + d] }) }] });
-  const glass = { backgroundColor: C.dark ? 'rgba(28,28,28,.62)' : 'rgba(255,255,255,.62)', borderWidth: 1, borderColor: 'rgba(255,255,255,.45)', shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 12, shadowOffset: { width: 0, height: 6 } };
+  // soap-bubble look: a thin rainbow film for the rim, a see-through middle with a faint sheen and a highlight
+  const RIM = ['#ff79c6', '#9b7bff', '#58c7ff', '#6dffd0', '#ffe27a', '#ff9a6b'];
+  const film = C.dark ? 'rgba(30,30,40,.62)' : 'rgba(255,255,255,.66)';
+  const Bub = ({ size, style }) => <Animated.View style={[{ position: 'absolute', width: size, height: size, borderRadius: size }, style]}>
+    <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, borderRadius: size, padding: 1.4 }}><View style={{ flex: 1, borderRadius: size, backgroundColor: film }} /></LinearGradient></Animated.View>;
   const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
   return (
-    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Add a lingering thought'} style={{ marginTop: -64, marginRight: 2, maxWidth: 240 }}>
-      <Animated.View style={[{ borderRadius: 22, paddingHorizontal: 14, paddingVertical: 10 }, glass, y(0)]}>
-        {t ? <T h style={{ fontSize: 14.5, lineHeight: 19 }}>{t.text}</T> : <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Ionicons name="add" size={15} color={C.muted} /><T h muted style={{ fontSize: 14.5 }}>Lingering thought…</T></View>}
-        {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5 }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}
+    <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Add a lingering thought'} style={{ marginTop: top, marginLeft: 30, maxWidth: 260, alignSelf: 'flex-start' }}>
+      <Animated.View style={[{ borderRadius: 22, shadowColor: '#5a3ca0', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } }, y(0)]}>
+        <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 1.6 }}>
+          <View style={{ borderRadius: 21, backgroundColor: film, paddingHorizontal: 16, paddingVertical: 11, overflow: 'hidden' }}>
+            <LinearGradient pointerEvents="none" colors={['rgba(255,121,198,.18)', 'rgba(88,199,255,.14)', 'rgba(109,255,208,.12)', 'rgba(255,226,122,.16)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+            <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, width: 34, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,.75)', transform: [{ rotate: '-8deg' }] }} />
+            {t ? <T h style={{ fontSize: 14.5, lineHeight: 19 }}>{t.text}</T> : <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Ionicons name="add" size={15} color={C.muted} /><T h muted style={{ fontSize: 14.5 }}>Lingering thought…</T></View>}
+            {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5 }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}
+          </View>
+        </LinearGradient>
       </Animated.View>
-      <Animated.View style={[{ position: 'absolute', left: 6, bottom: -12, width: 14, height: 14, borderRadius: 7 }, glass, y(0.6)]} />
-      <Animated.View style={[{ position: 'absolute', left: -6, bottom: -24, width: 9, height: 9, borderRadius: 5 }, glass, y(1.2)]} />
-      <Animated.View style={[{ position: 'absolute', left: -16, bottom: -33, width: 6, height: 6, borderRadius: 3 }, glass, y(1.8)]} />
+      <Bub size={15} style={[{ left: -20, bottom: 6 }, y(0.6)]} />
+      <Bub size={10} style={[{ left: -36, bottom: -4 }, y(1.2)]} />
+      <Bub size={6} style={[{ left: -48, bottom: -12 }, y(1.8)]} />
     </Pressable>
   );
 }

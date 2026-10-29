@@ -11,6 +11,7 @@ import { ago, kfmt, F } from './lib';
 import { act } from './data';
 import { GifPicker } from './gif';
 import { useSoundTrack } from './sounds';
+import Svg, { Path } from 'react-native-svg';
 
 // playback speed a Replay was posted at, so the hold-for-2x gesture can return to it
 export const baseRate = new WeakMap();
@@ -232,15 +233,16 @@ function FullVideo({ postId, uri, start, onClose }) {
 }
 
 // Reflame icon: a flame with two turning arrows (same idea as the website's)
-export function ReflameIcon({ size = 20, color }) {
-  return <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-    <Ionicons name="flame-outline" size={size * 0.82} color={color} />
-    <Ionicons name="repeat" size={size * 0.5} color={color} style={{ position: 'absolute', right: -size * 0.12, bottom: -size * 0.08 }} /></View>;
+// a flame drawn as two chasing repost arrows (same artwork as the website)
+export function ReflameIcon({ size = 20, color, w = 1.9 }) {
+  return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M9.5 20.4C7.2 19.5 5.6 17.4 5.6 14.9c0-2.4 1.3-3.9 2.5-5.3" /><Path d="M5.7 10.4l2.4-.9.6 2.5" />
+    <Path d="M10.2 7.2c.9-1.4 1.3-2.8 1.3-4.4 2.9 2 6.9 5.7 6.9 11.4 0 3.4-2.4 6-5.8 6.4" /><Path d="M15 18.8l-2.4 1.8 2.1 1.9" /></Svg>;
 }
 // a quoted take inside a quote (tap to open it)
 export function QuoteCard({ id }) {
   const { s, C, nav } = useApp(); const q = s.posts.find((x) => x.id === id);
-  if (!q || q.status === 'gone') return <View style={{ borderWidth: 1, borderColor: C.line, borderRadius: 18, padding: 12, marginTop: 10 }}><T muted>This take has burned away.</T></View>;
+  if (!q || q.status === 'gone') return null; // burned takes leave no trace
   const u = s.users[q.userId] || {};
   return <Pressable onPress={() => (q.reel ? nav.tab('replay', { startId: q.id }) : nav.push('post', { id: q.id }))} style={{ borderWidth: 1, borderColor: C.line, borderRadius: 18, padding: 12, marginTop: 10, gap: 6, backgroundColor: C.bg }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Avatar u={{ ...u, ring: null }} size={20} /><T h numberOfLines={1} style={{ fontSize: 14 }}>{u.name}</T><T muted numberOfLines={1} style={{ fontSize: 13, flexShrink: 1 }}>@{u.handle} · {ago(Date.now() - q.createdAt)}</T></View>
@@ -276,7 +278,7 @@ export function PostCard({ p, active = false }) {
   };
   if (!u) return null;
   return (
-    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: 10, overflow: 'hidden' }}>
+    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: 10, overflow: 'hidden', ...(p.kept && (p.reposts > 0 || p.quoteOf) ? { borderWidth: 1.6, borderColor: C.orange } : null) }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>
@@ -302,10 +304,10 @@ export function PostCard({ p, active = false }) {
         <ReactPick p={p} onPick={(k) => (k === 'heat' ? heat() : run(() => act.react(p.id, 'freeze'), { optimistic: { post: p.id, patch: { myFreeze: true, freeze: p.freeze + 1 } } }))} />
         <Pressable disabled={frozen} onPress={() => nav.sheet('comments', { id: p.id })} accessibilityLabel={frozen ? 'Comments are off while frozen' : 'Comments'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, marginLeft: 8, opacity: frozen ? 0.3 : 1 }}>
           <Ionicons name="chatbubble-outline" size={21} color={C.ink} />{cs.length ? <T muted b>{cs.length}</T> : null}</Pressable>
-        <Pressable onPress={() => nav.sheet('reflame', { post: p })} accessibilityLabel={p.myRepost ? 'Undo reflame' : 'Reflame'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6 }}>
-          <ReflameIcon size={21} color={p.myRepost ? C.orange : C.ink} />{p.reposts ? <T muted b>{p.reposts}</T> : null}</Pressable>
+        <Pressable onPress={() => nav.sheet('share', { post: p })} accessibilityLabel="Send" style={{ padding: 6 }}><Ionicons name="paper-plane-outline" size={21} color={C.ink} /></Pressable>
         <View style={{ flex: 1 }} />
-        <Pressable onPress={() => nav.sheet('share', { post: p })} accessibilityLabel="Send" style={{ padding: 6 }}><Ionicons name="paper-plane-outline" size={20} color={C.ink} /></Pressable>
+        <Pressable onPress={() => nav.sheet('reflame', { post: p })} accessibilityLabel={p.myRepost ? 'Undo reflame' : 'Reflame'} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6 }}>
+          <ReflameIcon size={23} color={p.myRepost ? C.orange : C.ink} />{p.reposts ? <T muted b>{p.reposts}</T> : null}</Pressable>
         <Pressable onPress={() => run(() => act.save(p.id, p.saved, s.me), { optimistic: { post: p.id, patch: { saved: !p.saved } } })} accessibilityLabel="Save" style={{ padding: 6 }}>
           <Ionicons name={p.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={p.saved ? C.orange : C.ink} /></Pressable>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, paddingLeft: 2 }} accessibilityLabel={kfmt(p.views) + ' views'}>
@@ -442,14 +444,13 @@ export function ReactPick({ p, onPick }) {
       <View style={{ transform: [{ scale: h ? 1.22 : 1 }] }}>{k === 'heat'
         ? <LinearGradient colors={C.mono ? [C.orange, C.orange] : ['#ffc061', '#ff7a1a', '#ff4500']} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} style={{ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="flame" size={26} color={C.mono ? C.onOrange : '#fff'} /></LinearGradient>
         : <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#b9def5', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="snow" size={26} color="#0d3a57" /></View>}</View>
-      <T h style={{ fontSize: 11.5, color: done === k ? C.orange : h ? C.ink : C.muted }}>{k === 'heat' ? 'Heat · ' + kfmt(p.heat) : 'Freeze · ' + kfmt(p.freeze)}</T></Pressable>); };
+      <T h style={{ fontSize: 11.5, color: done === k ? C.orange : h ? C.ink : C.muted }}>{k === 'heat' ? 'Heat' : 'Freeze'}</T></Pressable>); };
   return (
     <View style={{ zIndex: 10 }}>
       <View {...pr.panHandlers} accessible accessibilityRole="button" accessibilityLabel={done ? 'You ' + (done === 'heat' ? 'heated' : 'froze') + ' this. Heat ' + p.heat + ', freeze ' + p.freeze : 'Hold to heat or freeze'}
         style={{ flexDirection: 'row', alignItems: 'center', gap: 4, height: 42, paddingRight: 4 }}>
         {done === 'freeze' ? <FreezeIcon on /> : <DieIcon name={done === 'heat' ? 'flame' : 'flame-outline'} size={22} color={done === 'heat' ? (C.mono ? C.onOrange : '#fff') : C.ink} hot={done === 'heat' && !C.mono} die={done === 'heat' ? C.orange : C.dark ? '#2a2a2a' : '#dcd9d5'} />}
-        <T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(p.heat)}</T>
-        {p.freeze > 0 ? <T h style={{ color: '#5aa9d6', fontSize: 12 }}>❄ {kfmt(p.freeze)}</T> : null}
+        <T h style={{ color: C.ink, fontSize: 15 }}>{kfmt(done === 'freeze' ? p.freeze : p.heat)}</T>
       </View>
       {open ? <Animated.View style={{ position: 'absolute', left: -6, bottom: 52, flexDirection: 'row', gap: 6, padding: 7, borderRadius: 40, backgroundColor: C.card,
         shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 10 }, elevation: 12, opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }] }}>

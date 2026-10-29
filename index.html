@@ -1490,6 +1490,8 @@ const posterCache={};const posterFor=seed=>posterCache[seed]||(posterCache[seed]
 const blobFiles={};function blobUrl(f){const u=URL.createObjectURL(f);blobFiles[u]=f;return u}
 function nextWeekStart(){const d=new Date();const day=(d.getUTCDay()+6)%7;return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-day+7)}
 function nextDayStart(){const d=new Date();return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1)}
+// Postgres interval text ("12:34:56" or "1 day 02:00:00") to milliseconds
+function ivMs(v){const m=String(v).match(/(?:(\d+) days?)?\s*(?:(-?\d+):(\d+):(\d+(?:\.\d+)?))?/);if(!m)return null;return ((+m[1]||0)*86400+(+m[2]||0)*3600+(+m[3]||0)*60+(+m[4]||0))*1000}
 function friendly(e){const m=(e&&e.message)||String(e||'');
   if(/profiles_handle_key|duplicate key.*handle/i.test(m))return 'That username is taken.';
   if(/row-level security/i.test(m)&&/comments/i.test(m))return 'Comments are off for this post.';
@@ -1553,7 +1555,7 @@ async function loadAll(){
   const P=posts.filter(p=>users[L(p.user_id)]).map(p=>({id:p.id,userId:L(p.user_id),text:p.text||'',
     media:p.media_url&&!p.reel?{type:p.media_type,url:p.media_url,gif:p.is_gif}:null,reel:p.reel,
     clip:p.reel?(p.media_url?{kind:'video',url:p.media_url}:{kind:'art',seed:p.clip_seed||1}):null,poster:p.reel&&!p.media_url?posterFor(p.clip_seed||1):null,
-    createdAt:+new Date(p.created_at),status:p.status,burnEnds:p.burn_ends?+new Date(p.burn_ends):null,heat:p.heat,freeze:p.freezes,views:p.views,
+    createdAt:+new Date(p.created_at),status:p.status==='frozen'?'normal':p.status,burnEnds:p.burn_ends?+new Date(p.burn_ends):null,burnLeft:p.burn_left?ivMs(p.burn_left):null,heat:p.heat,freeze:p.freezes,views:p.views,
     myHeat:mh.has(p.id),myFreeze:mf.has(p.id),saved:sv.has(p.id),overlay:p.overlay||null,reposts:p.reposts||0,myRepost:myRp.has(p.id),kept:!!p.kept,quoteOf:p.quote_of||null,nsfw:false,flags:MOD.classify(p.text||''),comments:cm[p.id]||[],goneAt:0}));
   const sids=stories.map(x=>x.id);
   const [scom,sreact]=sids.length?await Promise.all([q(sb.from('story_comments').select('*').in('story_id',sids).order('created_at').limit(3000)),q(sb.from('story_reactions').select('story_id,user_id,emoji').in('story_id',sids).limit(10000))]):[[],[]];
@@ -1684,13 +1686,15 @@ function reducer(s,a){
   const T=msg=>s.settings.quiet?s.toast:({msg,at:Date.now()});
   const mapPost=(id,f)=>s.posts.map(p=>p.id===id?f(p):p);
   const me=s.users.me;
+  // freezes start the clock: once freezes outnumber heat a take has 24 hours to heat back up or it burns off the timeline.
+  // heat catching up pauses the clock (the time left is banked); double the freezes in heat saves it for good.
   const settle=n=>{
-    if(n.status==='gone'||n.status==='kept'||n.reel)return n;
-    if(n.freeze>n.heat)return {...n,status:'frozen',burnEnds:null};
-    if(n.heat>n.freeze&&n.status!=='burning')return {...n,status:'burning',burnEnds:s.now+DAY};
+    if(n.status==='gone'||n.status==='kept'||n.kept||n.reel)return n;
+    if((n.status==='burning'||n.burnLeft!=null)&&n.heat>=5&&n.heat>=n.freeze*2)return {...n,status:'normal',burnEnds:null,burnLeft:null,kept:true,survived:true};
+    if(n.freeze>n.heat&&n.status!=='burning')return {...n,status:'burning',burnEnds:s.now+(n.burnLeft!=null?Math.max(n.burnLeft,36e5):DAY),burnLeft:null};
+    if(n.heat>=n.freeze&&n.status==='burning')return {...n,status:'normal',burnLeft:Math.max(0,n.burnEnds-s.now),burnEnds:null};
     return n};
-  // each heat on an already-burning post adds an hour, up to a full 24 hours left
-  const ignite=p=>{const n=settle({...p,heat:p.heat+1});return p.status==='burning'&&n.status==='burning'&&n.burnEnds?{...n,burnEnds:Math.min(n.burnEnds+36e5,s.now+DAY)}:n};
+  const ignite=p=>settle({...p,heat:p.heat+1});
   switch(a.type){
     case 'tick':{
       if(a.paused) return s;
@@ -1700,7 +1704,7 @@ function reducer(s,a){
       const posts=[];
       for(const p of s.posts){
         if(p.status==='burning'&&now>=p.burnEnds){changed=true;posts.push({...p,status:'gone',goneAt:real});
-          if(p.userId==='me')toast=T('Your take went viral');
+          if(p.userId==='me')toast=T('Your take froze out and burned off the timeline');
           continue}
         if(p.status==='gone'&&real-p.goneAt>900){changed=true;continue}
         posts.push(p);
@@ -1888,7 +1892,7 @@ function Sheet({onClose,children,label}){
 
 function Timer({p,now}){
   const tag=p.tour?'state-'+p.tour:null;
-  if(p.kept&&p.status!=='frozen')return html`<span className="timer kept" data-tour=${tag}><${Icon} n="reflame" s=${14} w=${2.2}/>Reflamed</span>`;
+  if(p.kept&&p.status!=='frozen')return p.reposts>0||p.quoteOf?html`<span className="timer kept" data-tour=${tag}><${Icon} n="reflame" s=${14} w=${2.2}/>Reflamed</span>`:html`<span className="timer kept" data-tour=${tag}><${Icon} n="flame" s=${14} w=${2.2}/>Survived</span>`;
   if(p.status==='normal')return null;
   if(p.status==='frozen')return html`<span className="timer frozen" data-tour=${tag}><${Icon} n="snow" s=${14} w=${2.4}/>Frozen</span>`;
   if(p.status==='kept')return html`<span className="timer burning" data-tour=${tag}><${Icon} n="pin" s=${14} w=${2.4}/>Kept</span>`;
@@ -2116,7 +2120,7 @@ function Post({p,s,dispatch,open}){
     </div>
     ${top&&!frozen&&html`<button className="p-comments" onClick=${()=>open.comments(p.id)}><b>${s.users[top.userId].handle}</b> ${top.sticker?stickerLabel(top.sticker):top.text}${cs.length>1?' · View all '+cs.length:''}</button>`}
     ${live&&(()=>{const left=Math.max(0,p.burnEnds-s.now),h=Math.floor(left/36e5),m=Math.floor(left%36e5/6e4);const lbl=h?h+'h':'<1h';
-      return html`<div className="lifebar" aria-label=${'Heated, '+lbl+' left'}><i style=${{flex:Math.max(.001,pct)}}></i><span className="orb" data-tour=${p.tour?'state-'+p.tour:null} style=${{'--od':-(Date.now()%12000)+'ms'}}><em></em><${Icon} n="flame" s=${7} w=${2.6}/><b>${lbl}</b></span><b style=${{flex:1-Math.max(.001,pct)}}></b></div>`})()}
+      return html`<div className="lifebar" aria-label=${'Freezing, '+lbl+' left to heat up'}><i style=${{flex:Math.max(.001,pct)}}></i><span className="orb" data-tour=${p.tour?'state-'+p.tour:null} style=${{'--od':-(Date.now()%12000)+'ms'}}><em></em><${Icon} n="flame" s=${7} w=${2.6}/><b>${lbl}</b></span><b style=${{flex:1-Math.max(.001,pct)}}></b></div>`})()}
   </article>`;
 }
 
@@ -3209,7 +3213,7 @@ function PlusView({s,dispatch}){
   const perks=[['bolt','18+ posting','Post sexual and mature takes, tagged 18+. Members 18 and older only.'],
     ['pin','Keep your hot takes','Keep a heated take on the timeline as a high-interaction post instead of letting it disappear.'],
     ['shield','Hide negative posts','One switch filters insults and pile-ons out of everything you see.'],
-    ['star','Double points','Every take that goes viral earns twice the points.'],
+    ['star','Double points','Every take that stays hot earns twice the points.'],
     ['crown','Temp+ badge and ring','Shows next to your name and around your photo.']];
   return html`<div>
     <div className="plus-hero"><h2>Temp<span>+</span></h2><div className="price">$8<span> / month</span></div></div>
@@ -3287,7 +3291,7 @@ function Search({s,dispatch,open,query,setQuery}){
   </div>`;
 }
 
-const GROUPS={social:['follow','heat','freeze','viral','storyReact','repost','reflame','quote'],comments:['mention','likeComment','reply','storyComment']};
+const GROUPS={social:['follow','heat','freeze','viral','saved','burned','storyReact','repost','reflame','quote'],comments:['mention','likeComment','reply','storyComment']};
 function Activity({s,dispatch,open}){
   const [tab,setTab]=useState('social');
   // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
@@ -3298,8 +3302,8 @@ function Activity({s,dispatch,open}){
     open.profile(n.userId)};
   const unread=k=>s.notifs.filter(n=>!n.read&&!s.blocked[n.userId]&&GROUPS[k].includes(n.type)).length;
   const list=s.notifs.filter(n=>!s.blocked[n.userId]&&GROUPS[tab].includes(n.type)).slice(0,60);
-  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take went viral: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reflamed your take: ${n.text}`,reflame:`reflamed your take: ${n.text}`,quote:`quoted your take: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
-  const icon={viral:'flame',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
+  const text=n=>({follow:'started following you',mention:`mentioned you: ${n.text}`,likeComment:`liked your comment: ${n.text}`,reply:`replied: ${n.text}`,heat:`heated your post: ${n.text}`,viral:`Your take stayed hot for a day: ${n.text}`,saved:`Your take survived the freeze: ${n.text}`,burned:`Your take froze out and burned off the timeline: ${n.text}`,freeze:`froze your post: ${n.text}`,storyComment:`commented on your story: ${n.text}`,repost:`reflamed your take: ${n.text}`,reflame:`reflamed your take: ${n.text}`,quote:`quoted your take: ${n.text}`,storyReact:`reacted ${n.text} to your story`}[n.type]);
+  const icon={viral:'flame',saved:'flame',burned:'snow',follow:'user',mention:'at',likeComment:'heart',reply:'comment',heat:'flame',freeze:'snow'};
   return html`<div>
     <div className="seg" role="group" aria-label="Activity type">
       <button aria-pressed=${tab==='social'} onClick=${()=>setTab('social')}>Heat & follows${unread('social')>0&&html`<span className="cnt">${unread('social')}</span>`}</button>
@@ -3540,12 +3544,11 @@ function NewPassword({onDone}){
 function makeSteps(s,ids){
   const A=s.posts.find(p=>p.id===ids.a), B=s.posts.find(p=>p.id===ids.b);
   return [
-    {title:`Welcome, ${s.users.me.name.split(' ')[0]}.`,body:'Temp is for hot takes. The ones that land go viral and disappear. The ones that flop stay up.'},
+    {title:`Welcome, ${s.users.me.name.split(' ')[0]}.`,body:'Temp is for hot takes. The ones that land stay up. The ones that flop get frozen, and frozen takes are racing the clock.'},
     {target:'post-a',title:'Every take starts normal',body:'A new post has no clock. What happens next is up to everyone who sees it.'},
-    {target:'heat-a',title:'Heat a take that lands',body:'Heat means the take hit. A heated post goes viral for 24 hours, then disappears for good.',try:'Tap the flame',done:()=>A&&A.myHeat},
-    {target:'state-a',title:'The clock is running',body:'The orange timer shows how long it has left. You can also double-tap a photo to heat it.'},
-    {target:'freeze-b',title:'Freeze a take that flops',body:'When freezes outnumber heat, the post is frozen: greyed out, comments off.',try:'Tap the snowflake',done:()=>B&&B.myFreeze},
-    {target:'state-b',title:'No heat, no escape',body:'A frozen post stays on the timeline as proof it flopped, and nobody can delete it. It only thaws when its heat outnumbers its freezes.'},
+    {target:'heat-a',title:'Heat a take that lands',body:'Heat means the take hit. Takes with more heat than freezes stay on the timeline. You can also double-tap a photo to heat it.',try:'Tap the flame',done:()=>A&&A.myHeat},
+    {target:'freeze-b',title:'Freeze a take that flops',body:'When freezes outnumber heat, the clock starts.',try:'Tap the snowflake',done:()=>B&&B.myFreeze},
+    {target:'state-b',title:'Race the temperature',body:'The flame timer shows how long it has to heat back up. Heat it past its freezes and the clock stops. Double its freezes and it’s safe for good. Run out of time and it burns off the timeline.'},
     {target:'social-a',title:'Comment, send, save',body:'Comments can be liked and replied to. Send a post to someone’s DMs and it stays there even after it disappears. Save it to find it later.'},
     {target:'more-a',title:'More options',body:'Follow, message, report or block the poster.'},
     {target:'stories',title:'Stories',body:'Tap a glowing orb to watch. React or reply from the story. Add your own with the +. Stories disappear after 24 hours.'},

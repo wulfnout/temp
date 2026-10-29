@@ -56,7 +56,7 @@ export async function loadAll(myId) {
   });
   const P = posts.filter((p) => users[p.user_id]).map((p) => ({
     id: p.id, userId: p.user_id, text: p.text || '', mediaUrl: p.media_url, mediaType: p.media_type, gif: p.is_gif, reel: p.reel, seed: p.clip_seed || 1,
-    createdAt: +new Date(p.created_at), status: p.status, burnEnds: p.burn_ends ? +new Date(p.burn_ends) : null, heat: p.heat, freeze: p.freezes, views: p.views,
+    createdAt: +new Date(p.created_at), status: p.status === 'frozen' ? 'normal' : p.status, burnEnds: p.burn_ends ? +new Date(p.burn_ends) : null, heat: p.heat, freeze: p.freezes, views: p.views,
     myHeat: mh.has(p.id), myFreeze: mf.has(p.id), saved: sv.has(p.id), comments: cm[p.id] || [], reposts: p.reposts || 0, myRepost: myReposts.has(p.id), kept: !!p.kept, quoteOf: p.quote_of || null, overlay: p.overlay || null,
   }));
   const st = {};

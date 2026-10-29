@@ -341,7 +341,7 @@ export function UserRow({ u, right }) {
 }
 
 /* ---------------- activity ---------------- */
-const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'storyReact', 'repost', 'reflame', 'quote'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
+const GROUPS = { social: ['follow', 'heat', 'freeze', 'viral', 'saved', 'burned', 'storyReact', 'repost', 'reflame', 'quote'], comments: ['mention', 'likeComment', 'reply', 'comment', 'storyComment'] };
 export function ActivityScreen() {
   const { s, C, nav, run } = useApp(); const [tab, setTab] = useState('social'); const [seenNow, setSeenNow] = useState({});
   // tapping one opens what it's about and marks only that one as seen; it stays in the list until newer ones push it out
@@ -354,9 +354,9 @@ export function ActivityScreen() {
   const list = s.notifs.filter((n) => !s.blocked[n.userId] && GROUPS[tab].includes(n.type)).slice(0, 60).map((n) => (seenNow[n.id] ? { ...n, read: true } : n));
   const unread = (k) => s.notifs.filter((n) => !n.read && GROUPS[k].includes(n.type)).length;
   const text = (n) => ({ follow: 'started following you', mention: 'mentioned you: ' + n.text, likeComment: 'liked your comment: ' + n.text, reply: 'replied: ' + n.text, comment: 'commented: ' + n.text,
-    heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take went viral. ' + n.text,
+    heat: 'heated your post: ' + n.text, freeze: 'froze your post: ' + n.text, viral: 'Your take stayed hot for a day: ' + n.text, saved: 'Your take survived the freeze: ' + n.text, burned: 'Your take froze out and burned off the timeline: ' + n.text,
     storyComment: 'commented on your story: ' + n.text, repost: 'reflamed your take: ' + n.text, reflame: 'reflamed your take: ' + n.text, quote: 'quoted your take: ' + n.text, storyReact: 'reacted ' + n.text + ' to your story' }[n.type] || n.text);
-  const icon = { repost: 'flame', reflame: 'flame', quote: 'chatbubble', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame' };
+  const icon = { repost: 'flame', reflame: 'flame', quote: 'chatbubble', storyComment: 'chatbubble', storyReact: 'heart', follow: 'person-add', mention: 'at', likeComment: 'heart', reply: 'chatbubble', comment: 'chatbubble', heat: 'flame', freeze: 'snow', viral: 'flame', saved: 'flame', burned: 'snow' };
   const Seg = ({ k, label }) => (
     <Pressable onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 9, borderRadius: 15, backgroundColor: tab === k ? C.ink : 'transparent', alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
       <T h style={{ color: tab === k ? C.bg : C.muted, fontSize: 14 }}>{label}</T>

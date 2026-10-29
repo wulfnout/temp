@@ -69,9 +69,9 @@ img,video{max-width:100%;display:block}
 .story{display:grid;justify-items:center;gap:7px;flex:none;width:76px}
 .story > span{font-size:12px;font-weight:600;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .orb{width:74px;height:74px;padding:3px;position:relative;display:block;border-radius:50%;
-  background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange));animation:spin 3.5s linear infinite}
+  background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange));animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite}
 @keyframes morphsoft{0%,100%{border-radius:52% 48% 51% 49%/49% 52% 48% 51%}33%{border-radius:48% 52% 49% 51%/52% 48% 51% 49%}66%{border-radius:51% 49% 52% 48%/48% 51% 49% 52%}}
-.orb.seen{background:var(--line);animation:none}
+.orb.seen{background:var(--line);animation:morph 11s ease-in-out infinite}
 .orb > .av{width:100%;height:100%;border-radius:inherit;border:3px solid var(--bg)}
 .orb .add{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:8px;background:var(--orange);color:var(--on-orange);display:grid;place-items:center;border:3px solid var(--bg)}
 .story:nth-child(2n) .orb{animation-delay:-2s,-1s}.story:nth-child(3n) .orb{animation-delay:-4s,-2s}.story:nth-child(5n) .orb{animation-duration:9s,4.5s}
@@ -1176,7 +1176,7 @@ html:has(.gl-prev-c){padding-top:0}body:has(.gl-prev-c)::before{display:none}
 .prof-orb{width:110px;height:110px;padding:4px;border:4px solid var(--card);box-sizing:content-box}
 .prof-orb>.av{border-width:3px!important;border-color:var(--card)!important}
 /* the flowing story ring: theme-colour gradient spinning around a round ring */
-.prof-orb.flow>.av{border-radius:50%}
+.prof-orb.flow>.av{border-radius:inherit}
 .n-name{font-weight:800;font-size:inherit;color:inherit;padding:0;display:inline}
 .sv-burn{display:inline-flex;align-items:center;gap:3px;background:rgba(0,0,0,.35);color:#fff;border-radius:15px;padding:5px 9px;font-weight:800;font-size:12px;align-self:center}
 .vt-area{position:absolute;inset:0;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}

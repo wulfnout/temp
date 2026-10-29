@@ -72,7 +72,7 @@ export function IconBtn({ name, onPress, size = 22, color, label, badge, style }
 }
 
 const RING_COLORS = { fire: ['#ff2d00', '#ffd27a'], ice: ['#ffffff', '#7f95a6'], gold: ['#ffd700', '#b98900'], morph: null, glitch: ['#ff2d55', '#00e5ff'], plus: ['#0a0a0a', '#ff5500'] };
-import { FireRing, GlitchRing, MorphRing, SpinRing } from './fx';
+import { FireRing, GlitchRing, MorphRing, SpinRing, jsClock, useClockKick } from './fx';
 export function Avatar({ u, size = 40 }) {
   const { C } = useApp();
   if (!u) return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.soft }} />;
@@ -141,6 +141,7 @@ function Pill({ bg, fg, icon, text }) {
 // the story ring: the theme colour flowing round and round a round ring (same as the website's .orb)
 export function GradRing({ size, ring = 3, gap = 3, seen, bg, children }) {
   const { C } = useApp();
+  useClockKick();
   const spin = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (seen) return;
@@ -148,17 +149,21 @@ export function GradRing({ size, ring = 3, gap = 3, seen, bg, children }) {
     a.start(); return () => a.stop();
   }, [seen]);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const pic = size - ring * 2 - gap * 2;
+  // the shape slowly moves like liquid, same as the website (7s, or 11s once watched)
+  const r = jsClock(seen ? 11000 : 7000);
+  const corner = (ph, w) => r.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, 1, 2, 3, 4].map((i) => w * (0.5 + 0.12 * Math.sin((i / 4 + ph) * Math.PI * 2))) });
+  const radii = (w) => ({ borderTopLeftRadius: corner(0, w), borderTopRightRadius: corner(0.27, w), borderBottomRightRadius: corner(0.55, w), borderBottomLeftRadius: corner(0.8, w) });
+  const mid = size - ring * 2, pic = mid - gap * 2;
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: seen ? C.line : C.orange,
-      ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
+    <Animated.View style={[{ width: size, height: size, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: seen ? C.line : C.orange,
+      ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }, radii(size)]}>
       {!seen ? <Animated.View style={{ position: 'absolute', width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
         <LinearGradient colors={[C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ flex: 1 }} />
       </Animated.View> : null}
-      <View style={{ width: size - ring * 2, height: size - ring * 2, borderRadius: size / 2, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center' }}>
-        {children(pic)}
-      </View>
-    </View>
+      <Animated.View style={[{ width: mid, height: mid, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }, radii(mid)]}>
+        <Animated.View style={[{ width: pic, height: pic, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }, radii(pic)]}>{children(pic)}</Animated.View>
+      </Animated.View>
+    </Animated.View>
   );
 }
 

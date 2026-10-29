@@ -176,31 +176,32 @@ export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const { C } = useApp();
   const spin = useRef(new Animated.Value(0)).current, wob = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: seen ? 9000 : 3500, easing: Easing.linear, useNativeDriver: true }));
-    const b = Animated.loop(Animated.timing(wob, { toValue: 1, duration: seen ? 11000 : 7000, easing: Easing.linear, useNativeDriver: true }));
+    // slow and subtle, like the first versions: the colour drifts round and the ring gently breathes
+    const a = Animated.loop(Animated.timing(spin, { toValue: 1, duration: seen ? 14000 : 7000, easing: Easing.linear, useNativeDriver: true }));
+    const b = Animated.loop(Animated.sequence([
+      Animated.timing(wob, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(wob, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.ease), useNativeDriver: true })]));
     a.start(); b.start(); return () => { a.stop(); b.stop(); };
   }, [seen]);
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  // the liquid wobble: a gentle squash and stretch, like the website's morphing ring
-  const tf = [{ scaleX: wob.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 1.035, 0.975, 1.02, 1] }) },
-    { scaleY: wob.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [1, 0.97, 1.03, 0.985, 1] }) },
-    { rotate: wob.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-4deg', '4deg', '-4deg'] }) }];
+  const breathe = [{ scaleX: wob.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) }, { scaleY: wob.interpolate({ inputRange: [0, 1], outputRange: [1.01, 0.99] }) }];
   // orange everywhere, except Blackout: black or white to match the display
   const cols = seen ? [C.line, C.dark ? '#3a3a3a' : '#c9c5c0', C.line] : C.mono ? [C.orange, C.orange2, C.orange3 || C.orange2, C.orange2, C.orange]
     : ['#ff5500', '#ff7a1a', '#ffb04d', '#ffd27a', '#ffb04d', '#ff7a1a', '#ff5500'];
   const mid = size - ring * 2, pic = mid - gap * 2;
   return (
-    <Animated.View style={{ width: size, height: size, transform: tf,
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center',
       ...(C.glow && !seen ? { shadowColor: C.orange, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
-      <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: cols[0] }}>
+      {/* only the ring moves; the picture stays still */}
+      <Animated.View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: cols[0], transform: breathe }}>
         <Animated.View style={{ position: 'absolute', left: -size * 0.21, top: -size * 0.21, width: size * 1.42, height: size * 1.42, transform: [{ rotate }] }}>
           <LinearGradient colors={cols} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ width: '100%', height: '100%' }} />
         </Animated.View>
-        <View style={{ width: mid, height: mid, borderRadius: mid / 2, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          {children(pic)}
-        </View>
+      </Animated.View>
+      <View style={{ width: mid, height: mid, borderRadius: mid / 2, backgroundColor: bg || C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {children(pic)}
       </View>
-    </Animated.View>
+    </View>
   );
 }
 

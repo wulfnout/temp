@@ -44,7 +44,7 @@ html.blackout .react.heat.on .fg{stroke:var(--on-orange);fill:var(--on-orange)}
 /* blackout story rings: black or white flowing, not orange */
 html.blackout .orb:not(.seen):not(.uploading){background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange))}
 /* watched stories still flow, just slower and grey */
-.orb.seen{background:conic-gradient(from var(--spin),var(--line),color-mix(in srgb,var(--line) 55%,var(--muted)),var(--line));animation:morph 11s ease-in-out infinite,spin 9s linear infinite}
+.orb.seen{background:conic-gradient(from var(--spin),var(--line),color-mix(in srgb,var(--line) 55%,var(--muted)),var(--line));animation:morphsoft 11s ease-in-out infinite,spin 14s linear infinite}
 
 /* polls */
 .poll{display:grid;gap:8px;margin:12px 0 2px}
@@ -215,12 +215,12 @@ img,video{max-width:100%;display:block}
 .story{display:grid;justify-items:center;gap:7px;flex:none;width:76px}
 .story > span{font-size:12px;font-weight:600;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .orb{width:74px;height:74px;padding:5px;position:relative;display:block;border-radius:50%;
-  background:conic-gradient(from var(--spin),#ff5500,#ff7a1a,#ffb04d,#ffd27a,#ffb04d,#ff7a1a,#ff5500);animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite}
+  background:conic-gradient(from var(--spin),#ff5500,#ff7a1a,#ffb04d,#ffd27a,#ffb04d,#ff7a1a,#ff5500);animation:morphsoft 7s ease-in-out infinite,spin 7s linear infinite}
 /* with a store ring equipped, the story ring is that ring */
 .orb.store{background:none;padding:0;animation:none;border-radius:50%}.prof-orb.store{width:120px;height:120px}
 @keyframes morphsoft{0%,100%{border-radius:52% 48% 51% 49%/49% 52% 48% 51%}33%{border-radius:48% 52% 49% 51%/52% 48% 51% 49%}66%{border-radius:51% 49% 52% 48%/48% 51% 49% 52%}}
 .orb.seen{background:var(--line);animation:morph 11s ease-in-out infinite}
-.orb > .av{width:100%;height:100%;border-radius:inherit;border:3px solid var(--bg)}
+.orb > .av{width:100%;height:100%;border-radius:50%;border:3px solid var(--bg)}
 .orb .add{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:8px;background:var(--orange);color:var(--on-orange);display:grid;place-items:center;border:3px solid var(--bg)}
 .story:nth-child(2n) .orb{animation-delay:-2s,-1s}.story:nth-child(3n) .orb{animation-delay:-4s,-2s}.story:nth-child(5n) .orb{animation-duration:9s,4.5s}
 

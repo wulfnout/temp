@@ -279,10 +279,9 @@ export function PostCard({ p, active = false }) {
   if (!u) return null;
   const rf = p.kept && (p.reposts > 0 || p.quoteOf);
   return (
-    <View style={rf ? { marginTop: 10, marginBottom: 22, marginHorizontal: 10 } : null}>
-    {/* reflamed: a still, solid orange orb-shaped layer behind the card, showing all around it */}
-    {rf ? <View pointerEvents="none" style={{ position: 'absolute', left: -10, top: -10, right: -10, bottom: -10, backgroundColor: C.orange, borderTopLeftRadius: 44, borderTopRightRadius: 32, borderBottomRightRadius: 48, borderBottomLeftRadius: 34 }} /> : null}
-    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden', ...(rf ? { borderTopLeftRadius: 34, borderTopRightRadius: 22, borderBottomRightRadius: 38, borderBottomLeftRadius: 24 } : null) }}>
+    <View style={rf ? { marginTop: 6, marginBottom: 16, borderRadius: 30, backgroundColor: frozen ? C.soft : C.card, shadowColor: C.orange, shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 8 } : null}>
+    {/* reflamed: a faint glow in the theme colour radiates around the card */}
+    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden', ...(rf ? { borderRadius: 30 } : null) }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>

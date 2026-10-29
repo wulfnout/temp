@@ -1907,7 +1907,7 @@ function Sheet({onClose,children,label}){
 
 function Timer({p,now}){
   const tag=p.tour?'state-'+p.tour:null;
-  if(p.kept&&p.status!=='frozen')return p.reposts>0||p.quoteOf?html`<span className="timer kept" data-tour=${tag}><${Icon} n="reflame" s=${14} w=${2.2}/>Reflamed</span>`:html`<span className="timer kept" data-tour=${tag}><${Icon} n="flame" s=${14} w=${2.2}/>Survived</span>`;
+  if(p.kept&&p.status!=='frozen')return p.reposts>0||p.quoteOf?html`<span className="timer kept" data-tour=${tag}><${Icon} n="reflame" s=${14} w=${2.2}/>Reflamed</span>`:null;
   if(p.status==='normal')return null;
   if(p.status==='frozen')return html`<span className="timer frozen" data-tour=${tag}><${Icon} n="snow" s=${14} w=${2.4}/>Frozen</span>`;
   if(p.status==='kept')return html`<span className="timer burning" data-tour=${tag}><${Icon} n="pin" s=${14} w=${2.4}/>Kept</span>`;

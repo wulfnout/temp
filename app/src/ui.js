@@ -129,7 +129,7 @@ export function StickerPicker({ onPick }) {
 export function Timer({ p }) {
   const { C } = useApp(); const now = useNow(1000);
   if (p.status === 'frozen') return <Pill bg={C.ink} fg={C.bg} icon="snow" text="Frozen" />;
-  if (p.kept) return <Pill bg={C.orange} fg={C.onOrange} icon="flame" text={p.reposts > 0 || p.quoteOf ? 'Reflamed' : 'Survived'} />;
+  if (p.kept && (p.reposts > 0 || p.quoteOf)) return <Pill bg={C.orange} fg={C.onOrange} icon="flame" text="Reflamed" />;
   return null;
 }
 function Pill({ bg, fg, icon, text }) {
@@ -172,7 +172,7 @@ export function StoryOrb({ u, size = 74, seen, onPress, label, add, onAdd }) {
   return (
     <Pressable onPress={onPress} accessibilityLabel={label} style={{ width: size + 4, alignItems: 'center', gap: 6 }}>
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        {u.ring && !seen ? <Avatar u={u} size={size} /> : <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>}
+        {u && u.ring && !seen ? <Avatar u={u} size={size} /> : <GradRing size={size} seen={seen}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing>}
         {add ? <Pressable onPress={onAdd} accessibilityLabel="Add to your story" style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 8, backgroundColor: C.orange, borderWidth: 3, borderColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={14} color={C.onOrange} /></Pressable> : null}
       </View>

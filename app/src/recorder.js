@@ -10,6 +10,7 @@ import { Video } from './posts';
 import { act } from './data';
 import * as ImagePicker from 'expo-image-picker';
 import { F } from './lib';
+import { SoundPanel, Slider } from './sounds';
 
 /* Filters are color layers drawn over the video when it plays, so they look the same in the app and on the website. */
 export const FILTERS = {
@@ -153,7 +154,8 @@ function Editor({ clip, onRetake, onClose }) {
   const [filter, setFilter] = useState('none'); const [speed, setSpeed] = useState(1);
   const [texts, setTexts] = useState([]); const [typing, setTyping] = useState(null); // { i, t, c, st }
   const [dragging, setDragging] = useState(false); const [overTrash, setOverTrash] = useState(false); const [guide, setGuide] = useState(false);
-  const [trim, setTrim] = useState({ s: 0, e: clip.dur }); const [tool, setTool] = useState(null); // filters | trim | speed
+  const [trim, setTrim] = useState({ s: 0, e: clip.dur }); const [tool, setTool] = useState(null); // filters | trim | speed | sound | volume
+  const [snd, setSnd] = useState(null); // { u, n, st, v, o, once, t0 } — same shape as the website's overlay.sound
   const [caption, setCaption] = useState(''); const [busy, setBusy] = useState(false); const [thumbs, setThumbs] = useState(null);
   const [kb, setKb] = useState(0); const scrubbing = useRef(false);
   const SH = Dimensions.get('window').height; const trashY = SH - ins.bottom - 120;
@@ -176,7 +178,8 @@ function Editor({ clip, onRetake, onClose }) {
   async function post() {
     if (busy) return; setBusy(true);
     const overlay = { v: 2, filter, texts: texts.map((x) => ({ ...x, x: +x.x.toFixed(4), y: +x.y.toFixed(4), s: +x.s.toFixed(3), r: +(x.r || 0).toFixed(1) })), speed,
-      trimStart: +trim.s.toFixed(1), trimEnd: +trim.e.toFixed(1), dur: +clip.dur.toFixed(1) };
+      trimStart: +trim.s.toFixed(1), trimEnd: +trim.e.toFixed(1), dur: +clip.dur.toFixed(1),
+      ...(snd ? { sound: { ...(snd.u ? { u: snd.u, n: snd.n, st: snd.st || 0, v: snd.v == null ? 1 : snd.v } : {}), ...(snd.once ? { once: 1 } : {}), o: snd.o == null ? 1 : snd.o, t0: +(snd.once ? trim.s + (+snd.t0 || 0) : trim.s).toFixed(1) } } : {}) };
     const isMov = /\.mov$/i.test(clip.uri);
     const asset = { uri: clip.uri, type: 'video', mimeType: clip.mimeType || (isMov ? 'video/quicktime' : 'video/mp4'), fileName: clip.fileName || (isMov ? 'replay.mov' : 'replay.mp4') };
     const ok = await run(() => act.post(s.me, { text: caption.trim(), asset, reel: true, overlay }), { toast: 'Replay posted' });
@@ -201,7 +204,7 @@ function Editor({ clip, onRetake, onClose }) {
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <View style={{ flex: 1 }} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-        <Video uri={clip.uri} style={{ flex: 1 }} controls={false} autoPlay loop trim={{ trimStart: trim.s, trimEnd: trim.e }} rate={speed} playerRef={playerRef} />
+        <Video uri={clip.uri} style={{ flex: 1 }} controls={false} autoPlay loop trim={{ trimStart: trim.s, trimEnd: trim.e }} rate={speed} playerRef={playerRef} sound={snd ? { ...snd, t0: snd.once ? trim.s + (+snd.t0 || 0) : trim.s } : null} />
         <Tint filter={filter} />
         <Pressable style={fillAbs} onPress={() => { if (tool) { setTool(null); resume(); return; } try { const p = pl(); if (p) p.playing ? p.pause() : p.play(); } catch (e) {} }} accessibilityLabel="Play or pause" />
         {guide ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: 1.5, marginLeft: -0.75, backgroundColor: '#ff8a2b' }} /> : null}
@@ -223,6 +226,8 @@ function Editor({ clip, onRetake, onClose }) {
         {rail({ icon: 'color-filter-outline', label: 'Filters', onPress: () => setTool('filters') })}
         {rail({ icon: 'cut-outline', label: 'Trim', onPress: () => setTool('trim') })}
         {rail({ icon: 'speedometer-outline', label: speed === 1 ? 'Speed' : speed + 'x', on: speed !== 1, onPress: () => setTool('speed') })}
+        {rail({ icon: 'musical-notes-outline', label: snd && snd.u ? 'Sound ✓' : 'Sound', on: !!(snd && snd.u), onPress: () => setTool('sound') })}
+        {rail({ icon: snd && snd.o === 0 ? 'volume-mute-outline' : 'volume-high-outline', label: 'Volume', on: !!(snd && snd.o != null && snd.o !== 1), onPress: () => setTool('volume') })}
       </View> : null}
 
       {dragging ? <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: ins.bottom + 30, alignItems: 'center' }}>
@@ -242,6 +247,17 @@ function Editor({ clip, onRetake, onClose }) {
           <Timeline dur={clip.dur} start={trim.s} end={trim.e} thumbs={thumbs} onChange={(a, b) => setTrim({ s: a, e: b })}
             onScrub={(t) => { scrubbing.current = true; seek(t); }} onScrubEnd={() => { scrubbing.current = false; setTimeout(resume, 30); }}
             getTime={() => { try { return pl() ? pl().currentTime : null; } catch (e) { return null; } }} /></>) : null}
+        {tool === 'sound' ? panel('Sound', <SoundPanel value={snd} onChange={setSnd} maxT={Math.max(1, trim.e - trim.s)} />) : null}
+        {tool === 'volume' ? panel('Volume', <>
+          {(() => { const o = snd && snd.o != null ? snd.o : 1; return <View style={{ gap: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Pressable onPress={() => setSnd({ ...(snd || {}), o: o === 0 ? 1 : 0 })} accessibilityLabel={o === 0 ? 'Turn original sound on' : 'Mute original sound'} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: o === 0 ? '#ff5500' : 'rgba(255,255,255,.12)', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={o === 0 ? 'volume-mute' : 'volume-high'} size={20} color="#fff" /></Pressable>
+              <T h style={{ color: '#fff', flex: 1 }}>Original sound {Math.round(o * 100)}%</T></View>
+            <Slider value={o} onChange={(x) => setSnd({ ...(snd || {}), o: x })} />
+            {snd && snd.u ? <><T h style={{ color: '#fff', marginTop: 6 }}>{snd.n} {Math.round((snd.v == null ? 1 : snd.v) * 100)}%</T>
+              <Slider value={snd.v == null ? 1 : snd.v} onChange={(x) => setSnd({ ...snd, v: x })} /></> : null}
+          </View>; })()}</>) : null}
         {tool === 'speed' ? panel('Speed', <>
           <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 15, padding: 4 }}>
             {SPEEDS.map((v) => <Pressable key={v} onPress={() => setSpeed(v)} accessibilityLabel={v + 'x speed'}

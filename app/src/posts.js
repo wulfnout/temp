@@ -10,10 +10,11 @@ import { useApp, T, Avatar, Timer, Sticker, StickerPicker, Sheet, Btn, Empty, st
 import { ago, kfmt, F } from './lib';
 import { act } from './data';
 import { GifPicker } from './gif';
+import { useSoundTrack } from './sounds';
 
 // playback speed a Replay was posted at, so the hold-for-2x gesture can return to it
 export const baseRate = new WeakMap();
-export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef, trim, rate }) {
+export function Video({ uri, style, autoPlay, controls = true, loop = false, muted = false, onEnd, playerRef, trim, rate, sound }) {
   const t0 = (trim && trim.trimStart) || 0, t1 = trim && trim.trimEnd;
   const player = useVideoPlayer(uri, (p) => { p.loop = loop && !t1; p.muted = muted; if (t0) p.currentTime = t0; if (autoPlay) p.play(); });
   // Trimmed Replays: start at trimStart, stop (or loop back) at trimEnd.
@@ -27,6 +28,7 @@ export function Video({ uri, style, autoPlay, controls = true, loop = false, mut
     return () => sub.remove();
   }, [player, t0, t1, loop]);
   if (playerRef) playerRef.current = player;
+  useSoundTrack(player, sound);
   React.useEffect(() => { const r = rate || 1; baseRate.set(player, r); try { player.playbackRate = r; } catch (e) {} }, [player, rate]);
   React.useEffect(() => {
     if (!onEnd) return;

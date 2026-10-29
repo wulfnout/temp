@@ -285,6 +285,8 @@ export function EarningsScreen() {
 /* ---------------- lingering thoughts ---------------- */
 // a short daily thought floating on your profile like a see-through bubble, with a three-bubble tail toward your picture
 // bubble styles: Orange (default) and Blackout are free; Bubble is the only one with the soap-film shine
+// big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
+const thoughtSize = (t) => { const n = (t || '').length; return n <= 18 ? 28 : n <= 30 ? 24 : n <= 45 ? 21 : n <= 60 ? 18.5 : 16.5; };
 export const BUBBLES = [['orange', 'Orange', 0], ['blackout', 'Blackout', 0], ['bubble', 'Bubble', 300], ['gold', 'Gold', 400], ['ice', 'Ice', 200], ['neon', 'Neon', 250], ['midnight', 'Midnight', 250]];
 function bubbleLook(id, C) {
   switch (id) {
@@ -319,7 +321,7 @@ function ThoughtBubble({ u, isMe, onOpen, top = 0 }) {
       : <LinearGradient colors={RIM} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, borderRadius: size, padding: 1.4 }}><View style={{ flex: 1, borderRadius: size, backgroundColor: film }} /></LinearGradient>}</Animated.View>;
   const rs = t ? Object.entries(t.reacts).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
   const body = <>
-    {t ? <T style={{ fontFamily: L ? F.display : F.bold, fontSize: L ? 14.5 : 14.5, lineHeight: 19, letterSpacing: L ? -0.3 : 0, color: ink }}>{t.text}</T> : null}
+    {t ? <T style={{ fontFamily: F.display, fontSize: thoughtSize(t.text), lineHeight: thoughtSize(t.text) * 1.12, letterSpacing: -thoughtSize(t.text) * 0.035, color: ink }}>{t.text}</T> : null}
     {rs.length ? <View style={{ flexDirection: 'row', gap: 6, marginTop: 5 }}>{rs.map(([e, n]) => <T key={e} h style={{ fontSize: 12.5, color: ink }}>{e}{n > 1 ? n : ''}</T>)}</View> : null}</>;
   return (
     <Pressable onPress={onOpen} accessibilityLabel={t ? 'Lingering thought: ' + t.text : 'Lingering thought'} style={{ marginTop: top }}>

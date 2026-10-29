@@ -188,6 +188,8 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 /* lingering thought v6: taller, reaching down to just above the stats */
 .thought{min-height:140px!important;justify-content:flex-start!important;padding-top:16px!important}
 .prof-id.has-thought{min-height:104px}
+
+.thought .thought-in{font-family:var(--display)!important;font-weight:800!important;letter-spacing:-.035em!important;line-height:1.12!important}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3078,11 +3080,13 @@ function PollBox({p,dispatch}){
 }
 // Lingering thoughts: a short daily message floating on your profile, like a thought bubble with a little tail
 const THOUGHT_REACTS=['🔥','😂','😮','🧊','💯','👀'];
+// big, bold Replay-style text that fills the bubble: shorter thoughts get bigger letters
+const thoughtSize=t=>{const n=(t||'').length;return n<=18?28:n<=30?24:n<=45?21:n<=60?18.5:16.5};
 function ThoughtBubble({u,isMe,onOpen}){
   const t=u.thought;const rs=t?Object.entries(t.reacts).sort((a,b)=>b[1]-a[1]).slice(0,3):[];
   return html`<button className=${'thought ts-'+(u.thoughtStyle||'orange')+(t?'':' empty')} onClick=${onOpen} aria-label=${t?'Lingering thought: '+t.text:'Add a lingering thought'}>
     <i className="tt t1"></i><i className="tt t2"></i><i className="tt t3"></i>
-    <span className="thought-in">${t?t.text:html`<${Icon} n="plus" s=${14} w=${2.6}/>Lingering thought…`}</span>
+    <span className="thought-in" style=${t?{fontSize:thoughtSize(t.text)}:null}>${t?t.text:html`<${Icon} n="plus" s=${14} w=${2.6}/>Lingering thought…`}</span>
     ${rs.length>0&&html`<span className="thought-rx">${rs.map(([e,n])=>html`<span key=${e}>${e}${n>1?n:''}</span>`)}</span>`}</button>`;
 }
 function ThoughtSheet({u,s,dispatch,onClose}){

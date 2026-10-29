@@ -13,6 +13,11 @@
 .crop-tip{text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;margin:4px 0 12px}
 .crop-shapes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 12px}.crop-shapes button{padding:9px 15px;border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font-weight:800;font-size:14px}.crop-shapes button[aria-pressed="true"]{background:#fff;color:#000}
 .c-crop{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:17px;background:rgba(0,0,0,.6);color:#fff;font-weight:800;font-size:13px}
+
+.snd-h{display:block;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);margin:14px 4px 6px}
+.sfx-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sfx{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:14px;padding:6px 10px 6px 6px;border:1.5px solid transparent}.sfx.on{border-color:var(--orange);background:rgba(255,85,0,.16)}
+.sfx-play{width:32px;height:32px;border-radius:10px;background:var(--orange);color:#fff;display:grid;place-items:center;flex:none}.sfx-name{flex:1;text-align:left;font-weight:800;font-size:14px;color:#fff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2203,19 +2208,26 @@ function useSound(){const [on,setOn]=useState(SND.on);useEffect(()=>{const f=()=
 // Temp Sounds: original loops made for Temp (free to use on any replay or story)
 const SOUNDS=[['ember-trap','Ember Trap','Dark trap · 140'],['late-night-lofi','Late Night Lofi','Chill · 80'],['heat-check-drill','Heat Check Drill','Drill · 142'],['sunset-house','Sunset House','House · 124'],
   ['phonk-drift','Phonk Drift','Phonk · 130'],['afro-glow','Afro Glow','Afrobeats · 108'],['main-character','Main Character','Cinematic · 90'],['plot-twist','Plot Twist','Funny · 112']].map(([id,name,mood])=>({id,name,mood,u:'/sounds/lib/'+id+'.mp3'}));
+// sound effects: original one-shots in the style of classic meme moments (made by Temp, free to use)
+const SFX=[['boom','Boom'],['air-horn','Air Horn'],['record-scratch','Record Scratch'],['sad-trombone','Sad Trombone'],['crickets','Crickets'],['drum-roll','Drum Roll'],['ba-dum-tss','Ba Dum Tss'],['dun-dun-dun','Dun Dun Dunnn'],
+  ['suspense','Suspense'],['ding','Ding'],['wrong-buzzer','Wrong Buzzer'],['whoosh','Whoosh'],['cha-ching','Cha-Ching'],['bonk','Bonk'],['glitch','Glitch'],['uh-oh','Uh Oh']].map(([id,name])=>({id,name,u:'/sounds/sfx/'+id+'.mp3'}));
 SND.tracks=new Set();
 // plays a sound alongside a video (kept in sync, loops) or on its own for photo stories; follows the sound on/off switch
 function useTrack(getVideo,snd,active){
-  useEffect(()=>{if(!snd||!snd.u||!active)return;
-    const a=new Audio(snd.u);a.loop=true;a.preload='auto';a.setAttribute('playsinline','');a.volume=Math.max(0,Math.min(1,snd.v==null?1:snd.v));SND.tracks.add(a);
+  useEffect(()=>{if(!snd||!active)return;
+    if(!snd.u){const v0=getVideo&&getVideo();if(!v0||snd.o==null)return;v0.dataset.ovol=String(snd.o);if(snd.o===0)v0.muted=true;else try{v0.volume=Math.max(0,Math.min(1,snd.o))}catch(e){}
+      return()=>{delete v0.dataset.ovol;try{v0.volume=1}catch(e){}}}
+    const a=new Audio(snd.u);a.loop=!snd.once;a.preload='auto';a.setAttribute('playsinline','');a.volume=Math.max(0,Math.min(1,snd.v==null?1:snd.v));SND.tracks.add(a);
     const v0=getVideo&&getVideo();if(v0){v0.dataset.ovol=String(snd.o==null?1:snd.o);if(snd.o===0)v0.muted=true;else try{v0.volume=Math.max(0,Math.min(1,snd.o==null?1:snd.o))}catch(e){}}
     const st=+snd.st||0;let started=false;
     const tick=()=>{a.muted=!SND.on;const v=getVideo&&getVideo();
-      if(v){if(v.paused){if(!a.paused)a.pause();return}const want=st+(v.currentTime-(+snd.t0||0));const d=a.duration||0;const w=d?((want%d)+d)%d:want;
+      if(v){if(v.paused){if(!a.paused)a.pause();return}const want=st+(v.currentTime-(+snd.t0||0));const d=a.duration||0;
+        if(snd.once){if(want<0||(d&&want>=d-0.05)){if(!a.paused)a.pause();started=false;return}}
+        const w=snd.once?want:d?((want%d)+d)%d:want;
         if(!started||Math.abs(a.currentTime-w)>0.35)try{a.currentTime=w}catch(e){}started=true;if(a.paused)a.play().catch(()=>{SND.blocked=true})}
       else if(a.paused){if(!started){try{a.currentTime=st}catch(e){}started=true}a.play().catch(()=>{SND.blocked=true})}};
     tick();const iv=setInterval(tick,250);
-    return()=>{clearInterval(iv);a.pause();SND.tracks.delete(a);try{a.removeAttribute('src');a.load()}catch(e){}const v=getVideo&&getVideo();if(v){delete v.dataset.ovol;try{v.volume=1}catch(e){}}}},[snd&&snd.u,snd&&snd.st,snd&&snd.v,snd&&snd.o,snd&&snd.k,active]);
+    return()=>{clearInterval(iv);a.pause();SND.tracks.delete(a);try{a.removeAttribute('src');a.load()}catch(e){}const v=getVideo&&getVideo();if(v){delete v.dataset.ovol;try{v.volume=1}catch(e){}}}},[snd&&snd.u,snd&&snd.st,snd&&snd.v,snd&&snd.o,snd&&snd.k,snd&&snd.t0,active]);
 }
 // pick a sound: Temp Sounds, your own audio file, or just the original; volumes and where the sound starts
 function SoundPicker({value,onChange,hasVideo}){
@@ -2224,17 +2236,24 @@ function SoundPicker({value,onChange,hasVideo}){
   const play=x=>{if(au.current){au.current.pause();au.current=null}if(prev===x.u){setPrev(null);return}const a=new Audio(x.u);a.currentTime=0;a.play().catch(()=>{});au.current=a;setPrev(x.u)};
   const v=value||null;const set=patch=>onChange({...(v||{}),...patch});
   return html`<div className="snd-pick">
-    <button className=${'snd-row'+(!v?' on':'')} onClick=${()=>{onChange(null);if(au.current)au.current.pause();setPrev(null)}}><span className="snd-art none"><${Icon} n="mute" s=${18}/></span><span className="grow"><b>${hasVideo?'Original sound only':'No sound'}</b></span>${!v&&html`<${Icon} n="check" s=${18} w=${2.6}/>`}</button>
+    <button className=${'snd-row'+(!v||!v.u?' on':'')} onClick=${()=>{onChange(hasVideo&&v&&v.o!=null&&v.o!==1?{o:v.o}:null);if(au.current)au.current.pause();setPrev(null)}}><span className="snd-art none"><${Icon} n="mute" s=${18}/></span><span className="grow"><b>${hasVideo?'Original sound only':'No sound'}</b></span>${(!v||!v.u)&&html`<${Icon} n="check" s=${18} w=${2.6}/>`}</button>
+    ${hasVideo&&html`<div className="snd-mix"><label><span>Original volume ${Math.round((v&&v.o!=null?v.o:1)*100)}%</span><input type="range" min="0" max="1" step="0.05" value=${v&&v.o!=null?v.o:1} onInput=${e=>set({o:+e.target.value})}/></label></div>`}
+    <b className="snd-h">Music</b>
     ${SOUNDS.map((x,i)=>html`<div key=${x.id} className=${'snd-row'+(v&&v.u===x.u?' on':'')}>
       <button className="snd-art" style=${{'--h':8+(i*5)%30,'--l':[52,44,58,40,48,36,55,46][i%8]+'%'}} onClick=${()=>play(x)} aria-label=${(prev===x.u?'Stop ':'Play ')+x.name}><${Icon} n=${prev===x.u?'pause':'play'} s=${16} fill="#fff"/></button>
-      <button className="grow snd-name" onClick=${()=>set({u:x.u,n:x.name,st:0,v:v&&v.v!=null?v.v:1,o:v&&v.o!=null?v.o:(hasVideo?0.4:1)})}><b>${x.name}</b><span className="sub">${x.mood} · Temp Sounds</span></button>
+      <button className="grow snd-name" onClick=${()=>set({u:x.u,n:x.name,st:0,once:0,t0:0,v:v&&v.v!=null?v.v:1,o:v&&v.o!=null?v.o:(hasVideo?0.4:1)})}><b>${x.name}</b><span className="sub">${x.mood} · Temp Sounds</span></button>
       ${v&&v.u===x.u&&html`<${Icon} n="check" s=${18} w=${2.6}/>`}</div>`)}
+    <b className="snd-h">Sound effects</b>
+    <div className="sfx-grid">${SFX.map(x=>html`<div key=${x.id} className=${'sfx'+(v&&v.u===x.u?' on':'')}>
+      <button className="sfx-play" onClick=${()=>play(x)} aria-label=${(prev===x.u?'Stop ':'Play ')+x.name}><${Icon} n=${prev===x.u?'pause':'play'} s=${13} fill="currentColor"/></button>
+      <button className="sfx-name" onClick=${()=>set({u:x.u,n:x.name,st:0,once:1,t0:v&&v.once?v.t0||0:0,v:v&&v.v!=null?v.v:1,o:v&&v.o!=null?v.o:1})}>${x.name}</button></div>`)}</div>
+    <b className="snd-h">Yours</b>
     <button className="snd-row" onClick=${()=>fr.current.click()}><span className="snd-art up"><${Icon} n="music" s=${18}/></span><span className="grow"><b>${v&&v.mine?v.n:'Use your own sound'}</b><span className="sub">Only sounds you made or have the rights to</span></span></button>
     <input ref=${fr} type="file" accept="audio/*" className="vh" onChange=${e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(f.size>15e6){alert('Pick a sound under 15 MB.');return}set({u:blobUrl(f),n:(f.name||'My sound').replace(/\.[a-z0-9]+$/i,'').slice(0,40),st:0,v:1,o:hasVideo?0.4:1,mine:1})}}/>
-    ${v&&html`<div className="snd-mix">
-      <label><span>Sound</span><input type="range" min="0" max="1" step="0.05" value=${v.v==null?1:v.v} onInput=${e=>set({v:+e.target.value})}/></label>
-      ${hasVideo&&html`<label><span>Original</span><input type="range" min="0" max="1" step="0.05" value=${v.o==null?1:v.o} onInput=${e=>set({o:+e.target.value})}/></label>`}
-      <label><span>Start at ${Math.round(v.st||0)}s</span><input type="range" min="0" max="25" step="1" value=${v.st||0} onInput=${e=>set({st:+e.target.value})}/></label></div>`}
+    ${v&&v.u&&html`<div className="snd-mix">
+      <label><span>${v.once?'Effect':'Sound'} volume</span><input type="range" min="0" max="1" step="0.05" value=${v.v==null?1:v.v} onInput=${e=>set({v:+e.target.value})}/></label>
+      ${v.once?hasVideo&&html`<label><span>Plays at ${(+v.t0||0).toFixed(1)}s</span><input type="range" min="0" max="60" step="0.5" value=${v.t0||0} onInput=${e=>set({t0:+e.target.value})}/></label>`
+        :html`<label><span>Start at ${Math.round(v.st||0)}s</span><input type="range" min="0" max="25" step="1" value=${v.st||0} onInput=${e=>set({st:+e.target.value})}/></label>`}</div>`}
   </div>`;
 }
 const STORY_REACTS=['🔥','😂','😮','🧊'];
@@ -2426,7 +2445,7 @@ function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
   const [dragging,setDragging]=useState(false);const [overTrash,setOverTrash]=useState(false);const [guide,setGuide]=useState(false);
   const [ts,setTs]=useState(0);const [te,setTe]=useState(clip.dur||0);const [tool,setTool]=useState(null);const [caption,setCaption]=useState('');const [err,setErr]=useState('');
   const scrub=useRef(false);const thumbs=useThumbs(clip.url,clip.dur);const [sound,setSound]=useState(null);
-  useTrack(()=>ed.current,sound&&{...sound,t0:ts},!!sound&&!typing);
+  useTrack(()=>ed.current,sound&&{...sound,t0:sound.once?ts+(+sound.t0||0):ts},!!sound&&!typing);
   useEffect(()=>{if(clip.dur&&!te)setTe(+clip.dur.toFixed(1))},[clip.dur]);
   useEffect(()=>{const v=ed.current;if(!v)return;v.playbackRate=speed},[speed]);
   useEffect(()=>{const v=ed.current;if(!v)return;const tu=()=>{if(scrub.current)return;if(v.currentTime<ts-0.2||(te&&v.currentTime>=te)){v.currentTime=ts}};v.addEventListener('timeupdate',tu);return()=>v.removeEventListener('timeupdate',tu)},[ts,te]);
@@ -2439,7 +2458,7 @@ function RecEditor({s,dispatch,clip,setClip,onClose,open,onRetake}){
   const post=()=>{
     const why=MOD.rules(MOD.classify(caption+' '+texts.map(x=>x.t).join(' ')),s.users.me.plus,isAdult(s));if(why){setErr(why.msg);return}
     if(clip.file&&clip.file.size>MAX_BYTES){setErr('That video is too big (50 MB max). Trim it shorter or pick a shorter one.');return}
-    const overlay={v:2,...(sound?{sound:{u:sound.u,n:sound.n,st:sound.st||0,v:sound.v==null?1:sound.v,o:sound.o==null?1:sound.o,t0:+ts.toFixed(1)}}:{}),filter,texts:texts.map(x=>({...x,x:+x.x.toFixed(4),y:+x.y.toFixed(4),s:+(x.s||1).toFixed(3),r:+(x.r||0).toFixed(1)})),speed,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+(clip.dur||te).toFixed(1)};
+    const overlay={v:2,...(sound?{sound:{...(sound.u?{u:sound.u,n:sound.n,st:sound.st||0,v:sound.v==null?1:sound.v}:{}),...(sound.once?{once:1}:{}),o:sound.o==null?1:sound.o,t0:+(sound.once?ts+(+sound.t0||0):ts).toFixed(1)}}:{}),filter,texts:texts.map(x=>({...x,x:+x.x.toFixed(4),y:+x.y.toFixed(4),s:+(x.s||1).toFixed(3),r:+(x.r||0).toFixed(1)})),speed,trimStart:+ts.toFixed(1),trimEnd:+te.toFixed(1),dur:+(clip.dur||te).toFixed(1)};
     dispatch({type:'post',text:caption.trim(),media:{type:'video',url:clip.url,file:clip.file},reel:true,overlay});onClose();open.replay();
   };
   const togglePlay=()=>{if(tool){setTool(null);resume();return}const v=ed.current;if(v)v.paused?v.play().catch(()=>{}):v.pause()};

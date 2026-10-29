@@ -139,7 +139,7 @@ function Pill({ bg, fg, icon, text }) {
 
 /* morphing, spinning story orb */
 // the story ring: the theme colour flowing round and round a round ring (same as the website's .orb)
-export function GradRing({ size, ring = 3, gap = 3, seen, bg, children }) {
+export function GradRing({ size, ring = 5, gap = 3, seen, bg, children }) {
   const { C } = useApp();
   useClockKick();
   const spin = useRef(new Animated.Value(0)).current;

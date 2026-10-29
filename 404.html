@@ -68,7 +68,7 @@ img,video{max-width:100%;display:block}
 .stories::-webkit-scrollbar{display:none}
 .story{display:grid;justify-items:center;gap:7px;flex:none;width:76px}
 .story > span{font-size:12px;font-weight:600;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
-.orb{width:74px;height:74px;padding:3px;position:relative;display:block;border-radius:50%;
+.orb{width:74px;height:74px;padding:5px;position:relative;display:block;border-radius:50%;
   background:conic-gradient(from var(--spin),var(--orange),var(--orange-2),var(--orange-3),var(--orange-2),var(--orange));animation:morph 7s ease-in-out infinite,spin 3.5s linear infinite}
 @keyframes morphsoft{0%,100%{border-radius:52% 48% 51% 49%/49% 52% 48% 51%}33%{border-radius:48% 52% 49% 51%/52% 48% 51% 49%}66%{border-radius:51% 49% 52% 48%/48% 51% 49% 52%}}
 .orb.seen{background:var(--line);animation:morph 11s ease-in-out infinite}
@@ -1173,7 +1173,7 @@ html:has(.gl-prev-c){padding-top:0}body:has(.gl-prev-c)::before{display:none}
   filter:blur(.4px);opacity:0;animation:tongue var(--t) cubic-bezier(.3,.2,.6,1) infinite;animation-delay:var(--d)}
 .fire-licks i:not(.hot) b{background:radial-gradient(ellipse 50% 80% at 50% 92%,#ffb347 0%,#ff4a0a 35%,rgba(220,30,0,.85) 65%,rgba(150,10,0,0) 100%);filter:blur(.7px)}
 @keyframes tongue{0%{opacity:0;transform:translateY(25%) scale(.5,.35) skewX(0)}18%{opacity:1}55%{opacity:.95;transform:translateY(-8%) scale(1,1) skewX(var(--sw))}100%{opacity:0;transform:translateY(-42%) scale(.35,.75) skewX(calc(var(--sw)*-2))}}
-.prof-orb{width:110px;height:110px;padding:4px;border:4px solid var(--card);box-sizing:content-box}
+.prof-orb{width:108px;height:108px;padding:6px;border:4px solid var(--card);box-sizing:content-box}
 .prof-orb>.av{border-width:3px!important;border-color:var(--card)!important}
 /* the flowing story ring: theme-colour gradient spinning around a round ring */
 .prof-orb.flow>.av{border-radius:inherit}
@@ -2162,12 +2162,12 @@ function StoriesRow({s,open,addStory}){
   return html`<div className="stories" aria-label="Stories" data-tour="stories">
     <div className="story">
       <button className=${'orb'+(s.storyUploading?' uploading':mine&&unseen(mine)?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
-        <${Avatar} u=${s.users.me} size=${68} noRing=${true}/>
+        <${Avatar} u=${s.users.me} size=${64} noRing=${true}/>
         ${s.storyUploading?html`<span className="up-spin" aria-hidden="true"></span>`:null}
         <span className="add" role="button" aria-label="Add to your story" onClick=${e=>{e.stopPropagation();addStory()}}><${Icon} n="plus" s=${12} w=${3.2}/></span>
       </button><span>${s.storyUploading?'Posting…':'Your story'}</span></div>
     ${sorted.map(st=>{const u=s.users[st.userId];return html`<div className="story" key=${st.userId}>
-      <button className=${'orb'+(unseen(st)?'':' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${68} noRing=${true}/></button>
+      <button className=${'orb'+(unseen(st)?'':' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${64} noRing=${true}/></button>
       <span>${u.handle}</span></div>`})}
   </div>`;
 }
@@ -3331,7 +3331,7 @@ function Profile({s,id,dispatch,open,back,startTab}){
         ${!isMe&&!blocked&&html`<button className="header-btn" onClick=${()=>setMore(true)} aria-label="More options"><span className="orbs3"><i></i><i></i><i></i></span></button>`}</div>
       <div className="prof-top">${(()=>{const st=s.stories.find(x=>x.userId===id);const un=st&&st.items.some(i=>!s.seen[i.id]);
         // the profile picture always has the flowing ring (solid theme colour); grey once you've watched their story
-        const pic=st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${110} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
+        const pic=st?html`<span className=${'orb prof-orb flow'+(un?'':' seen')}><${Avatar} u=${u} size=${108} noRing=${true}/></span>`:html`<${Avatar} u=${u} size=${96}/>`;
         if(isMe){const tap=e=>{const r=e.currentTarget.getBoundingClientRect();open.drawer({top:Math.max(60,Math.min(r.bottom+8,innerHeight-500)),left:Math.max(12,r.left)})};
           return html`<button className="prof-pic" onClick=${tap} aria-label="Your menu">${pic}</button>`}
         return st?html`<button className="prof-pic" onClick=${()=>open.story(id)} aria-label=${'Story from @'+u.handle}>${pic}</button>`:pic})()}

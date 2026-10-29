@@ -43,7 +43,7 @@ export function ProfileScreen({ id, isTab }) {
               // your own picture opens your menu as a drop-down card
               const openMenu = (e) => { const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMenuAt({ top: pageY - locationY + 104, left: Math.max(12, pageX - locationX) }); };
               const unseen = story ? story.items.some((i) => !s.seen[i.id]) : false;
-              const pic = story ? <View style={{ backgroundColor: C.card, borderRadius: 64, padding: 4 }}><GradRing size={118} ring={4} gap={3} seen={!unseen} bg={C.card}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing></View>
+              const pic = story ? <View style={{ backgroundColor: C.card, borderRadius: 64, padding: 4 }}><GradRing size={120} ring={6} gap={3} seen={!unseen} bg={C.card}>{(sz) => <Avatar u={{ ...u, ring: null }} size={sz} />}</GradRing></View>
                 : <View style={{ backgroundColor: C.card, borderRadius: 60, padding: 3 }}><Avatar u={u} size={100} /></View>;
               if (isMe) return <Pressable onPress={openMenu} accessibilityLabel="Your menu">{pic}</Pressable>;
               return story ? <Pressable onPress={() => nav.sheet('story', { userId: uid })} accessibilityLabel={'Story from @' + u.handle}>{pic}</Pressable> : pic; })()}

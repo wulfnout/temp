@@ -56,37 +56,17 @@ function GoLiveWeb({ onClose, stream }) {
     : <View style={{ flex: 1, backgroundColor: '#000' }} />;
 }
 
-export function GoLiveSide() {
-  const { C, setBars } = useApp(); const { width: W } = require('react-native').Dimensions.get('window');
-  const x = useRef(new Animated.Value(-W)).current; const [open, setOpen] = useState(false); const [mounted, setMounted] = useState(false);
-  const peek = useRef(new Animated.Value(0)).current; const openRef = useRef(false); openRef.current = open;
-  const show = (o) => { if (o) setMounted(true); setOpen(o); setBars && setBars(o); /* the live page covers the tab bar */ Animated.spring(x, { toValue: o ? 0 : -W, damping: 22, stiffness: 200, useNativeDriver: true }).start(() => { if (!o) setMounted(false); }); };
-  const edge = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => false,
-    onMoveShouldSetPanResponder: (e, d) => d.dx > 8 && Math.abs(d.dx) > Math.abs(d.dy) * 1.4,
-    onPanResponderGrant: () => { setMounted(true); setBars && setBars(true); },
-    onPanResponderMove: (e, d) => x.setValue(Math.min(0, -W + Math.max(0, d.dx))),
-    onPanResponderRelease: (e, d) => show(d.dx > W * 0.3 || d.vx > 0.5),
-    onPanResponderTerminate: () => show(false),
-  })).current;
-  // the hint: very occasionally, a tab slides out from the left edge and back
+// Go Live, opened from the story menu on the home feed (slides in from the left, covers the tab bar)
+export function GoLiveSide({ open, onClose }) {
+  const { setBars } = useApp(); const { width: W } = require('react-native').Dimensions.get('window');
+  const x = useRef(new Animated.Value(-W)).current; const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    let t; const plan = () => { t = setTimeout(() => {
-      if (!openRef.current && Math.random() < 0.4) Animated.sequence([Animated.spring(peek, { toValue: 1, useNativeDriver: true }), Animated.delay(2200), Animated.timing(peek, { toValue: 0, duration: 350, useNativeDriver: true })]).start();
-      plan(); }, (90 + Math.random() * 330) * 1000); };
-    plan(); return () => clearTimeout(t);
-  }, []);
-  return <>
-    <View {...edge.panHandlers} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 24, zIndex: 20 }} />
-    <Animated.View style={{ position: 'absolute', left: 0, top: '30%', zIndex: 21, transform: [{ translateX: peek.interpolate({ inputRange: [0, 1], outputRange: [-46, 0] }) }] }}>
-      <Pressable onPress={() => show(true)} accessibilityLabel="Open Go Live" style={{ width: 44, height: 170, borderTopRightRadius: 26, borderBottomRightRadius: 26, backgroundColor: '#ff3d1a', alignItems: 'center', justifyContent: 'center',
-        shadowColor: '#ff5500', shadowOpacity: 0.6, shadowRadius: 14 }}>
-        <T h style={{ color: '#fff', fontSize: 11.5, letterSpacing: 2, width: 140, textAlign: 'center', transform: [{ rotate: '-90deg' }] }}>GO LIVE</T></Pressable>
-    </Animated.View>
-    {mounted ? <Animated.View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: W, zIndex: 30, backgroundColor: '#000', transform: [{ translateX: x }] }}>
-      <GoLiveWeb onClose={() => show(false)} />
-    </Animated.View> : null}
-  </>;
+    if (open) setMounted(true); setBars && setBars(!!open);
+    Animated.spring(x, { toValue: open ? 0 : -W, damping: 22, stiffness: 200, useNativeDriver: true }).start(() => { if (!open) setMounted(false); });
+  }, [open]);
+  return mounted ? <Animated.View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: W, zIndex: 30, backgroundColor: '#000', transform: [{ translateX: x }] }}>
+    <GoLiveWeb onClose={onClose} />
+  </Animated.View> : null;
 }
 
 // a specific live, opened from the Replay feed (full screen, back closes it)

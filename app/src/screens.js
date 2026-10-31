@@ -85,6 +85,26 @@ export function Drawer({ onClose, at, onEdit, onThought }) {
 }
 
 /* ---------------- home ---------------- */
+// tapping your story circle: a small drop-down with Go live, Post a story and View story
+function StoryMenu({ at, hasStory, onClose, onLive, onPost, onView }) {
+  const { C } = useApp(); const k = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.spring(k, { toValue: 1, damping: 20, stiffness: 320, useNativeDriver: true }).start(); }, []);
+  const close = (then) => Animated.timing(k, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => { onClose(); then && setTimeout(then, 60); });
+  const rows = [['radio-outline', 'Go live', onLive, true], ['add-circle-outline', 'Post a story', onPost, true], ['eye-outline', 'View story', onView, hasStory]];
+  return (
+    <Modal transparent visible animationType="none" onRequestClose={() => close()}>
+      <Pressable style={{ flex: 1 }} onPress={() => close()} />
+      <Animated.View style={{ position: 'absolute', left: at.left, top: at.top, width: 200, backgroundColor: C.card, borderRadius: 22, paddingVertical: 6, paddingHorizontal: 6,
+        shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 12,
+        opacity: k, transform: [{ scale: k.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }, { translateY: k.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }] }}>
+        {rows.map(([ic, l, f, on]) => <Pressable key={l} disabled={!on} onPress={() => close(f)} accessibilityLabel={l}
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 12, borderRadius: 16, backgroundColor: pressed ? C.soft : 'transparent', opacity: on ? 1 : 0.35 })}>
+          <Ionicons name={ic} size={21} color={l === 'Go live' ? C.orange : C.ink} /><T h style={{ fontSize: 15.5 }}>{l}</T></Pressable>)}
+      </Animated.View>
+    </Modal>
+  );
+}
+
 // For you / Following lives in the logo (and the Replay title): tap it to switch feeds
 const feedSubs = {};
 function useFeedPref(key) {
@@ -113,6 +133,7 @@ export function HomeScreen() {
   const { s, C, nav, reload, run } = useApp(); const ins = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
   const [feed, pickFeed] = useFeedPref('temp-feed');
+  const [meMenu, setMeMenu] = useState(null); const [goLive, setGoLive] = useState(false);
   // For you: everything, hottest and newest first. Following: just the people you follow (and you), newest first
   // burned takes leave the feed; a quote of a burned take goes too if the quote was all it had
   const base = s.posts.filter((p) => !p.reel && p.status !== 'gone' && !s.blocked[p.userId] && !(s.muted && s.muted[p.userId])
@@ -154,7 +175,7 @@ export function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 10 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, gap: 12 }}>
             <View style={{ alignItems: 'center', gap: 6 }}>
               <View>
-                <StoryOrb u={s.users[s.me]} seen={!mine} add={!uploading} onAdd={addStory} onPress={() => (uploading ? null : mine ? nav.sheet('story', { userId: s.me }) : addStory())} label={uploading ? 'Your story is uploading' : mine ? 'Your story' : 'Add to your story'} />
+                <StoryOrb u={s.users[s.me]} seen={!mine} add={!uploading} onAdd={addStory} onPress={(e) => { if (uploading) return; const { pageX, pageY, locationX, locationY } = e.nativeEvent; setMeMenu({ left: Math.max(12, pageX - locationX - 2), top: pageY - locationY + 84 }); }} label={uploading ? 'Your story is uploading' : 'Your story options'} />
                 {uploading ? <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, width: 78, height: 74, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={C.orange} /></View> : null}
               </View>
               <T b muted style={{ fontSize: 12 }}>{uploading ? 'Posting…' : 'Your story'}</T></View>
@@ -166,7 +187,9 @@ export function HomeScreen() {
         ListHeaderComponentStyle={{ gap: 0 }}
         ListEmptyComponent={<Empty text={!s.loaded ? 'Loading…' : feed === 'following' ? 'Follow people to see their takes here' : 'Nothing here yet. Tap + to post the first take.'} />}
         extraData={onScreen} renderItem={({ item }) => <PostCard p={item} active={!!onScreen[item.id]} />} />
-      <GoLiveSide />
+      <GoLiveSide open={goLive} onClose={() => setGoLive(false)} />
+      {meMenu ? <StoryMenu at={meMenu} hasStory={!!mine} onClose={() => setMeMenu(null)}
+        onLive={() => setGoLive(true)} onPost={addStory} onView={() => nav.sheet('story', { userId: s.me })} /> : null}
     </View>
   );
 }

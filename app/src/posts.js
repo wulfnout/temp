@@ -266,7 +266,7 @@ export function ReflameSheet({ post, onClose }) {
 export function PostCard({ p, active = false }) {
   const { s, C, run, nav, ashing, finishAsh } = useApp();
   const u = s.users[p.userId]; const frozen = p.status === 'frozen';
-  const [burst] = useState(() => new Animated.Value(0)); const lastTap = useRef(0);
+  const [burst] = useState(() => new Animated.Value(0)); const lastTap = useRef(0); const [box, setBox] = useState(null);
   const cs = p.comments.filter((c) => !s.blocked[c.userId]);
   const top = cs.length ? [...cs].sort((a, b) => b.likes - a.likes)[0] : null;
   const heat = () => { if (!p.myHeat) run(() => act.react(p.id, 'heat'), { optimistic: { post: p.id, patch: { myHeat: true, heat: p.heat + 1 } } }); };
@@ -279,9 +279,10 @@ export function PostCard({ p, active = false }) {
   if (!u) return null;
   const rf = p.kept && (p.reposts > 0 || p.quoteOf);
   return (
-    <View style={rf ? { marginTop: 6, marginBottom: 16, borderRadius: 30, backgroundColor: frozen ? C.soft : C.card, shadowColor: C.orange, shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 8 } : null}>
+    <View style={rf ? { marginTop: 6, marginBottom: 16, borderRadius: 30, backgroundColor: frozen ? C.soft : C.card, shadowColor: C.orange, shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 8 } : { marginBottom: 10 }}>
     {/* reflamed: a faint glow in the theme colour radiates around the card */}
-    <View style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: 26, padding: 14, marginBottom: rf ? 0 : 10, overflow: 'hidden', ...(rf ? { borderRadius: 30 } : null) }}>
+    <View onLayout={(e) => { const { width, height } = e.nativeEvent.layout; setBox((b) => (b && b.w === width && b.h === height ? b : { w: width, h: height })); }}
+      style={{ backgroundColor: frozen ? C.soft : C.card, borderRadius: rf ? 30 : 26, padding: 14, overflow: 'hidden' }}>
       {ashing === p.id ? <AshBurn onDone={() => finishAsh(p.id)} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Pressable onPress={() => nav.push('profile', { id: u.id })} style={{ opacity: frozen ? 0.45 : 1 }}><Avatar u={u} size={40} /></Pressable>
@@ -318,8 +319,9 @@ export function PostCard({ p, active = false }) {
       </View>
       {top && !frozen ? <Pressable onPress={() => nav.sheet('comments', { id: p.id })}><T muted numberOfLines={2} style={{ fontSize: 14, marginTop: 10 }}>
         <T b style={{ fontSize: 14 }}>{(s.users[top.userId] || {}).handle} </T>{top.sticker ? stickerLabel(top.sticker) : top.text}{cs.length > 1 ? ' · View all ' + cs.length : ''}</T></Pressable> : null}
-      {p.status === 'burning' && !p.kept ? <BurnBar p={p} /> : null}
     </View>
+    {/* a live take's 24h timer runs round the edge of the card: the orange line drains back toward the top as time runs out */}
+    {p.status === 'burning' && !p.kept && box ? <EdgeTimer p={p} w={box.w} h={box.h} r={rf ? 30 : 26} /> : null}
     </View>
   );
 }
@@ -345,20 +347,44 @@ function TimeOrb({ label }) {
     </View>
   );
 }
-function BurnBar({ p }) {
+// the 24h timer as a line around the card's edge, starting at the top centre and running clockwise; the orb rides the end of it
+function EdgeTimer({ p, w, h, r }) {
   const { C } = useApp(); const [, f] = useState(0);
   React.useEffect(() => { const t = setInterval(() => f((x) => x + 1), 15000); return () => clearInterval(t); }, []);
-  const left = Math.max(0, p.burnEnds - Date.now()); const pct = Math.max(0.001, Math.min(1, left / 864e5));
-  const h = Math.floor(left / 3600e3);
-  const label = h ? h + 'h' : '<1h';
+  const left = Math.max(0, p.burnEnds - Date.now()); const pct = Math.max(0.002, Math.min(1, left / 864e5));
+  const hh = Math.floor(left / 3600e3); const label = hh ? hh + 'h' : '<1h';
+  const i = 1.5, W = w - i * 2, H = h - i * 2, R = Math.max(0, Math.min(r - i, W / 2, H / 2));
+  const per = 2 * (W - 2 * R) + 2 * (H - 2 * R) + 2 * Math.PI * R;
+  const d = `M ${i + W / 2} ${i} H ${i + W - R} A ${R} ${R} 0 0 1 ${i + W} ${i + R} V ${i + H - R} A ${R} ${R} 0 0 1 ${i + W - R} ${i + H} H ${i + R} A ${R} ${R} 0 0 1 ${i} ${i + H - R} V ${i + R} A ${R} ${R} 0 0 1 ${i + R} ${i} Z`;
+  const len = per * pct;
+  // where along the edge the line ends
+  const at = (dist) => {
+    const segs = [['h', W / 2 - R], ['a', 0], ['v', H - 2 * R], ['a', 1], ['h2', W - 2 * R], ['a', 2], ['v2', H - 2 * R], ['a', 3], ['h3', W / 2 - R]];
+    let x = i + W / 2, y = i; let rem = dist;
+    const arcs = [[i + W - R, i + R, -Math.PI / 2], [i + W - R, i + H - R, 0], [i + R, i + H - R, Math.PI / 2], [i + R, i + R, Math.PI]];
+    for (const [k, L0] of segs) {
+      const L = k === 'a' ? (Math.PI / 2) * R : L0;
+      if (rem <= L) {
+        if (k === 'h' || k === 'h3') return { x: x + rem, y };
+        if (k === 'v') return { x, y: y + rem };
+        if (k === 'h2') return { x: x - rem, y };
+        if (k === 'v2') return { x, y: y - rem };
+        const [cx, cy, a0] = arcs[L0]; const a = a0 + (R ? rem / R : 0); return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+      }
+      rem -= L;
+      if (k === 'h' || k === 'h3') x += L; else if (k === 'v') y += L; else if (k === 'h2') x -= L; else if (k === 'v2') y -= L;
+      else { const [cx, cy, a0] = arcs[L0]; const a = a0 + Math.PI / 2; x = cx + R * Math.cos(a); y = cy + R * Math.sin(a); }
+    }
+    return { x, y };
+  };
+  const pt = at(len);
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }} accessibilityLabel={'Heated, ' + label + ' left'}>
-      {/* greyed-out trail: the full 24h path the orb has already travelled, with a faint imprint where it started */}
-      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, height: 3, borderRadius: 2, backgroundColor: C.line }} />
-      <View pointerEvents="none" style={{ position: 'absolute', right: 0, width: 32, height: 32, backgroundColor: C.line, borderTopLeftRadius: 17, borderTopRightRadius: 14, borderBottomRightRadius: 18, borderBottomLeftRadius: 13 }} />
-      <View style={{ flex: pct, height: 3, borderRadius: 2, backgroundColor: C.orange, marginRight: -2 }} />
-      <TimeOrb label={label} />
-      <View style={{ flex: 1 - pct }} />
+    <View pointerEvents="none" accessibilityLabel={label + ' left'} style={{ position: 'absolute', left: 0, top: 0, width: w, height: h }}>
+      <Svg width={w} height={h} style={{ position: 'absolute' }}>
+        <Path d={d} stroke={C.line} strokeWidth={3} fill="none" />
+        <Path d={d} stroke={C.orange} strokeWidth={3} fill="none" strokeLinecap="round" strokeDasharray={[len, per]} />
+      </Svg>
+      <View style={{ position: 'absolute', left: pt.x - 17.5, top: pt.y - 17.5 }}><TimeOrb label={label} /></View>
     </View>
   );
 }

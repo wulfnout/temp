@@ -237,6 +237,22 @@ html.blackout .rf-orb{background:var(--orange);color:var(--on-orange);box-shadow
 
 /* reflamed: a faint glow in the theme colour instead of a solid band */
 .post.reflamed{box-shadow:0 0 18px 2px color-mix(in srgb,var(--orange) 40%,transparent),0 0 3px color-mix(in srgb,var(--orange) 30%,transparent)!important;border-radius:30px!important;margin:10px 0 18px!important}
+
+/* 24h timer around the card edge */
+.post:has(> .edge-t){overflow:visible}
+.edge-t{position:absolute;inset:0;pointer-events:none;z-index:3}
+.edge-t svg{position:absolute;left:0;top:0;overflow:visible}
+.edge-t .et-track{fill:none;stroke:var(--line);stroke-width:3}
+.edge-t .et-line{fill:none;stroke:var(--orange);stroke-width:3;stroke-linecap:round}
+.edge-t span.orb{position:absolute!important;margin:0!important}
+
+/* your story: small drop-down with Go live / Post a story / View story */
+.story{position:relative}
+.st-menu-veil{position:fixed;inset:0;z-index:60}
+.st-menu{position:absolute;left:-2px;top:calc(100% + 6px);z-index:61;width:200px;background:var(--card);border-radius:22px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.22);animation:dropin .18s cubic-bezier(.2,.9,.3,1);transform-origin:top left}
+.st-menu button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border-radius:16px;font-weight:800;font-size:15.5px;color:var(--ink);text-align:left}
+.st-menu button:hover{background:var(--soft)}.st-menu button:disabled{opacity:.35}.st-menu button.live svg{color:var(--orange)}
+.stories:has(.st-menu){overflow:visible}
 </style>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
@@ -354,14 +370,14 @@ img,video{max-width:100%;display:block}
 .lifebar::before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;border-radius:2px;background:var(--line)}
 .lifebar::after{content:"";position:absolute;right:0;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:54% 46% 56% 44%/48% 55% 45% 52%;background:var(--line)}
 .lifebar>*{position:relative;z-index:1}.lifebar i{height:3px;border-radius:2px;background:var(--orange);transition:flex .25s linear}
-.lifebar span.orb{position:relative;width:35px;height:35px;padding:0;justify-content:center;gap:1px;background:none;border-radius:0;margin-left:-2px;text-shadow:none}
-.lifebar span.orb>em{position:absolute;inset:0;z-index:0;border-radius:52% 44% 56% 42%/46% 55% 45% 54%;background:var(--orange);animation:morph 9s ease-in-out infinite,blob 5.6s ease-in-out infinite,orbspin 14s linear infinite}
+.edge-t span.orb{position:relative;width:35px;height:35px;padding:0;justify-content:center;gap:1px;background:none;border-radius:0;margin-left:-2px;text-shadow:none}
+.edge-t span.orb>em{position:absolute;inset:0;z-index:0;border-radius:52% 44% 56% 42%/46% 55% 45% 54%;background:var(--orange);animation:morph 9s ease-in-out infinite,blob 5.6s ease-in-out infinite,orbspin 14s linear infinite}
 @keyframes orbspin{to{rotate:360deg}}
 @keyframes orbflow{0%,100%{border-radius:52% 44% 56% 42%/46% 55% 45% 54%}25%,75%{border-radius:50%}50%{border-radius:42% 56% 44% 54%/55% 45% 54% 46%}}
-.lifebar span.orb>svg,.lifebar span.orb>b{position:relative;z-index:1}
-.lifebar span.orb>b{font-family:var(--display);font-weight:800;font-size:8.5px;letter-spacing:-.04em}
+.edge-t span.orb>svg,.edge-t span.orb>b{position:relative;z-index:1}
+.edge-t span.orb>b{font-family:var(--display);font-weight:800;font-size:8.5px;letter-spacing:-.04em}
 @keyframes orbtick{0.000%{transform:rotate(0deg)}3.500%{transform:rotate(30deg)}8.333%{transform:rotate(30deg)}11.833%{transform:rotate(60deg)}16.667%{transform:rotate(60deg)}20.167%{transform:rotate(90deg)}25.000%{transform:rotate(90deg)}28.500%{transform:rotate(120deg)}33.333%{transform:rotate(120deg)}36.833%{transform:rotate(150deg)}41.667%{transform:rotate(150deg)}45.167%{transform:rotate(180deg)}50.000%{transform:rotate(180deg)}53.500%{transform:rotate(210deg)}58.333%{transform:rotate(210deg)}61.833%{transform:rotate(240deg)}66.667%{transform:rotate(240deg)}70.167%{transform:rotate(270deg)}75.000%{transform:rotate(270deg)}78.500%{transform:rotate(300deg)}83.333%{transform:rotate(300deg)}86.833%{transform:rotate(330deg)}91.667%{transform:rotate(330deg)}95.167%{transform:rotate(360deg)}100%{transform:rotate(360deg)}}
-.lifebar span{display:inline-flex;align-items:center;gap:2px;background:var(--orange);color:#fff;--r:8px;border-radius:var(--r);padding:1px 6px;font-size:9.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap} .life.frozen{background:var(--ink)}
+.edge-t span{display:inline-flex;align-items:center;gap:2px;background:var(--orange);color:#fff;--r:8px;border-radius:var(--r);padding:1px 6px;font-size:9.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap} .life.frozen{background:var(--ink)}
 .p-actions{display:flex;align-items:center;gap:6px;margin-top:12px}
 .react{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;--r:15px;border-radius:var(--r);background:var(--soft);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;transition:background .2s,color .2s,transform .15s;animation:squish 9s ease-in-out -3s infinite}
 .react:active{transform:scale(.94)}
@@ -1182,10 +1198,10 @@ html.blackout{--orange:#0a0a0a;--orange-2:#3a3a3a;--orange-3:#8a8a8a;--on-orange
 @media (prefers-color-scheme:dark){html.blackout:not([data-theme="light"]){--orange:#fff;--orange-2:#cfcfcf;--orange-3:#7a7a7a;--on-orange:#000;--orb:#fff}}
 html.blackout[data-theme="dark"]{--orange:#fff;--orange-2:#cfcfcf;--orange-3:#7a7a7a;--on-orange:#000;--orb:#fff}
 html.blackout .btn.orange{color:var(--on-orange);text-shadow:none}
-html.blackout .verified,html.blackout .lifebar span,html.blackout .n-ico,html.blackout .seg .cnt,html.blackout .off,html.blackout .ed-ok,html.blackout .tool-rec,html.blackout .voice.mine,html.blackout .live-mic.on{color:var(--on-orange)!important}
+html.blackout .verified,html.blackout .edge-t span,html.blackout .n-ico,html.blackout .seg .cnt,html.blackout .off,html.blackout .ed-ok,html.blackout .tool-rec,html.blackout .voice.mine,html.blackout .live-mic.on{color:var(--on-orange)!important}
 
-html.blackout .lifebar span.orb>svg,html.blackout .lifebar span.orb>b{color:var(--on-orange);fill:var(--on-orange)}
-html.blackout .lifebar span.orb>b{color:var(--on-orange)}
+html.blackout .edge-t span.orb>svg,html.blackout .edge-t span.orb>b{color:var(--on-orange);fill:var(--on-orange)}
+html.blackout .edge-t span.orb>b{color:var(--on-orange)}
 .gl-tap .lk-flame{filter:drop-shadow(0 0 10px rgba(255,90,0,.7))}
 .gl-streak{position:absolute;right:12px;top:42%;z-index:5;display:grid;justify-items:center;gap:4px;background:rgba(0,0,0,.45);--r:16px;border-radius:var(--r);padding:8px 8px 10px;pointer-events:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:gbin .25s ease}
 .gl-streak b{font-family:var(--display);font-size:20px;letter-spacing:-.04em;animation:gbn .25s cubic-bezier(.2,1.8,.4,1)}
@@ -1588,6 +1604,7 @@ const P={
   phone:'<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M10.5 18.5h3"/>',
   edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   bell:'<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
+  live:'<circle cx="12" cy="12" r="2"/><path d="M8.2 15.8a5.4 5.4 0 0 1 0-7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.4 18.6a9.3 9.3 0 0 1 0-13.2M18.6 5.4a9.3 9.3 0 0 1 0 13.2"/>',
   eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -1958,9 +1975,9 @@ function reducer(s,a){
   const settle=n=>{
     if(n.status==='gone'||n.status==='kept'||n.kept||n.reel)return n;
     if(n.status==='burning'&&n.heat>=5&&n.heat>=n.freeze*2)return {...n,status:'normal',burnEnds:null,kept:true};
-    if(n.status!=='burning'&&n.freeze>n.heat)return {...n,status:'burning',burnEnds:s.now+DAY};
     return n};
-  const ignite=p=>{const n=settle({...p,heat:p.heat+1});return n.status==='burning'&&p.status==='burning'?{...n,burnEnds:Math.max(s.now+6e5,n.burnEnds-36e5)}:n};
+  // every take has 24h from posting; only heat (double the freezes, 5+) saves it
+  const ignite=p=>settle({...p,heat:p.heat+1});
   switch(a.type){
     case 'tick':{
       if(a.paused) return s;
@@ -2399,9 +2416,32 @@ function Post({p,s,dispatch,open}){
       </div>
     </div>
     ${top&&!frozen&&html`<button className="p-comments" onClick=${()=>open.comments(p.id)}><b>${s.users[top.userId].handle}</b> ${top.sticker?stickerLabel(top.sticker):top.text}${cs.length>1?' · View all '+cs.length:''}</button>`}
-    ${live&&(()=>{const left=Math.max(0,p.burnEnds-s.now),h=Math.floor(left/36e5),m=Math.floor(left%36e5/6e4);const lbl=h?h+'h':'<1h';
-      return html`<div className="lifebar" aria-label=${'Freezing, '+lbl+' left to heat up'}><i style=${{flex:Math.max(.001,pct)}}></i><span className="orb" data-tour=${p.tour?'state-'+p.tour:null} style=${{'--od':-(Date.now()%12000)+'ms'}}><em></em><${Icon} n="flame" s=${7} w=${2.6}/><b>${lbl}</b></span><b style=${{flex:1-Math.max(.001,pct)}}></b></div>`})()}
+    ${live&&p.status==='burning'&&html`<${EdgeTimer} p=${p} now=${s.now} r=${p.kept&&(p.reposts>0||p.quoteOf)?30:26}/>`}
   </article>`;
+}
+
+// the 24h timer as a line around the card's edge: starts at the top centre, runs clockwise, drains back as time runs out; the orb rides the end
+function EdgeTimer({p,now,r}){
+  const ref=useRef();const [sz,setSz]=useState(null);
+  useLayoutEffect(()=>{const el=ref.current&&ref.current.parentElement;if(!el)return;const m=()=>{const w=el.offsetWidth,h=el.offsetHeight;setSz(o=>o&&o.w===w&&o.h===h?o:{w,h})};m();
+    const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(m):null;ro&&ro.observe(el);return()=>ro&&ro.disconnect()},[]);
+  const left=Math.max(0,p.burnEnds-now),pct=Math.max(.002,Math.min(1,left/DAY)),hh=Math.floor(left/36e5),lbl=hh?hh+'h':'<1h';
+  let body=null;
+  if(sz){const i=1.5,W=sz.w-3,H=sz.h-3,R=Math.max(0,Math.min(r-i,W/2,H/2));
+    const per=2*(W-2*R)+2*(H-2*R)+2*Math.PI*R,len=per*pct;
+    const d=`M ${i+W/2} ${i} H ${i+W-R} A ${R} ${R} 0 0 1 ${i+W} ${i+R} V ${i+H-R} A ${R} ${R} 0 0 1 ${i+W-R} ${i+H} H ${i+R} A ${R} ${R} 0 0 1 ${i} ${i+H-R} V ${i+R} A ${R} ${R} 0 0 1 ${i+R} ${i} Z`;
+    // the point at len along that path
+    const at=dist=>{const arcs=[[i+W-R,i+R,-Math.PI/2],[i+W-R,i+H-R,0],[i+R,i+H-R,Math.PI/2],[i+R,i+R,Math.PI]];
+      const segs=[['x',1,W/2-R],['a',0],['y',1,H-2*R],['a',1],['x',-1,W-2*R],['a',2],['y',-1,H-2*R],['a',3],['x',1,W/2-R]];
+      let x=i+W/2,y=i,rem=dist;
+      for(const sg of segs){const L=sg[0]==='a'?Math.PI/2*R:sg[2];
+        if(rem<=L){if(sg[0]==='x')return{x:x+sg[1]*rem,y};if(sg[0]==='y')return{x,y:y+sg[1]*rem};const [cx,cy,a0]=arcs[sg[1]];const a=a0+(R?rem/R:0);return{x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)}}
+        rem-=L;if(sg[0]==='x')x+=sg[1]*L;else if(sg[0]==='y')y+=sg[1]*L;else{const [cx,cy,a0]=arcs[sg[1]];x=cx+R*Math.cos(a0+Math.PI/2);y=cy+R*Math.sin(a0+Math.PI/2)}}
+      return{x,y}};
+    const pt=at(len);
+    body=html`<svg width=${sz.w} height=${sz.h}><path d=${d} className="et-track"/><path d=${d} className="et-line" style=${{strokeDasharray:len+' '+per}}/></svg>
+      <span className="orb" style=${{left:pt.x-17.5+'px',top:pt.y-17.5+'px','--od':-(Date.now()%12000)+'ms'}}><em></em><${Icon} n="flame" s=${7} w=${2.6}/><b>${lbl}</b></span>`}
+  return html`<div className="edge-t" ref=${ref} aria-label=${lbl+' left'}>${body}</div>`;
 }
 
 /* ---------- stories ---------- */
@@ -2439,17 +2479,21 @@ function StoryDraft({draft,onPost,onClose}){
   </div>`;
 }
 function StoriesRow({s,open,addStory}){
-  const mine=s.stories.find(x=>x.userId==='me');
+  const mine=s.stories.find(x=>x.userId==='me');const [menu,setMenu]=useState(false);
   const others=s.stories.filter(x=>x.userId!=='me'&&!s.blocked[x.userId]);
   const unseen=st=>st.items.some(i=>!s.seen[i.id]);
   const sorted=[...others].sort((a,b)=>unseen(b)-unseen(a));
   return html`<div className="stories" aria-label="Stories" data-tour="stories">
     <div className="story">
-      ${(()=>{const store=false;return html`<button className=${'orb'+(s.storyUploading?' uploading':mine?'':' seen')} onClick=${()=>mine?open.story('me'):addStory()} aria-label=${s.storyUploading?'Your story is uploading':mine?'Your story':'Add to your story'}>
+      ${(()=>{const store=false;return html`<button className=${'orb'+(s.storyUploading?' uploading':mine?'':' seen')} onClick=${()=>s.storyUploading?null:setMenu(m=>!m)} aria-label=${s.storyUploading?'Your story is uploading':'Your story options'} aria-expanded=${menu}>
         ${store?html`<${Avatar} u=${s.users.me} size=${74}/>`:html`<${Avatar} u=${s.users.me} size=${64} noRing=${true}/>`}
         ${s.storyUploading?html`<span className="up-spin" aria-hidden="true"></span>`:null}
         <span className="add" role="button" aria-label="Add to your story" onClick=${e=>{e.stopPropagation();addStory()}}><${Icon} n="plus" s=${12} w=${3.2}/></span>
-      </button>`})()}<span>${s.storyUploading?'Posting…':'Your story'}</span></div>
+      </button>`})()}<span>${s.storyUploading?'Posting…':'Your story'}</span>
+      ${menu&&html`<div className="st-menu-veil" onClick=${()=>setMenu(false)}></div><div className="st-menu" role="menu">
+        <button role="menuitem" className="live" onClick=${()=>{setMenu(false);getApp('Going live is in the app')}}><${Icon} n="live" s=${20} w=${2}/>Go live</button>
+        <button role="menuitem" onClick=${()=>{setMenu(false);addStory()}}><${Icon} n="plus" s=${20} w=${2.2}/>Post a story</button>
+        <button role="menuitem" disabled=${!mine} onClick=${()=>{setMenu(false);open.story('me')}}><${Icon} n="eye" s=${20} w=${2}/>View story</button></div>`}</div>
     ${sorted.map(st=>{const u=s.users[st.userId];return html`<div className="story" key=${st.userId}>
       <button className=${'orb'+(unseen(st)?'':' seen')} onClick=${()=>open.story(st.userId)} aria-label=${'Story from @'+u.handle}><${Avatar} u=${u} size=${64} noRing=${true}/></button>
       <span>${u.handle}</span></div>`})}
